@@ -48,7 +48,7 @@ class RegisterViewModel extends GetxController {
   }
 
   Future<http.Response> _performRegistration() async {
-    final url = Uri.parse('http://localhost:8000/register');
+    final url = Uri.parse('http://192.168.45.87:8000/register');
     final user = UserModel(
       email: email.value,
       password: password.value,

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:latlong2/latlong.dart';
 import '../models/bus_model.dart';
 
-class BusMapViewModel extends GetxController {
+class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();
   final markers = RxList<Marker>([]);
   final selectedRoute = "900_UP".obs;
@@ -16,14 +16,34 @@ class BusMapViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this); // 앱 상태 감지 추가
     ever(selectedRoute, (_) => fetchBusData());
     fetchBusData().then((_) => _startTimer());
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this); //앱 상태 감지 제거
+    _stopTimer();
+    super.onClose();
+  }
+
+  ///앱 상태 감지
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      print("백그라운드로 이동. -> 타이머 중지");
+      _stopTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      print("앱 활성화됨. -> 타이머 재개");
+      _startTimer();
+    }
   }
 
   Future<void> fetchBusData() async {
     try {
       final url =
-          Uri.parse('http://127.0.0.1:8000/buses/${selectedRoute.value}');
+      Uri.parse('http://192.168.45.87:8000/buses/${selectedRoute.value}');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -40,7 +60,15 @@ class BusMapViewModel extends GetxController {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) => fetchBusData());
+    _stopTimer(); //타이머 초기화(중복x)
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchBusData());
+  }
+
+  void _stopTimer() {
+    if (_timer != null) {
+      _timer!.cancel();
+      _timer = null;
+    }
   }
 
   void updateBusMarkers(List<Bus> busList) {
