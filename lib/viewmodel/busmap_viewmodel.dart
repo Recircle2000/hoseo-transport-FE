@@ -1,85 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:async';
 import 'package:latlong2/latlong.dart';
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../models/bus_model.dart';
 
 class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();
   final markers = RxList<Marker>([]);
   final selectedRoute = "900_UP".obs;
-  Timer? _timer;
+  late WebSocketChannel channel;
 
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this); // 앱 상태 감지 추가
-    ever(selectedRoute, (_) => fetchBusData());
-    fetchBusData().then((_) => _startTimer());
+    _connectWebSocket();
   }
 
   @override
   void onClose() {
-    WidgetsBinding.instance.removeObserver(this); //앱 상태 감지 제거
-    _stopTimer();
+    WidgetsBinding.instance.removeObserver(this); // 앱 상태 감지 제거
+    _disconnectWebSocket();
     super.onClose();
   }
 
-  ///앱 상태 감지
+  /// 앱 상태 감지
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      print("백그라운드로 이동. -> 타이머 중지");
-      _stopTimer();
+      print("백그라운드로 이동 -> 웹소켓 연결 해제");
+      _disconnectWebSocket();
     } else if (state == AppLifecycleState.resumed) {
-      print("앱 활성화됨. -> 타이머 재개");
-      _startTimer();
+      print("앱 활성화 -> 웹소켓 재연결");
+      _connectWebSocket();
     }
   }
 
-  Future<void> fetchBusData() async {
+  /// 웹소켓 연결 함수
+  void _connectWebSocket() {
+    _disconnectWebSocket(); // 기존 연결 초기화
     try {
-      final url =
-      Uri.parse('http://192.168.45.87:8000/buses/${selectedRoute.value}');
-      final response = await http.get(url);
+      channel = WebSocketChannel.connect(
+        //Uri.parse("ws://192.168.45.87:8000/ws/bus"), // 서버 주소
+        Uri.parse("ws://127.0.0.1:8000/ws/bus"),
+      );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        updateBusMarkers((data[selectedRoute.value] as List)
-            .map((e) => Bus.fromJson(e))
-            .toList());
-      } else {
-        print('Failed to load bus data');
-      }
+      channel.stream.listen((event) {
+        final data = jsonDecode(event);
+        if (data.containsKey(selectedRoute.value)) {
+          final busList = (data[selectedRoute.value] as List)
+              .map((e) => Bus.fromJson(e))
+              .toList();
+          updateBusMarkers(busList);
+        }
+      }, onError: (error) {
+        print("WebSocket Error: $error");
+        Fluttertoast.showToast(
+          msg: "서버 연결 오류: $error",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      }, onDone: () {
+        print("WebSocket Closed");
+        Fluttertoast.showToast(
+          msg: "웹소켓 연결 종료",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      });
     } catch (e) {
-      print('Server connection error: $e');
+      print("WebSocket Connection Error: $e");
+      Fluttertoast.showToast(
+        msg: "웹소켓 연결 실패: $e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
     }
   }
 
-  void _startTimer() {
-    _stopTimer(); //타이머 초기화(중복x)
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchBusData());
-  }
-
-  void _stopTimer() {
-    if (_timer != null) {
-      _timer!.cancel();
-      _timer = null;
+  /// 웹소켓 연결 해제 함수
+  void _disconnectWebSocket() {
+    try {
+      channel.sink.close();
+      print("WebSocket Closed");
+    } catch (e) {
+      print("WebSocket Close Error: $e");
     }
   }
 
+  /// 버스 마커 업데이트
   void updateBusMarkers(List<Bus> busList) {
     final newMarkers = busList.map((bus) {
       return Marker(
         width: 80.0,
         height: 80.0,
         point: LatLng(bus.latitude, bus.longitude),
-        child: Column(
+        child:  Column(
           children: [
-            const Icon(Icons.directions_bus, color: Colors.red, size: 40),
+            const Icon(Icons.directions_bus, color: Colors.blue, size: 40),
             Container(
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
