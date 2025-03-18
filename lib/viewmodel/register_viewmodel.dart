@@ -48,7 +48,7 @@ class RegisterViewModel extends GetxController {
   }
 
   Future<http.Response> _performRegistration() async {
-    final url = Uri.parse('http://192.168.45.87:8000/register');
+    final url = Uri.parse('http://10.0.2.2:8000/register');
     final user = UserModel(
       email: email.value,
       password: password.value,
@@ -65,7 +65,12 @@ class RegisterViewModel extends GetxController {
     if (response.statusCode == 200) {
       Get.snackbar('성공', '회원가입이 완료되었습니다.');
       Get.offAll(() => HomeView());
-    } else {
+    } else if(response.statusCode == 400) {
+      final error = jsonDecode(response.body)['message'] ?? '이미 존재하는 이메일입니다.';
+      errorMessage.value = error;
+      Get.snackbar('이미 존재하는 이메일입니다.', error);
+    }
+    else{
       final error = jsonDecode(response.body)['message'] ?? '회원가입에 실패했습니다.';
       errorMessage.value = error;
       Get.snackbar('실패', error);

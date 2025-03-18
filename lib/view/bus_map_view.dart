@@ -33,6 +33,9 @@ import 'package:flutter/material.dart';
                       onChanged: (value) {
                         if (value != null) {
                           controller.selectedRoute.value = value;
+                          controller.fetchRouteData();
+                          controller.fetchStationData();
+                          controller.resetConnection();
                         }
                       },
                     )),
@@ -52,6 +55,12 @@ import 'package:flutter/material.dart';
                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.example.app',
                           ),
+                          Obx(() => PolylineLayer(
+                            polylines: controller.polylines.toList(),
+                          )),
+                          Obx(() => MarkerLayer(
+                            markers: controller.stationMarkers.toList(),  // 정류장 마커 레이어 추가
+                          )),
                           Obx(() {
                             return MarkerLayer(
                               markers: controller.markers.toList(),
