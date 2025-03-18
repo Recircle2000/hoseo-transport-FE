@@ -53,7 +53,8 @@ class LoginViewModel extends GetxController {
   }
 
   Future<http.Response> _performLogin() async {
-    final url = Uri.parse('http://127.0.0.1:8000/login');
+    final url = Uri.parse(_getloginUrl());
+    //10.0.2.2
     return await http.post(
       url,
       body: jsonEncode({
@@ -124,5 +125,13 @@ class LoginViewModel extends GetxController {
   void _handleError(String message) {
     errorMessage.value = message;
     Get.snackbar('오류', message);
+  }
+}
+
+String _getloginUrl() {
+  if (GetPlatform.isAndroid) {
+    return "http://10.0.2.2:8000/login";
+  } else {
+    return "http://127.0.0.1:8000/login";
   }
 }

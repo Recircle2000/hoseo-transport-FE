@@ -5,11 +5,14 @@ import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/services.dart';
 import '../models/bus_model.dart';
 
 class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();
   final markers = RxList<Marker>([]);
+  final stationMarkers = RxList<Marker>([]);  // 🚀 정류장 마커 추가
+  final polylines = RxList<Polyline>([]);
   final selectedRoute = "900_UP".obs;
   late WebSocketChannel channel;
 
@@ -18,6 +21,8 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     super.onInit();
     WidgetsBinding.instance.addObserver(this); // 앱 상태 감지 추가
     _connectWebSocket();
+    fetchRouteData();  // 초기 경로 데이터 로드
+    fetchStationData();  // 초기 정류장 데이터 로드
   }
 
   @override
@@ -43,18 +48,26 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   void _connectWebSocket() {
     _disconnectWebSocket(); // 기존 연결 초기화
     try {
-      channel = WebSocketChannel.connect(
-        //Uri.parse("ws://192.168.45.87:8000/ws/bus"), // 서버 주소
-        Uri.parse("ws://127.0.0.1:8000/ws/bus"),
-      );
+     // final wsUrl = _getWebSocketUrl();
+      channel = WebSocketChannel.connect(Uri.parse(_getWebSocketUrl()));
 
       channel.stream.listen((event) {
+        print('WebSocket received raw data: $event');
         final data = jsonDecode(event);
-        if (data.containsKey(selectedRoute.value)) {
+        print('Current selected route: ${selectedRoute.value}');
+
+        // 선택된 루트가 json 데이터에 포함되어 있는 경우에만 마커 업데이트
+        if (data.containsKey(selectedRoute.value) &&
+            data[selectedRoute.value] is List &&
+            (data[selectedRoute.value] as List).isNotEmpty) {
+          print('Found ${(data[selectedRoute.value] as List).length} buses for route ${selectedRoute.value}');
           final busList = (data[selectedRoute.value] as List)
               .map((e) => Bus.fromJson(e))
               .toList();
           updateBusMarkers(busList);
+        } else {
+          print('No data found for route ${selectedRoute.value} - clearing markers');
+          markers.clear(); //마커 클리어
         }
       }, onError: (error) {
         print("WebSocket Error: $error");
@@ -91,18 +104,97 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     }
   }
 
+  /// 버스 경로 데이터 불러오기
+  Future<void> fetchRouteData() async {
+    try {
+      final geoJsonFile = 'assets/routes/${selectedRoute.value}.json';
+      final geoJsonData = await rootBundle.loadString(geoJsonFile);
+      final geoJson = jsonDecode(geoJsonData);
+
+      final coordinates = geoJson['features'][0]['geometry']['coordinates'];
+      final polylinePoints = coordinates
+          .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+          .toList();
+
+      updatePolyline(polylinePoints);
+    } catch (e) {
+      print("경로 데이터를 불러오는 중 오류 발생: $e");
+      Fluttertoast.showToast(
+        msg: "경로 데이터를 불러올 수 없습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
+  }
+
+  /// 🚏 정류장 데이터 불러오기
+  Future<void> fetchStationData() async {
+    try {
+      final geoJsonFile = 'assets/routes/${selectedRoute.value}.json';
+      final geoJsonData = await rootBundle.loadString(geoJsonFile);
+      final geoJson = jsonDecode(geoJsonData);
+
+      final features = geoJson['features'] as List;
+      final stopMarkers = features.where((feature) {
+        // 정류장인지 확인: geometry 타입이 "Point"인 경우
+        return feature['geometry']['type'] == 'Point';
+      }).map((feature) {
+        final coords = feature['geometry']['coordinates'];
+        final label = feature['properties']['label'] ?? "정류장";
+        return Marker(
+          width: 60.0,
+          height: 60.0,
+          point: LatLng(coords[1], coords[0]), // 위도, 경도
+          child: Column(
+            children: [
+              const Icon(Icons.location_on, color: Colors.blueAccent, size: 30),
+              // Container(
+              //   padding: const EdgeInsets.all(2),
+              //   decoration: BoxDecoration(
+              //     color: Colors.white.withOpacity(0.8),
+              //     borderRadius: BorderRadius.circular(4),
+              //   ),
+              //   child: Text(
+              //     label,
+              //     style: const TextStyle(
+              //       color: Colors.black,
+              //       fontWeight: FontWeight.bold,
+              //       fontSize: 10,
+              //     ),
+              //   ),
+              // ),
+            ],
+          ),
+        );
+      }).toList();
+
+      stationMarkers.assignAll(stopMarkers);
+    } catch (e) {
+      print("정류장 데이터를 불러오는 중 오류 발생: $e");
+      Fluttertoast.showToast(
+        msg: "정류장 데이터를 불러올 수 없습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
+  }
+
   /// 버스 마커 업데이트
   void updateBusMarkers(List<Bus> busList) {
+    if (busList.isEmpty) {
+      markers.clear();  // Clear all markers if no bus data
+      return;
+    }
     final newMarkers = busList.map((bus) {
       return Marker(
         width: 80.0,
         height: 80.0,
         point: LatLng(bus.latitude, bus.longitude),
-        child:  Column(
+        child: Column(
           children: [
-            const Icon(Icons.directions_bus, color: Colors.blue, size: 40),
+            const Icon(Icons.directions_bus, color: Colors.indigo, size: 40),
             Container(
-              padding: const EdgeInsets.all(2),
+              padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(4),
@@ -112,7 +204,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ),
@@ -122,5 +214,27 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     }).toList();
 
     markers.assignAll(newMarkers);
+  }
+  void resetConnection() {
+    _disconnectWebSocket();
+    _connectWebSocket();
+  }
+  /// 경로 폴리라인 업데이트
+  void updatePolyline(List<LatLng> points) {
+    polylines.assignAll([
+      Polyline(
+        points: points,
+        strokeWidth: 6.0,
+        color: Colors.blueAccent,
+      ),
+    ]);
+  }
+}
+
+String _getWebSocketUrl() {
+  if (GetPlatform.isAndroid) {
+    return "ws://10.0.2.2:8000/ws/bus";
+  } else {
+    return "ws://127.0.0.1:8000/ws/bus";
   }
 }
