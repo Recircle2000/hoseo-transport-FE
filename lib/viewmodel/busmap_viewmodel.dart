@@ -52,9 +52,10 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
       channel = WebSocketChannel.connect(Uri.parse(_getWebSocketUrl()));
 
       channel.stream.listen((event) {
-        print('WebSocket received raw data: $event');
+
         final data = jsonDecode(event);
         print('Current selected route: ${selectedRoute.value}');
+        print('WebSocket received data: $data');
 
         // 선택된 루트가 json 데이터에 포함되어 있는 경우에만 마커 업데이트
         if (data.containsKey(selectedRoute.value) &&
@@ -233,7 +234,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 
 String _getWebSocketUrl() {
   if (GetPlatform.isAndroid) {
-    return "ws://10.0.2.2:8000/ws/bus";
+    return "ws://192.168.45.97:8000/ws/bus";
   } else {
     return "ws://127.0.0.1:8000/ws/bus";
   }
