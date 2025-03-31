@@ -1,39 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'view/login_view.dart';
-import 'view/home_view.dart';
+          import 'package:get/get.dart';
+          import 'view/home_view.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();  // 비동기 작업을 위해 필요
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'University Transport App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: FutureBuilder<bool>(
-        future: checkAutoLogin(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());  // 로딩 화면
-          } else {
-            return snapshot.data == true ? HomeView() : LoginView();
+          void main() async {
+            WidgetsFlutterBinding.ensureInitialized();
+            runApp(MyApp());
           }
-        },
-      ),
-    );
-  }
 
-  /// 자동 로그인 여부 확인
-  Future<bool> checkAutoLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isLoggedIn') ?? false;
-  }
-}
+          class MyApp extends StatelessWidget {
+            @override
+            Widget build(BuildContext context) {
+              return GetMaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'University Transport App',
+                theme: ThemeData(
+                  primaryColor: Colors.white,
+                  scaffoldBackgroundColor: Colors.white,
+                  appBarTheme: const AppBarTheme(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    iconTheme: IconThemeData(color: Colors.black),
+                    titleTextStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.white,
+                    background: Colors.white,
+                  ),
+                  useMaterial3: true,
+                ),
+                darkTheme: ThemeData(
+                  primaryColor: Colors.grey[900],
+                  scaffoldBackgroundColor: Colors.grey[900],
+                  appBarTheme: AppBarTheme(
+                    backgroundColor: Colors.grey[900],
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    iconTheme: const IconThemeData(color: Colors.white),
+                    titleTextStyle: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.grey[900]!,
+                    background: Colors.grey[900]!,
+                    brightness: Brightness.dark,
+                  ),
+                  textTheme: Typography.whiteMountainView,
+                  useMaterial3: true,
+                ),
+                themeMode: ThemeMode.system, // 시스템 설정에 따라 테마 변경
+                home: HomeView(),
+              );
+            }
+          }

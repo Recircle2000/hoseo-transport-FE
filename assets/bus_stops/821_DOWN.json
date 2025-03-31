@@ -1,0 +1,404 @@
+{
+    "response": {
+        "header": {
+            "resultCode": "00",
+            "resultMsg": "NORMAL SERVICE."
+        },
+        "body": {
+            "items": {
+                "item": [
+                    {
+                        "gpslati": 36.73836,
+                        "gpslong": 127.0771,
+                        "nodeid": "ASB288001673",
+                        "nodenm": "호서대학교 기점",
+                        "nodeno": 1673,
+                        "nodeord": 1,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7403,
+                        "gpslong": 127.0765,
+                        "nodeid": "ASB288001671",
+                        "nodenm": "호서대학교",
+                        "nodeno": 1671,
+                        "nodeord": 2,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.73742,
+                        "gpslong": 127.0824,
+                        "nodeid": "ASB288001594",
+                        "nodenm": "세출리 세나리펄",
+                        "nodeno": 1594,
+                        "nodeord": 3,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7362207,
+                        "gpslong": 127.0844077,
+                        "nodeid": "ASB288000927",
+                        "nodenm": "삼태리 종점",
+                        "nodeno": 927,
+                        "nodeord": 4,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7369821,
+                        "gpslong": 127.089511,
+                        "nodeid": "ASB288000935",
+                        "nodenm": "원당",
+                        "nodeno": 935,
+                        "nodeord": 5,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7395149,
+                        "gpslong": 127.0920289,
+                        "nodeid": "ASB288000937",
+                        "nodenm": "삼태2리",
+                        "nodeno": 937,
+                        "nodeord": 6,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7458037,
+                        "gpslong": 127.1000239,
+                        "nodeid": "ASB288000939",
+                        "nodenm": "용정1리",
+                        "nodeno": 939,
+                        "nodeord": 7,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7493903,
+                        "gpslong": 127.0964251,
+                        "nodeid": "ASB288000941",
+                        "nodenm": "삼태1리",
+                        "nodeno": 941,
+                        "nodeord": 8,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.75665306,
+                        "gpslong": 127.09573735,
+                        "nodeid": "ASB288000934",
+                        "nodenm": "갈매2리",
+                        "nodeno": 934,
+                        "nodeord": 9,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7626948,
+                        "gpslong": 127.088434,
+                        "nodeid": "ASB288000930",
+                        "nodenm": "갈매보건지소",
+                        "nodeno": 930,
+                        "nodeord": 10,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7646881,
+                        "gpslong": 127.0848379,
+                        "nodeid": "ASB288001592",
+                        "nodenm": "갈매1리 암소개",
+                        "nodeno": 1592,
+                        "nodeord": 11,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7669565,
+                        "gpslong": 127.0813276,
+                        "nodeid": "ASB288010777",
+                        "nodenm": "갈매리입구",
+                        "nodeno": 10777,
+                        "nodeord": 12,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77193,
+                        "gpslong": 127.0819,
+                        "nodeid": "ASB288001645",
+                        "nodenm": "자이1차아파트",
+                        "nodeno": 1645,
+                        "nodeord": 13,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77597,
+                        "gpslong": 127.082,
+                        "nodeid": "ASB288001649",
+                        "nodenm": "배방롯데캐슬아파트 후문 건너",
+                        "nodeno": 1649,
+                        "nodeord": 14,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.78894,
+                        "gpslong": 127.084844,
+                        "nodeid": "ASB288010009",
+                        "nodenm": "탕정역건너",
+                        "nodeno": 10009,
+                        "nodeord": 15,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.79096,
+                        "gpslong": 127.0822,
+                        "nodeid": "ASB288010724",
+                        "nodenm": "매곡1리마을회관 건너",
+                        "nodeno": 10724,
+                        "nodeord": 16,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.79182,
+                        "gpslong": 127.078,
+                        "nodeid": "ASB288010926",
+                        "nodenm": "소룡골",
+                        "nodeno": 10926,
+                        "nodeord": 17,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.79248139,
+                        "gpslong": 127.06767235,
+                        "nodeid": "ASB288001501",
+                        "nodenm": "갈산2리 여술",
+                        "nodeno": 1501,
+                        "nodeord": 18,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.78601306,
+                        "gpslong": 127.06637402,
+                        "nodeid": "ASB288002203",
+                        "nodenm": "여술삼거리",
+                        "nodeno": 2203,
+                        "nodeord": 19,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7829714,
+                        "gpslong": 127.0640891,
+                        "nodeid": "ASB288002157",
+                        "nodenm": "도리못",
+                        "nodeno": 2157,
+                        "nodeord": 20,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.78013137,
+                        "gpslong": 127.06365235,
+                        "nodeid": "ASB288002134",
+                        "nodenm": "배방장례식장",
+                        "nodeno": 2134,
+                        "nodeord": 21,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7765973,
+                        "gpslong": 127.0639011,
+                        "nodeid": "ASB288010242",
+                        "nodenm": "독자기",
+                        "nodeno": 10242,
+                        "nodeord": 22,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7753463,
+                        "gpslong": 127.0642152,
+                        "nodeid": "ASB288010739",
+                        "nodenm": "배방환승정류장 남문",
+                        "nodeno": 10739,
+                        "nodeord": 23,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7753,
+                        "gpslong": 127.0609,
+                        "nodeid": "ASB288000962",
+                        "nodenm": "모산",
+                        "nodeno": 962,
+                        "nodeord": 24,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77478,
+                        "gpslong": 127.0574,
+                        "nodeid": "ASB288000963",
+                        "nodenm": "오류동 아산세무서 건너",
+                        "nodeno": 963,
+                        "nodeord": 25,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77433,
+                        "gpslong": 127.0549,
+                        "nodeid": "ASB288000964",
+                        "nodenm": "장호빌딩",
+                        "nodeno": 964,
+                        "nodeord": 26,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77417,
+                        "gpslong": 127.0537,
+                        "nodeid": "ASB288002190",
+                        "nodenm": "배방읍 행정복지센터 건너",
+                        "nodeno": 2190,
+                        "nodeord": 27,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77344802,
+                        "gpslong": 127.04974235,
+                        "nodeid": "ASB288001553",
+                        "nodenm": "배방효성해링턴아파트",
+                        "nodeno": 1553,
+                        "nodeord": 28,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77263136,
+                        "gpslong": 127.04665068,
+                        "nodeid": "ASB288000883",
+                        "nodenm": "공수4리",
+                        "nodeno": 883,
+                        "nodeord": 29,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77225803,
+                        "gpslong": 127.04532068,
+                        "nodeid": "ASB288000880",
+                        "nodenm": "신흥다세대",
+                        "nodeno": 880,
+                        "nodeord": 30,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77279304,
+                        "gpslong": 127.04134068,
+                        "nodeid": "ASB288001490",
+                        "nodenm": "구령1리 건너",
+                        "nodeno": 1490,
+                        "nodeord": 31,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77432,
+                        "gpslong": 127.0341,
+                        "nodeid": "ASB288000946",
+                        "nodenm": "신동",
+                        "nodeno": 946,
+                        "nodeord": 32,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7755,
+                        "gpslong": 127.0292,
+                        "nodeid": "ASB288000953",
+                        "nodenm": "모종2통",
+                        "nodeno": 953,
+                        "nodeord": 33,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7770934,
+                        "gpslong": 127.0226469,
+                        "nodeid": "ASB288001546",
+                        "nodenm": "이마트 아산점 건너",
+                        "nodeno": 1546,
+                        "nodeord": 34,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7788925,
+                        "gpslong": 127.0183325,
+                        "nodeid": "ASB288010499",
+                        "nodenm": "아산충무병원 앞",
+                        "nodeno": 10499,
+                        "nodeord": 35,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77906974,
+                        "gpslong": 127.01594568,
+                        "nodeid": "ASB288000350",
+                        "nodenm": "동신초등학교",
+                        "nodeno": 350,
+                        "nodeord": 36,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.77956139,
+                        "gpslong": 127.01346735,
+                        "nodeid": "ASB288000710",
+                        "nodenm": "온양여중고 입구 건너",
+                        "nodeno": 710,
+                        "nodeord": 37,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.78006805,
+                        "gpslong": 127.01095402,
+                        "nodeid": "ASB288000711",
+                        "nodenm": "송악사거리 건너",
+                        "nodeno": 711,
+                        "nodeord": 38,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7807645,
+                        "gpslong": 127.0072619,
+                        "nodeid": "ASB288000731",
+                        "nodenm": "온양온천초교",
+                        "nodeno": 731,
+                        "nodeord": 39,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7833266,
+                        "gpslong": 127.004901,
+                        "nodeid": "ASB288000744",
+                        "nodenm": "온양온천역 유엘시티",
+                        "nodeno": 744,
+                        "nodeord": 40,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.78588807,
+                        "gpslong": 127.00661068,
+                        "nodeid": "ASB288000737",
+                        "nodenm": "아고사거리 건너",
+                        "nodeno": 737,
+                        "nodeord": 41,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7851399,
+                        "gpslong": 127.0104448,
+                        "nodeid": "ASB288000738",
+                        "nodenm": "한올고등학교 건너",
+                        "nodeno": 738,
+                        "nodeord": 42,
+                        "routeid": "ASB288000333"
+                    },
+                    {
+                        "gpslati": 36.7845353,
+                        "gpslong": 127.0149126,
+                        "nodeid": "ASB288010624",
+                        "nodenm": "고속버스터미널",
+                        "nodeno": 10624,
+                        "nodeord": 43,
+                        "routeid": "ASB288000333"
+                    }
+                ]
+            },
+            "numOfRows": 100,
+            "pageNo": 1,
+            "totalCount": 43
+        }
+    }
+}

@@ -108,7 +108,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   /// 버스 경로 데이터 불러오기
   Future<void> fetchRouteData() async {
     try {
-      final geoJsonFile = 'assets/routes/${selectedRoute.value}.json';
+      final geoJsonFile = 'assets/bus_routes/${selectedRoute.value}.json';
       final geoJsonData = await rootBundle.loadString(geoJsonFile);
       final geoJson = jsonDecode(geoJsonData);
 
@@ -129,56 +129,71 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   }
 
   /// 🚏 정류장 데이터 불러오기
-  Future<void> fetchStationData() async {
-    try {
-      final geoJsonFile = 'assets/routes/${selectedRoute.value}.json';
-      final geoJsonData = await rootBundle.loadString(geoJsonFile);
-      final geoJson = jsonDecode(geoJsonData);
+Future<void> fetchStationData() async {
+  try {
+    final jsonFile = 'assets/bus_stops/${selectedRoute.value}.json';
+    final jsonData = await rootBundle.loadString(jsonFile);
+    final data = jsonDecode(jsonData);
 
-      final features = geoJson['features'] as List;
-      final stopMarkers = features.where((feature) {
-        // 정류장인지 확인: geometry 타입이 "Point"인 경우
-        return feature['geometry']['type'] == 'Point';
-      }).map((feature) {
-        final coords = feature['geometry']['coordinates'];
-        final label = feature['properties']['label'] ?? "정류장";
-        return Marker(
-          width: 60.0,
-          height: 60.0,
-          point: LatLng(coords[1], coords[0]), // 위도, 경도
-          child: Column(
-            children: [
-              const Icon(Icons.location_on, color: Colors.blueAccent, size: 30),
-              // Container(
-              //   padding: const EdgeInsets.all(2),
-              //   decoration: BoxDecoration(
-              //     color: Colors.white.withOpacity(0.8),
-              //     borderRadius: BorderRadius.circular(4),
-              //   ),
-              //   child: Text(
-              //     label,
-              //     style: const TextStyle(
-              //       color: Colors.black,
-              //       fontWeight: FontWeight.bold,
-              //       fontSize: 10,
-              //     ),
-              //   ),
-              // ),
-            ],
+    final stations = data['response']['body']['items']['item'] as List;
+
+    final stopMarkers = stations.map((station) {
+      return Marker(
+        width: 60.0,
+        height: 60.0,
+        point: LatLng(
+          double.parse(station['gpslati'].toString()),
+          double.parse(station['gpslong'].toString()),
+        ),
+        child: GestureDetector(
+          onTap: () => _showStationInfo(station),
+          child: Transform.translate(
+            offset: const Offset(0, -14),  // 아이콘 높이의 절반만큼 위로 이동
+            child: const Icon(
+              Icons.location_on,
+              color: Colors.blueAccent,
+              size: 30,
+            ),
           ),
-        );
-      }).toList();
-
-      stationMarkers.assignAll(stopMarkers);
-    } catch (e) {
-      print("정류장 데이터를 불러오는 중 오류 발생: $e");
-      Fluttertoast.showToast(
-        msg: "정류장 데이터를 불러올 수 없습니다.",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
+        ),
       );
-    }
+    }).toList();
+
+    stationMarkers.assignAll(stopMarkers);
+  } catch (e) {
+    print("정류장 데이터를 불러오는 중 오류 발생: $e");
+    Fluttertoast.showToast(
+      msg: "정류장 데이터를 불러올 수 없습니다.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
   }
+}
+
+void _showStationInfo(Map<String, dynamic> station) {
+  Get.dialog(
+    AlertDialog(
+      title: Text(station['nodenm'] ?? "정류장"),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('정류장 ID: ${station['nodeid'] ?? "없음"}'),
+          const SizedBox(height: 8),
+          Text('정류장 번호: ${station['nodeno'] ?? "없음"}'),
+          const SizedBox(height: 8),
+          Text('정류장 순서: ${station['nodeord'] ?? "없음"}'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: const Text('닫기'),
+        ),
+      ],
+    ),
+  );
+}
 
   /// 버스 마커 업데이트
   void updateBusMarkers(List<Bus> busList) {
@@ -225,7 +240,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     polylines.assignAll([
       Polyline(
         points: points,
-        strokeWidth: 6.0,
+        strokeWidth: 4.0,
         color: Colors.blueAccent,
       ),
     ]);
