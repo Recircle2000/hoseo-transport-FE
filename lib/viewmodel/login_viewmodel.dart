@@ -76,7 +76,7 @@ class LoginViewModel extends GetxController {
       );
 
       await _saveLoginData(token);
-      Get.offAll(() => HomeView());
+      Get.back(); // 로그인 화면으로 돌아가기
     } else {
       _handleError('로그인에 실패했습니다.');
     }
@@ -101,7 +101,6 @@ class LoginViewModel extends GetxController {
             email: savedEmail,
             password: '',
           );
-          Get.offAll(() => HomeView());
         }
       }
     } catch (e) {
