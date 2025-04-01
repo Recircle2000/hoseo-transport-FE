@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
               return GetMaterialApp(
                 debugShowCheckedModeBanner: false,
                 title: 'University Transport App',
+                // lib/main.dart의 theme 부분 수정
                 theme: ThemeData(
                   primaryColor: Colors.white,
                   scaffoldBackgroundColor: Colors.white,
@@ -28,9 +29,37 @@ import 'package:flutter/material.dart';
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
+                  cardTheme: CardTheme(
+                    color: Colors.grey[100],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   colorScheme: ColorScheme.fromSeed(
-                    seedColor: Colors.white,
+                    seedColor: Colors.grey, // 기본 색상
                     background: Colors.white,
+                    surface: Colors.white,
+                    surfaceVariant: Colors.grey[100]!,
+                    onSurfaceVariant: Colors.grey[800]!,
+                    primary: Colors.grey[800]!, // 주요 액센트 색상
+                    onPrimary: Colors.white,
+                    secondary: Colors.grey[600]!, // 보조 색상
+                    onSecondary: Colors.white,
+                    tertiary: Colors.grey[400]!, // 삼차 색상
+                    onTertiary: Colors.black,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.black),
+                      foregroundColor: MaterialStateProperty.all(Colors.white),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
                   useMaterial3: true,
                 ),
@@ -49,10 +78,38 @@ import 'package:flutter/material.dart';
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
+                  cardTheme: CardTheme(
+                    color: Colors.grey[850],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   colorScheme: ColorScheme.fromSeed(
-                    seedColor: Colors.grey[900]!,
+                    seedColor: Colors.grey[900]!, // 기본 색상
                     background: Colors.grey[900]!,
+                    surface: Colors.grey[900]!,
+                    surfaceVariant: Colors.grey[850]!,
+                    onSurfaceVariant: Colors.grey[300]!,
+                    primary: Colors.grey[300]!, // 주요 액센트 색상
+                    onPrimary: Colors.grey[900]!,
+                    secondary: Colors.grey[500]!, // 보조 색상
+                    onSecondary: Colors.black,
+                    tertiary: Colors.grey[600]!, // 삼차 색상
+                    onTertiary: Colors.white,
                     brightness: Brightness.dark,
+                  ),
+                  elevatedButtonTheme: ElevatedButtonThemeData(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      foregroundColor: MaterialStateProperty.all(Colors.black),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   ),
                   textTheme: Typography.whiteMountainView,
                   useMaterial3: true,

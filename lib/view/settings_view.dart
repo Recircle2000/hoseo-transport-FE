@@ -38,6 +38,7 @@ class SettingsView extends StatelessWidget {
                     Obx(() => SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
+                            style: Theme.of(context).elevatedButtonTheme.style,
                             onPressed: controller.isLoggedIn.value
                                 ? controller.logout
                                 : () => Get.to(() => LoginView()),
