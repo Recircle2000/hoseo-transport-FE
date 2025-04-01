@@ -6,10 +6,10 @@ class ShuttleMapView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('셔틀버스 위치'),
+        title: Text('셔틀버스 시간표'),
       ),
       body: Center(
-        child: Text('셔틀버스 위치 정보가 여기에 표시됩니다.'),
+        child: Text('셔틀버스 정보가 여기에 표시됩니다.'),
       ),
     );
   }

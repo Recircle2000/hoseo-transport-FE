@@ -139,8 +139,8 @@ Future<void> fetchStationData() async {
 
     final stopMarkers = stations.map((station) {
       return Marker(
-        width: 60.0,
-        height: 60.0,
+        width: 30.0,
+        height: 30.0,
         point: LatLng(
           double.parse(station['gpslati'].toString()),
           double.parse(station['gpslong'].toString()),
@@ -148,7 +148,7 @@ Future<void> fetchStationData() async {
         child: GestureDetector(
           onTap: () => _showStationInfo(station),
           child: Transform.translate(
-            offset: const Offset(0, -14),  // 아이콘 높이의 절반만큼 위로 이동
+            offset: const Offset(0, -13),  // 아이콘 높이의 절반만큼 위로 이동
             child: const Icon(
               Icons.location_on,
               color: Colors.blueAccent,
@@ -249,7 +249,7 @@ void _showStationInfo(Map<String, dynamic> station) {
 
 String _getWebSocketUrl() {
   if (GetPlatform.isAndroid) {
-    return "ws://192.168.45.97:8000/ws/bus";
+    return "ws://192.168.45.178:8000/ws/bus";
   } else {
     return "ws://127.0.0.1:8000/ws/bus";
   }
