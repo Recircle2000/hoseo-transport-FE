@@ -1,7 +1,7 @@
 // lib/viewmodel/settings_viewmodel.dart
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../view/login_view.dart';
+import '../view/auth/login_view.dart';
 import '../view/home_view.dart';
 
 class SettingsViewModel extends GetxController {

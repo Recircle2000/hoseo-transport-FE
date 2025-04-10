@@ -7,7 +7,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/bus_model.dart';
+import '../models/bus_city_model.dart';
 
 class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();
@@ -24,6 +24,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final Rx<LatLng?> currentLocation = Rx<LatLng?>(null);
   final isLocationEnabled = false.obs;
   final isLocationLoading = false.obs;
+  final selectedTab = 0.obs;
 
   @override
   void onInit() {
@@ -479,7 +480,9 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 String _getWebSocketUrl() {
   if (GetPlatform.isAndroid) {
     return "ws://192.168.45.80:8000/ws/bus";
+  } else if (GetPlatform.isIOS) {
+    return "ws://192.168.45.80:8000/ws/bus";
   } else {
-    return "ws://127.0.0.1:8000/ws/bus";
+    return "ws://127.0.0.1/ws/bus"; // 기본 URL 추가 (선택 사항)
   }
 }
