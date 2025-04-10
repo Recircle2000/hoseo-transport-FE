@@ -7,7 +7,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/bus_model.dart';
+import '../models/bus_city_model.dart';
 
 class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();

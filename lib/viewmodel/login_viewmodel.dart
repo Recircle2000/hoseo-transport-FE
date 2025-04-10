@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../view/home_view.dart';
-import '../view/login_view.dart';
+import '../view/auth/login_view.dart';
 
 class LoginViewModel extends GetxController {
   final email = ''.obs;

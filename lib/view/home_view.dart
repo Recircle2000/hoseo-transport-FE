@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'bus_map_view.dart';
+import 'city_bus/bus_map_view.dart';
 import 'settings_view.dart';
 import 'shuttle_map_view.dart';
 import '../viewmodel/notice_viewmodel.dart';
