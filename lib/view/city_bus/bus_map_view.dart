@@ -282,27 +282,52 @@ class BusMapView extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: DefaultTabController(
-                      length: 2,
-                      child: Column(
-                        children: [
-                          TabBar(
-                            tabs: const [
-                              Tab(text: '노선 정보'),
-                              Tab(text: '시간표'),
-                            ],
-                          ),
-                          Expanded(
-                            child: TabBarView(
+                    child: Platform.isIOS
+                        ? DefaultTabController(
+                            length: 2,
+                            child: Column(
                               children: [
-                                _buildRouteInfo(controller),
-                                _buildTimetable(controller),
+                                CupertinoSlidingSegmentedControl<int>(
+                                  children: {
+                                    0: Text('노선 정보'),
+                                    1: Text('시간표'),
+                                  },
+                                  onValueChanged: (value) {
+                                    
+                                  },
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    children: [
+                                      _buildRouteInfo(controller),
+                                      _buildTimetable(controller),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : DefaultTabController(
+                            length: 2,
+                            child: Column(
+                              children: [
+                                TabBar(
+                                  tabs: const [
+                                    Tab(text: '노선 정보'),
+                                    Tab(text: '시간표'),
+                                  ],
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    children: [
+                                      _buildRouteInfo(controller),
+                                      _buildTimetable(controller),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
                   ),
                 ],
               ),
