@@ -1,16 +1,19 @@
 # hsro
 
-A new Flutter project.
+호서대 교통 통합 앱
 
-## Getting Started
+현재 구상
 
-This project is a starting point for a Flutter application.
+- 셔틀 버스 시간표, 대락적 위치(정류장별 시간표 기반)
 
-A few resources to get you started if this is your first Flutter project:
+- 시내 버스 시간표, 실시간 위치(공공데이터 기반)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+언젠가 예정
+
+- 1호선 시간표 및 위치
+
+- 택시 n빵 게시판(가능성 희박)
+
+- 셔틀 버스 탑승 시 위치 공유(이것도 좀...)
