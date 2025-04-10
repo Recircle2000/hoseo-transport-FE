@@ -72,7 +72,7 @@ class NoticeViewModel extends GetxController {
 
   String _getBaseUrl() {
     if (GetPlatform.isAndroid) {
-      return "http://192.168.45.178:8000";
+      return "http://192.168.45.80:8000";
     }
     return "http://127.0.0.1:8000";
   }
