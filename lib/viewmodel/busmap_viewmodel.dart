@@ -24,6 +24,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final Rx<LatLng?> currentLocation = Rx<LatLng?>(null);
   final isLocationEnabled = false.obs;
   final isLocationLoading = false.obs;
+  final selectedTab = 0.obs;
 
   @override
   void onInit() {

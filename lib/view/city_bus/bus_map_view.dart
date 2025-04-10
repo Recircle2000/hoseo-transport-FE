@@ -65,15 +65,14 @@ class BusMapView extends StatelessWidget {
                         if (Platform.isIOS) {
                           return GestureDetector(
                             onTap: () {
-                              String tempSelectedRoute = controller
-                                  .selectedRoute.value;
+                              String tempSelectedRoute =
+                                  controller.selectedRoute.value;
                               int initialIndex = [
                                 "순환5_DOWN",
                                 "순환5_UP",
                                 "900_UP",
                                 "900_DOWN"
-                              ].indexOf(controller.selectedRoute
-                                  .value);
+                              ].indexOf(controller.selectedRoute.value);
 
                               FixedExtentScrollController scrollController =
                                   FixedExtentScrollController(
@@ -284,29 +283,34 @@ class BusMapView extends StatelessWidget {
                   Expanded(
                     child: Platform.isIOS
                         ? DefaultTabController(
-                            length: 2,
-                            child: Column(
-                              children: [
-                                CupertinoSlidingSegmentedControl<int>(
-                                  children: {
+                          length: 2,
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 350,
+                                child: Obx(() => CupertinoSlidingSegmentedControl<int>(
+                                  children: const {
                                     0: Text('노선 정보'),
                                     1: Text('시간표'),
                                   },
+                                  groupValue: controller.selectedTab.value,
                                   onValueChanged: (value) {
-                                    
+                                    if (value != null) {
+                                      controller.selectedTab.value = value;
+                                    }
                                   },
+                                )),
+                              ),
+                              Expanded(
+                                child: Obx(() =>
+                                  controller.selectedTab.value == 0
+                                    ? _buildRouteInfo(controller)
+                                    : _buildTimetable(controller)
                                 ),
-                                Expanded(
-                                  child: TabBarView(
-                                    children: [
-                                      _buildRouteInfo(controller),
-                                      _buildTimetable(controller),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+                              ),
+                            ],
+                          ),
+                        )
                         : DefaultTabController(
                             length: 2,
                             child: Column(
