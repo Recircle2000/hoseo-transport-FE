@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
@@ -10,19 +12,22 @@ import 'package:flutter/rendering.dart';
 import 'bus_map_detail_view.dart';
 
 class BusMapView extends StatelessWidget {
-  final Map<String, String> routeDisplayNames = { // 노선 이름 표시용
+  final Map<String, String> routeDisplayNames = {
+    // 노선 이름 표시용
     "순환5_DOWN": "순환5 (호서대학교 → 천안아산역)",
     "순환5_UP": "순환5 (천안아산역 → 호서대학교)",
     "900_DOWN": "900 (천안터미널 → 아산터미널)",
     "900_UP": "900 (아산터미널 → 천안터미널)"
   };
 
-  final Map<String, String> routeSimpleNames = { // 노선 이름 간단 표시용
+  final Map<String, String> routeSimpleNames = {
+    // 노선 이름 간단 표시용
     "순환5_DOWN": "순환5",
     "순환5_UP": "순환5",
     "900_DOWN": "900",
     "900_UP": "900"
   };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +44,10 @@ class BusMapView extends StatelessWidget {
           GetBuilder<BusMapViewModel>(
             builder: (controller) => IconButton(
               icon: const Icon(Icons.map),
-              onPressed: () => Get.to(() => BusMapDetailView(routeName: routeDisplayNames[controller.selectedRoute.value] ?? controller.selectedRoute.value)),
+              onPressed: () => Get.to(() => BusMapDetailView(
+                  routeName:
+                      routeDisplayNames[controller.selectedRoute.value] ??
+                          controller.selectedRoute.value)),
             ),
           ),
           IconButton(
@@ -60,35 +68,128 @@ class BusMapView extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Center(
-                      child: Obx(() => DropdownButton<String>(
-                        isExpanded: true,
-                        value: controller.selectedRoute.value,
-                        alignment: Alignment.center,
-                        items: ["순환5_DOWN", "순환5_UP", "900_UP", "900_DOWN"]
-                            .map((route) => DropdownMenuItem(
-                          value: route, // 내부적으로 사용되는 값
-                          child: Text(
-                            routeDisplayNames[route] ?? route, // 사용자에게 표시되는 텍스트
-                            textAlign: TextAlign.center,
-                          ),
-                        ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            // 노선 변경 전에 현재 데이터 초기화
-                            controller.currentPositions.clear();
-                            controller.markers.clear();
-                            controller.stationMarkers.clear();
-                            controller.stationNames.clear();
-                            
-                            // 노선 변경 및 데이터 로드
-                            controller.selectedRoute.value = value;
-                            controller.fetchRouteData();
-                            controller.fetchStationData();
-                            controller.resetConnection();
-                          }
-                        },
-                      )),
+                      child: Obx(() {
+                        if (Platform.isIOS) {
+                          return GestureDetector(
+                            onTap: () {
+                              String tempSelectedRoute = controller
+                                  .selectedRoute.value;
+                              int initialIndex = [
+                                "순환5_DOWN",
+                                "순환5_UP",
+                                "900_UP",
+                                "900_DOWN"
+                              ].indexOf(controller.selectedRoute
+                                  .value);
+
+                              FixedExtentScrollController scrollController =
+                                  FixedExtentScrollController(
+                                      initialItem: initialIndex);
+
+                              showCupertinoModalPopup(
+                                context: context,
+                                builder: (_) => Container(
+                                  height: 250,
+                                  color: Colors.white,
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.topRight,
+                                        child: TextButton(
+                                          onPressed: () {
+                                            controller.selectedRoute.value =
+                                                tempSelectedRoute; // 현재 선택된 노선 업데이트
+                                            controller.fetchRouteData();
+                                            controller.fetchStationData();
+                                            controller.resetConnection();
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('적용'),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: CupertinoPicker(
+                                          scrollController: scrollController,
+                                          itemExtent: 32,
+                                          onSelectedItemChanged: (index) {
+                                            tempSelectedRoute = [
+                                              "순환5_DOWN",
+                                              "순환5_UP",
+                                              "900_UP",
+                                              "900_DOWN"
+                                            ][index];
+                                          },
+                                          children: [
+                                            "순환5_DOWN",
+                                            "순환5_UP",
+                                            "900_UP",
+                                            "900_DOWN"
+                                          ]
+                                              .map((route) => Center(
+                                                    child: Text(
+                                                        routeDisplayNames[
+                                                                route] ??
+                                                            route),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    routeDisplayNames[
+                                            controller.selectedRoute.value] ??
+                                        controller.selectedRoute.value,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                  const Icon(Icons.arrow_drop_down),
+                                ],
+                              ),
+                            ),
+                          );
+                        } else {
+                          return DropdownButton<String>(
+                            isExpanded: true,
+                            value: controller.selectedRoute.value,
+                            alignment: Alignment.center,
+                            items: ["순환5_DOWN", "순환5_UP", "900_UP", "900_DOWN"]
+                                .map((route) => DropdownMenuItem(
+                                      value: route,
+                                      child: Text(
+                                        routeDisplayNames[route] ?? route,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                controller.currentPositions.clear();
+                                controller.markers.clear();
+                                controller.stationMarkers.clear();
+                                controller.stationNames.clear();
+                                controller.selectedRoute.value = value;
+                                controller.fetchRouteData();
+                                controller.fetchStationData();
+                                controller.resetConnection();
+                              }
+                            },
+                          );
+                        }
+                      }),
                     ),
                   ),
                 ),
@@ -112,7 +213,7 @@ class BusMapView extends StatelessWidget {
     return Obx(() {
       final currentPositions = controller.currentPositions;
       final totalStations = controller.stationMarkers.length;
-      
+
       if (totalStations == 0) {
         // 정류장 데이터 로딩 중일 때 표시할 UI
         return Center(
@@ -129,30 +230,29 @@ class BusMapView extends StatelessWidget {
           ),
         );
       }
-      
+
       if (controller.stationNames.isEmpty) {
         return const Center(child: Text('정류장 정보가 없습니다.'));
       }
-      
+
       return ListView.builder(
         primary: true, // PrimaryScrollController 사용
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: controller.stationNames.length,
         itemBuilder: (context, index) {
           final isBusHere = currentPositions.contains(index);
-          final stationName = controller.stationNames.length > index 
-              ? controller.stationNames[index] 
+          final stationName = controller.stationNames.length > index
+              ? controller.stationNames[index]
               : "정류장 ${index + 1}";
-          
+
           // 마지막 정류장인지 확인
           final isLastStation = index == controller.stationNames.length - 1;
-          
+
           return StationItem(
-            index: index, 
-            stationName: stationName, 
-            isBusHere: isBusHere, 
-            isLastStation: isLastStation
-          );
+              index: index,
+              stationName: stationName,
+              isBusHere: isBusHere,
+              isLastStation: isLastStation);
         },
       );
     });
@@ -174,7 +274,8 @@ class BusMapView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Column(
                 children: [
@@ -242,7 +343,11 @@ class BusMapView extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _infoCard(context, '노선', routeSimpleNames[controller.selectedRoute.value] ?? controller.selectedRoute.value),
+            _infoCard(
+                context,
+                '노선',
+                routeSimpleNames[controller.selectedRoute.value] ??
+                    controller.selectedRoute.value),
             _infoCard(context, '기점', routeData['출발지'] ?? '-'),
             _infoCard(context, '종점', routeData['종점'] ?? '-'),
             _infoCard(context, '배차 간격', interval),
@@ -270,9 +375,8 @@ class BusMapView extends StatelessWidget {
         frequency[interval] = (frequency[interval] ?? 0) + 1;
       });
 
-      final mostCommon = frequency.entries
-          .reduce((a, b) => a.value > b.value ? a : b)
-          .key;
+      final mostCommon =
+          frequency.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
       return '$mostCommon분';
     } catch (e) {
@@ -330,7 +434,9 @@ class BusMapView extends StatelessWidget {
           return Center(child: Text('시간표를 불러올 수 없습니다: ${snapshot.error}'));
         }
 
-        final times = (snapshot.data?[controller.selectedRoute.value]?['시간표'] as List<dynamic>?) ?? [];
+        final times = (snapshot.data?[controller.selectedRoute.value]?['시간표']
+                as List<dynamic>?) ??
+            [];
 
         return GridView.builder(
           padding: const EdgeInsets.all(16),
@@ -355,14 +461,15 @@ class BusMapView extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>> _loadTimetable() async {
-    final String jsonString = await rootBundle.loadString('assets/bus_times/bus_times.json');
+    final String jsonString =
+        await rootBundle.loadString('assets/bus_times/bus_times.json');
     return json.decode(jsonString);
   }
 
   // 가장 가까운 정류장 찾기 및 해당 정류장으로 스크롤
   void _findNearestStationAndScroll() {
     final controller = Get.find<BusMapViewModel>();
-    
+
     if (controller.currentLocation.value == null) {
       // 위치 정보가 없으면 먼저 위치 권한 요청
       controller.checkLocationPermission().then((_) {
@@ -372,10 +479,10 @@ class BusMapView extends StatelessWidget {
       _processNearestStation(controller);
     }
   }
-  
+
   void _processNearestStation(BusMapViewModel controller) {
     final nearestStationIndex = controller.findNearestStation();
-    
+
     if (nearestStationIndex == null) {
       Fluttertoast.showToast(
         msg: "가까운 정류장을 찾을 수 없습니다.",
@@ -384,20 +491,20 @@ class BusMapView extends StatelessWidget {
       );
       return;
     }
-    
+
     // ListView로 스크롤하기 위해 GlobalKey 사용
     final scrollController = PrimaryScrollController.of(Get.context!);
     if (scrollController != null) {
       // 해당 인덱스로 스크롤
       final stationName = controller.stationNames[nearestStationIndex];
-      
+
       // 스크롤 애니메이션
       scrollController.animateTo(
         nearestStationIndex * 100.0, // 대략적인 아이템 높이에 인덱스를 곱함
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
-      
+
       // 토스트 메시지 표시
       Fluttertoast.showToast(
         msg: "가장 가까운 정류장: $stationName",
@@ -423,135 +530,139 @@ class StationItem extends StatelessWidget {
   }) : super(key: key);
 
   Widget build(BuildContext context) {
-      return Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 26.0, horizontal: 16.0),
-            child: Row(
-              children: [
-                // 왼쪽: 정류장 번호와 연결선
-                SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Stack(
-                    children: [
-                      CustomPaint(
-                        painter: StationPainter(
-                          index: index,
-                          isLastStation: isLastStation,
-                        ),
-                        size: const Size(24, 24),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 26.0, horizontal: 16.0),
+          child: Row(
+            children: [
+              // 왼쪽: 정류장 번호와 연결선
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: Stack(
+                  children: [
+                    CustomPaint(
+                      painter: StationPainter(
+                        index: index,
+                        isLastStation: isLastStation,
                       ),
-                      const Center(
-                        child: Icon(
-                          Icons.keyboard_arrow_down,
-                          size: 18,
+                      size: const Size(24, 24),
+                    ),
+                    const Center(
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // 버스 아이콘
+              SizedBox(
+                width: 40,
+                child: isBusHere
+                    ? const Icon(
+                        Icons.directions_bus,
+                        color: Colors.blue,
+                        size: 20,
+                      )
+                    : null,
+              ),
+
+              // 정류장 이름과 번호
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      stationName,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight:
+                            isBusHere ? FontWeight.bold : FontWeight.normal,
+                        color: isBusHere
+                            ? Colors.blue
+                            : Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Obx(() {
+                      final controller = Get.find<BusMapViewModel>();
+                      final stationNumber =
+                          controller.stationNumbers.length > index
+                              ? controller.stationNumbers[index]
+                              : "";
+                      return Text(
+                        "$stationNumber",
+                        style: const TextStyle(
+                          fontSize: 12,
                           color: Colors.grey,
                         ),
-                      ),
-                    ],
-                  ),
+                      );
+                    }),
+                  ],
                 ),
-
-                const SizedBox(width: 12),
-
-                // 버스 아이콘
-                SizedBox(
-                  width: 40,
-                  child: isBusHere
-                      ? const Icon(
-                          Icons.directions_bus,
-                          color: Colors.blue,
-                          size: 20,
-                        )
-                      : null,
-                ),
-
-                // 정류장 이름과 번호
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        stationName,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isBusHere ? FontWeight.bold : FontWeight.normal,
-                          color: isBusHere ? Colors.blue : Colors.black,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Obx(() {
-                        final controller = Get.find<BusMapViewModel>();
-                        final stationNumber = controller.stationNumbers.length > index 
-                            ? controller.stationNumbers[index] 
-                            : "";
-                        return Text(
-                          "$stationNumber",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          // 구분선
-          if (!isLastStation)
-            const Padding(
-              padding: EdgeInsets.only(left: 76.0),
-              child: Divider(height: 0, thickness: 1, color: Colors.grey),
-            ),
-        ],
-      );
-    }
+        // 구분선
+        if (!isLastStation)
+          const Padding(
+            padding: EdgeInsets.only(left: 76.0),
+            child: Divider(height: 0, thickness: 1, color: Colors.grey),
+          ),
+      ],
+    );
+  }
 }
 
 class StationPainter extends CustomPainter {
   final int index;
   final bool isLastStation;
-  
+
   StationPainter({
     required this.index,
     required this.isLastStation,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     // 원 그리기
     final Paint circlePaint = Paint()
       ..color = Colors.grey[300]!
       ..style = PaintingStyle.fill;
-      
+
     final Paint borderPaint = Paint()
       ..color = Colors.grey[400]!
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
-    
+
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 1;
-    
+
     canvas.drawCircle(center, radius, circlePaint);
     canvas.drawCircle(center, radius, borderPaint);
-    
+
     // 세로선 그리기 (마지막 정류장이 아닌 경우)
     if (!isLastStation) {
       final Paint linePaint = Paint()
         ..color = Colors.grey[300]!
         ..strokeWidth = 2.0;
-      
+
       final startPoint = Offset(size.width / 2, size.height);
       final endPoint = Offset(size.width / 2, size.height + 64.0); // 다음 원까지의 거리
-      
+
       canvas.drawLine(startPoint, endPoint, linePaint);
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
