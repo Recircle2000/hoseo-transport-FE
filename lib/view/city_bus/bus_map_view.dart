@@ -33,13 +33,6 @@ class BusMapView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('시내버스 위치'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Get.delete<BusMapViewModel>();
-            Get.back();
-          },
-        ),
         actions: [
           GetBuilder<BusMapViewModel>(
             builder: (controller) => IconButton(
