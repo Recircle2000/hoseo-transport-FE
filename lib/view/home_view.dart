@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'city_bus/bus_map_view.dart';
+import 'shuttle_route_selection_view.dart';
 import 'settings_view.dart';
-import 'shuttle_map_view.dart';
 import '../viewmodel/notice_viewmodel.dart';
 import 'notice_detail_view.dart';
 import 'notice_list_view.dart';
@@ -194,7 +194,7 @@ class HomeView extends StatelessWidget {
                     title: '셔틀버스',
                     icon: Icons.airport_shuttle,
                     color: Colors.red,
-                    onTap: () => Get.to(() => ShuttleMapView()),
+                    onTap: () => Get.to(() => ShuttleRouteSelectionView()),
                   ),
                   _buildMenuButton(
                     context,
