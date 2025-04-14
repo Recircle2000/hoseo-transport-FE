@@ -479,9 +479,9 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 
 String _getWebSocketUrl() {
   if (GetPlatform.isAndroid) {
-    return "ws://192.168.45.80:8000/ws/bus";
+    return "ws://192.168.45.138:8000/ws/bus";
   } else if (GetPlatform.isIOS) {
-    return "ws://192.168.45.80:8000/ws/bus";
+    return "ws://192.168.45.138:8000/ws/bus";
   } else {
     return "ws://127.0.0.1/ws/bus"; // 기본 URL 추가 (선택 사항)
   }

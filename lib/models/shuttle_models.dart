@@ -36,12 +36,30 @@ class Schedule {
   });
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
+    final timeStr = json['start_time'];
+    DateTime startTime;
+    try {
+      final now = DateTime.now();
+      final timeParts = timeStr.split(':');
+      startTime = DateTime(
+        now.year, 
+        now.month, 
+        now.day,
+        int.parse(timeParts[0]),
+        int.parse(timeParts[1]),
+        int.parse(timeParts[2]),
+      );
+    } catch (e) {
+      print('시간 파싱 오류: $timeStr - $e');
+      startTime = DateTime.now();
+    }
+
     return Schedule(
       id: json['id'],
       routeId: json['route_id'],
       scheduleType: json['schedule_type'],
-      startTime: DateTime.parse(json['start_time']),
-      round: json['round'],
+      startTime: startTime,
+      round: json['round'] ?? 1,
     );
   }
 }

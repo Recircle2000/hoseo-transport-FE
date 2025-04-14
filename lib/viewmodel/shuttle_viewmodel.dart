@@ -23,7 +23,7 @@ class ShuttleViewModel extends GetxController {
   final RxBool isLoadingStations = false.obs;
   
   // API 기본 URL
-  final String baseUrl = 'http://your-api-base-url.com'; // 실제 API URL로 변경 필요
+  final String baseUrl = 'http://192.168.45.138:8000/shuttle'; // 실제 API URL로 변경 필요
 
   // 운행 일자 타입 목록
   final List<String> scheduleTypes = ['Weekday', 'Saturday', 'Holiday'];
@@ -108,7 +108,9 @@ class ShuttleViewModel extends GetxController {
       final response = await http.get(Uri.parse('$baseUrl/routes'));
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
+        final List<dynamic> data = json.decode(decodedBody);
+        print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
         routes.value = data.map((item) => ShuttleRoute.fromJson(item)).toList();
       } else {
         throw Exception('노선 목록을 불러오는데 실패했습니다 (${response.statusCode})');
@@ -124,7 +126,7 @@ class ShuttleViewModel extends GetxController {
         duration: Duration(seconds: 3),
       );
       
-      // 테스트를 더미 데이터
+      // 테스트 더미 데이터
       if (routes.isEmpty) {
         routes.add(ShuttleRoute(id: 1, routeName: '테스트 노선', direction: '상행'));
         routes.add(ShuttleRoute(id: 2, routeName: '테스트 노선', direction: '하행'));
@@ -135,7 +137,7 @@ class ShuttleViewModel extends GetxController {
   }
   
   // 시간표 조회
-  Future<void> fetchSchedules(int routeId, String scheduleType) async {
+  Future<bool> fetchSchedules(int routeId, String scheduleType) async {
     isLoadingSchedules.value = true;
     schedules.clear();
     selectedScheduleId.value = -1;
@@ -147,20 +149,50 @@ class ShuttleViewModel extends GetxController {
       );
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
+        final List<dynamic> data = json.decode(decodedBody);
+        print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
+        
+        // 데이터 시간순으로 정렬
+        data.sort((a, b) {
+          final aTime = a['start_time'];
+          final bTime = b['start_time'];
+          return aTime.compareTo(bTime);
+        });
+        
+        // 정렬된 데이터에 회차 정보 추가 (1회차부터 시작)
+        for (int i = 0; i < data.length; i++) {
+          data[i]['round'] = i + 1;
+        }
+        
         schedules.value = data.map((item) => Schedule.fromJson(item)).toList();
         
         // 현재 시간에 가장 가까운 스케줄 자동 선택 (옵션)
         if (useDefaultValues.value && schedules.isNotEmpty) {
           selectNearestSchedule();
         }
+        return true;
+      } else if (response.statusCode == 404) {
+        // 404 오류: 해당 노선/일자에 운행 정보가 없음
+        print('해당 날짜에 운행하는 셔틀노선이 없습니다 (404)');
+        return false;
       } else {
+        // 기타 서버 오류
         throw Exception('시간표를 불러오는데 실패했습니다 (${response.statusCode})');
       }
     } catch (e) {
       print('시간표를 불러오는데 실패했습니다: $e');
       
-      // 테스트를 위한 더미 데이터 추가
+      // 서버 응답 없음 - 더미 데이터 추가
+      Get.snackbar(
+        '서버 연결 오류',
+        '서버에 연결할 수 없어 임시 데이터를 표시합니다',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange.withOpacity(0.1),
+        colorText: Colors.orange,
+        duration: Duration(seconds: 3),
+      );
+      
       if (schedules.isEmpty) {
         final now = DateTime.now();
         // 현재 시간부터 30분 간격으로 3개의 스케줄 생성
@@ -174,6 +206,7 @@ class ShuttleViewModel extends GetxController {
           ));
         }
       }
+      return true; // 더미 데이터로 대체되었으므로 성공으로 처리
     } finally {
       isLoadingSchedules.value = false;
     }
@@ -203,7 +236,7 @@ class ShuttleViewModel extends GetxController {
   }
   
   // 정류장 정보 조회
-  Future<void> fetchScheduleStops(int scheduleId) async {
+  Future<bool> fetchScheduleStops(int scheduleId) async {
     isLoadingStops.value = true;
     scheduleStops.clear();
     
@@ -213,13 +246,31 @@ class ShuttleViewModel extends GetxController {
       );
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
+        final List<dynamic> data = json.decode(decodedBody);
+        print('API 응답 데이터(정류장 정보): ${utf8.decode(response.bodyBytes)}');
         scheduleStops.value = data.map((item) => ScheduleStop.fromJson(item)).toList();
+        return true;
+      } else if (response.statusCode == 404) {
+        // 404 오류: 해당 스케줄의 정류장 정보가 없음
+        print('해당 스케줄의 정류장 정보가 없습니다 (404)');
+        return false;
       } else {
+        // 기타 서버 오류
         throw Exception('정류장 정보를 불러오는데 실패했습니다 (${response.statusCode})');
       }
     } catch (e) {
       print('정류장 정보를 불러오는데 실패했습니다: $e');
+      
+      // 서버 응답 없음 - 더미 데이터 추가
+      Get.snackbar(
+        '서버 연결 오류',
+        '서버에 연결할 수 없어 임시 데이터를 표시합니다',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange.withOpacity(0.1),
+        colorText: Colors.orange,
+        duration: Duration(seconds: 3),
+      );
       
       // 테스트를 위한 더미 데이터 추가
       if (scheduleStops.isEmpty) {
@@ -235,6 +286,7 @@ class ShuttleViewModel extends GetxController {
           ));
         }
       }
+      return true; // 더미 데이터로 대체되었으므로 성공으로 처리
     } finally {
       isLoadingStops.value = false;
     }
