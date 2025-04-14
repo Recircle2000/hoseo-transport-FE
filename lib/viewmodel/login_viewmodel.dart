@@ -129,9 +129,9 @@ class LoginViewModel extends GetxController {
 
 String _getloginUrl() {
   if (GetPlatform.isAndroid) {
-    return "http://192.168.45.80:8000/login";
+    return "http://192.168.45.138:8000/login";
   } else if (GetPlatform.isIOS) {
-    return "http://192.168.45.80:8000/login";
+    return "http://192.168.45.138:8000/login";
   }
   else {
     return "http://127.0.0.1:8000/login";
