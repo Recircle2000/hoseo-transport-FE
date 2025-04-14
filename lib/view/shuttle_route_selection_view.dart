@@ -113,8 +113,10 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         
         Text('셔틀버스 노선 선택', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         SizedBox(height: 16), // 간격 증가
+        
+        // 로딩 인디케이터를 플랫폼별로 표시
         Obx(() => viewModel.isLoadingRoutes.value
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: _buildPlatformLoadingIndicator())
           : viewModel.routes.isEmpty
               ? Text('사용 가능한 노선이 없습니다')
               : _buildRouteSelector(context),
@@ -127,6 +129,15 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         _buildScheduleTypeSelector(context),
       ],
     );
+  }
+
+  // 플랫폼별 로딩 인디케이터
+  Widget _buildPlatformLoadingIndicator() {
+    if (Platform.isIOS) {
+      return CupertinoActivityIndicator(radius: 15.0);
+    } else {
+      return CircularProgressIndicator(color: shuttleColor);
+    }
   }
 
   // 현재 시간 정보 및 도움말 카드
@@ -301,7 +312,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 children: viewModel.routes.map((route) {
                   return Center(
                     child: Text(
-                      '${route.routeName} (${route.direction})',
+                      '${route.routeName}',
                       style: TextStyle(fontSize: 16),
                     ),
                   );
