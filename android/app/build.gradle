@@ -42,3 +42,19 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // 특정 버전의 androidx.core 지정
+    constraints {
+        implementation('androidx.core:core-ktx') {
+            version {
+                strictly '1.12.0'
+            }
+        }
+        implementation('androidx.core:core') {
+            version {
+                strictly '1.12.0'
+            }
+        }
+    }
+}

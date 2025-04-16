@@ -26,6 +26,8 @@ class NearbyStopsView extends StatelessWidget {
               SizedBox(height: 16),
               _buildStationSelector(context),
               SizedBox(height: 16),
+              _buildScheduleTypeSelector(context),
+              SizedBox(height: 8),
               _buildScheduleHeader(context),
               SizedBox(height: 8),
               Expanded(
@@ -264,12 +266,72 @@ class NearbyStopsView extends StatelessWidget {
     });
   }
 
+  Widget _buildScheduleTypeSelector(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final selectedColor = brightness == Brightness.dark 
+        ? Colors.green.shade700.withOpacity(0.3) 
+        : Colors.green.shade50;
+    final borderColor = Colors.green.shade700;
+    
+    return Obx(() {
+      final selectedType = viewModel.selectedScheduleType.value;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '운행 일자',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: viewModel.scheduleTypes.map((type) {
+                final isSelected = type == selectedType;
+                final typeName = viewModel.scheduleTypeNames[type] ?? type;
+                
+                return GestureDetector(
+                  onTap: () => viewModel.filterSchedulesByType(type),
+                  child: Container(
+                    margin: EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? selectedColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? borderColor : Colors.grey.shade400,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      typeName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? borderColor : Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
   Widget _buildScheduleHeader(BuildContext context) {
     return Obx(() {
       final selectedId = viewModel.selectedStationId.value;
       final stationName = selectedId != -1
           ? viewModel.getStationName(selectedId)
           : '';
+      final scheduleTypeName = viewModel.scheduleTypeNames[viewModel.selectedScheduleType.value] ?? '전체';
       
       return Row(
         children: [
@@ -280,7 +342,7 @@ class NearbyStopsView extends StatelessWidget {
           ),
           SizedBox(width: 8),
           Text(
-            '정류장 시간표',
+            '정류장 시간표 ($scheduleTypeName)',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -316,9 +378,37 @@ class NearbyStopsView extends StatelessWidget {
         );
       }
       
-      if (viewModel.stationSchedules.isEmpty) {
+      if (viewModel.filteredSchedules.isEmpty) {
         return Center(
-          child: Text('선택한 정류장의 시간표가 없습니다.'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 48,
+                color: Colors.grey.shade400,
+              ),
+              SizedBox(height: 16),
+              Text(
+                '선택한 정류장의 ${viewModel.scheduleTypeNames[viewModel.selectedScheduleType.value]} 시간표가 없습니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              SizedBox(height: 8),
+              TextButton(
+                onPressed: () {
+                  // 다른 일정 유형 표시
+                  final types = viewModel.scheduleTypes;
+                  final currentIndex = types.indexOf(viewModel.selectedScheduleType.value);
+                  final nextIndex = (currentIndex + 1) % types.length;
+                  viewModel.filterSchedulesByType(types[nextIndex]);
+                },
+                child: Text('다른 요일 시간표 보기'),
+              ),
+            ],
+          ),
         );
       }
       
@@ -371,10 +461,10 @@ class NearbyStopsView extends StatelessWidget {
   
   Widget _buildIosScheduleList() {
     return ListView.separated(
-      itemCount: viewModel.stationSchedules.length,
+      itemCount: viewModel.filteredSchedules.length,
       separatorBuilder: (context, index) => Divider(height: 1),
       itemBuilder: (context, index) {
-        final schedule = viewModel.stationSchedules[index];
+        final schedule = viewModel.filteredSchedules[index];
         final routeName = viewModel.getRouteName(schedule.routeId);
         
         return Container(
@@ -414,10 +504,10 @@ class NearbyStopsView extends StatelessWidget {
       interactive: true,
       thumbVisibility: true,
       child: ListView.separated(
-        itemCount: viewModel.stationSchedules.length,
+        itemCount: viewModel.filteredSchedules.length,
         separatorBuilder: (context, index) => Divider(height: 1),
         itemBuilder: (context, index) {
-          final schedule = viewModel.stationSchedules[index];
+          final schedule = viewModel.filteredSchedules[index];
           final routeName = viewModel.getRouteName(schedule.routeId);
           
           return Container(

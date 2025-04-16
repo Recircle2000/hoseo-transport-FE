@@ -11,6 +11,7 @@ class NearbyStopsViewModel extends GetxController {
   final RxList<ShuttleStation> stations = <ShuttleStation>[].obs;
   final RxList<ShuttleStation> sortedStations = <ShuttleStation>[].obs;
   final RxList<StationSchedule> stationSchedules = <StationSchedule>[].obs;
+  final RxList<StationSchedule> filteredSchedules = <StationSchedule>[].obs;
   final RxList<ShuttleRoute> routes = <ShuttleRoute>[].obs;
   
   final RxBool isLoadingStations = false.obs;
@@ -20,6 +21,17 @@ class NearbyStopsViewModel extends GetxController {
   
   final Rx<Position?> currentPosition = Rx<Position?>(null);
   final RxInt selectedStationId = (-1).obs;
+  final RxString selectedScheduleType = 'Weekday'.obs;
+  
+  // 운행 일자 타입 목록
+  final List<String> scheduleTypes = ['Weekday', 'Saturday', 'Holiday'];
+  
+  // 운행 일자 타입 한글 매핑
+  final Map<String, String> scheduleTypeNames = {
+    'Weekday': '평일',
+    'Saturday': '토요일',
+    'Holiday': '일요일/공휴일'
+  };
   
   // API 기본 URL
   final String baseUrl = EnvConfig.baseUrl;
@@ -27,6 +39,7 @@ class NearbyStopsViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    setDefaultScheduleType();
     fetchStations();
     checkLocationPermission();
   }
@@ -252,6 +265,9 @@ class NearbyStopsViewModel extends GetxController {
         
         // 모든 노선 정보 가져오기 (필터링 위해)
         await fetchRoutes();
+        
+        // 기본 일정 유형으로 필터링
+        filterSchedulesByType(selectedScheduleType.value);
       } else {
         throw Exception('정류장 시간표를 불러오는데 실패했습니다 (${response.statusCode})');
       }
@@ -268,13 +284,56 @@ class NearbyStopsViewModel extends GetxController {
       
       // 테스트 더미 데이터
       if (stationSchedules.isEmpty) {
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:13:00', stopOrder: 2));
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:15:00', stopOrder: 2));
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:43:00', stopOrder: 2));
-        stationSchedules.add(StationSchedule(routeId: 4, stationName: '천안아산역(천캠방향)', arrivalTime: '09:38:00', stopOrder: 2));
+        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:13:00', stopOrder: 2, scheduleType: 'Weekday'));
+        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:15:00', stopOrder: 2, scheduleType: 'Weekday'));
+        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:43:00', stopOrder: 2, scheduleType: 'Saturday'));
+        stationSchedules.add(StationSchedule(routeId: 4, stationName: '천안아산역(천캠방향)', arrivalTime: '09:38:00', stopOrder: 2, scheduleType: 'Holiday'));
+        
+        // 필터링 적용
+        filterSchedulesByType(selectedScheduleType.value);
       }
     } finally {
       isLoadingSchedules.value = false;
+    }
+  }
+  
+  // 운행 일자별 필터링
+  void filterSchedulesByType(String scheduleType) {
+    selectedScheduleType.value = scheduleType;
+    
+    if (scheduleType == 'All') {
+      // 모든 일정 보기
+      filteredSchedules.value = List.from(stationSchedules);
+    } else {
+      // 선택한 일정 유형만 필터링
+      filteredSchedules.value = stationSchedules
+          .where((schedule) => schedule.scheduleType == scheduleType)
+          .toList();
+    }
+    
+    // 도착 시간 순으로 정렬
+    filteredSchedules.sort((a, b) => a.arrivalTime.compareTo(b.arrivalTime));
+  }
+  
+  // 현재 요일에 맞는 스케줄 타입 설정 (오늘 날짜에 맞게)
+  void setDefaultScheduleType() {
+    try {
+      final now = DateTime.now();
+      final currentDay = now.weekday; // 1-월요일, 7-일요일
+      
+      String defaultType;
+      if (currentDay == 6) {
+        defaultType = 'Saturday';
+      } else if (currentDay == 7) {
+        defaultType = 'Holiday';
+      } else {
+        defaultType = 'Weekday';
+      }
+      
+      selectedScheduleType.value = defaultType;
+    } catch (e) {
+      print('기본 스케줄 타입 설정 중 오류 발생: $e');
+      selectedScheduleType.value = 'Weekday';
     }
   }
   

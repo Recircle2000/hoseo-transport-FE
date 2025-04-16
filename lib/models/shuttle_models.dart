@@ -118,12 +118,14 @@ class StationSchedule {
   final String stationName;
   final String arrivalTime;
   final int stopOrder;
+  final String scheduleType;
 
   StationSchedule({
     required this.routeId,
     required this.stationName,
     required this.arrivalTime,
     required this.stopOrder,
+    required this.scheduleType,
   });
 
   factory StationSchedule.fromJson(Map<String, dynamic> json) {
@@ -132,6 +134,7 @@ class StationSchedule {
       stationName: json['station_name'],
       arrivalTime: json['arrival_time'],
       stopOrder: json['stop_order'],
+      scheduleType: json['schedule_type'] ?? 'Weekday',
     );
   }
 } 
