@@ -9,9 +9,30 @@ import 'package:latlong2/latlong.dart';
 import '../../viewmodel/busmap_viewmodel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/rendering.dart';
+import 'bus_map_Ndetail_view.dart';
 import 'bus_map_detail_view.dart';
 
-class BusMapView extends StatelessWidget {
+// BusMapViewModel 확장 - 강조 표시용 변수 추가
+extension BusMapViewModelExtension on BusMapViewModel {
+  static final RxInt highlightedStation = RxInt(-1);
+  
+  void highlightStation(int index) {
+    BusMapViewModelExtension.highlightedStation.value = index;
+  }
+  
+  void clearHighlightedStation() {
+    BusMapViewModelExtension.highlightedStation.value = -1;
+  }
+}
+
+class BusMapView extends StatefulWidget {
+  const BusMapView({Key? key}) : super(key: key);
+
+  @override
+  State<BusMapView> createState() => _BusMapViewState();
+}
+
+class _BusMapViewState extends State<BusMapView> {
   final Map<String, String> routeDisplayNames = {
     // 노선 이름 표시용
     "순환5_DOWN": "순환5 (호서대학교 → 천안아산역)",
@@ -27,6 +48,28 @@ class BusMapView extends StatelessWidget {
     "900_DOWN": "900",
     "900_UP": "900"
   };
+  
+  // 스크롤 컨트롤러 선언
+  late ScrollController stationScrollController;
+  
+  @override
+  void initState() {
+    super.initState();
+    // 스크롤 컨트롤러 초기화
+    stationScrollController = ScrollController();
+    
+    // 스크롤 상태 모니터링 (디버깅용)
+    stationScrollController.addListener(() {
+      // print("스크롤 위치: ${stationScrollController.position.pixels}");
+    });
+  }
+  
+  @override
+  void dispose() {
+    // 스크롤 컨트롤러 해제
+    stationScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,7 +271,8 @@ class BusMapView extends StatelessWidget {
       }
 
       return ListView.builder(
-        primary: true, // PrimaryScrollController 사용
+        primary: false, // PrimaryScrollController 대신 직접 컨트롤러 사용
+        controller: stationScrollController, // 명시적 ScrollController 연결
         physics: const AlwaysScrollableScrollPhysics(),
         itemCount: controller.stationNames.length,
         itemBuilder: (context, index) {
@@ -492,10 +536,19 @@ class BusMapView extends StatelessWidget {
   void _findNearestStationAndScroll() {
     final controller = Get.find<BusMapViewModel>();
 
+
     if (controller.currentLocation.value == null) {
       // 위치 정보가 없으면 먼저 위치 권한 요청
       controller.checkLocationPermission().then((_) {
-        _processNearestStation(controller);
+        if (controller.currentLocation.value != null) {
+          _processNearestStation(controller);
+        } else {
+          Fluttertoast.showToast(
+            msg: "위치 정보를 가져올 수 없습니다. 다시 시도해주세요.",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+          );
+        }
       });
     } else {
       _processNearestStation(controller);
@@ -514,25 +567,85 @@ class BusMapView extends StatelessWidget {
       return;
     }
 
-    // ListView로 스크롤하기 위해 GlobalKey 사용
-    final scrollController = PrimaryScrollController.of(Get.context!);
-    if (scrollController != null) {
-      // 해당 인덱스로 스크롤
-      final stationName = controller.stationNames[nearestStationIndex];
-
-      // 스크롤 애니메이션
-      scrollController.animateTo(
-        nearestStationIndex * 100.0, // 대략적인 아이템 높이에 인덱스를 곱함
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-
-      // 토스트 메시지 표시
-      Fluttertoast.showToast(
-        msg: "가장 가까운 정류장: $stationName",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
+    try {
+      // 정류장 강조 표시
+      BusMapViewModelExtension.highlightedStation.value = nearestStationIndex;
+      
+      // 5초 후 강조 표시 해제 타이머 설정
+      Future.delayed(const Duration(seconds: 5), () {
+        // 현재도 같은 정류장이 강조되어 있다면 해제
+        if (BusMapViewModelExtension.highlightedStation.value == nearestStationIndex) {
+          BusMapViewModelExtension.highlightedStation.value = -1;
+        }
+      });
+      
+      // 직접 생성한 ScrollController 사용
+      if (stationScrollController.hasClients) {
+        // 해당 인덱스로 스크롤
+        final stationName = controller.stationNames[nearestStationIndex];
+        
+        // 레이아웃이 준비된 후 스크롤 실행 (더 정확한 계산을 위해)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // 목표 위치 계산
+          double targetOffset = 0.0;
+          
+          // 두 가지 방법으로 시도: 1) 고정 높이 기반, 2) 실제 렌더박스 크기 기반
+          
+          // 먼저 렌더박스를 사용하여 실제 항목 높이 얻기 시도
+          try {
+            final RenderBox? listBox = context.findRenderObject() as RenderBox?;
+            if (listBox != null) {
+              // 목록 높이와 아이템 수를 사용하여 평균 높이 계산
+              double listHeight = listBox.size.height;
+              int visibleItems = (listHeight / 81.0).ceil(); // 대략적인 아이템 수
+              
+              // 렌더박스에서 얻은 정보 기반으로 스크롤 계산
+              double itemHeight = listHeight / visibleItems;
+              targetOffset = nearestStationIndex * itemHeight;
+              print("렌더박스 기반 계산: 높이 $itemHeight, 오프셋 $targetOffset");
+            } else {
+              // 고정 높이 기반으로 계산
+              double itemHeight = 81.0; // 기본 StationItem 높이
+              targetOffset = nearestStationIndex * itemHeight;
+              print("고정 높이 기반 계산: $targetOffset");
+            }
+          } catch (e) {
+            // 예외 발생 시 고정 높이 사용
+            print("렌더박스 계산 오류, 고정 높이 사용: $e");
+            targetOffset = nearestStationIndex * 81.0;
+          }
+          
+          // 안전한 스크롤 범위 내로 제한
+          double safeOffset = targetOffset.clamp(
+            0.0, 
+            stationScrollController.position.maxScrollExtent
+          );
+          
+          print("스크롤 시도: 인덱스 $nearestStationIndex, 위치 $safeOffset");
+          
+          // 부드러운 스크롤 시도
+          stationScrollController.animateTo(
+            safeOffset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          ).catchError((error) {
+            print("animateTo 실패, jumpTo 시도: $error");
+            // 애니메이션 실패 시 즉시 이동
+            stationScrollController.jumpTo(safeOffset);
+          });
+        });
+      } else {
+        // 스크롤 컨트롤러가 없거나 준비되지 않은 경우
+        print("스크롤 컨트롤러가 준비되지 않았습니다");
+        Fluttertoast.showToast(
+          msg: "가장 가까운 정류장: ${controller.stationNames[nearestStationIndex]}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      }
+    } catch (e) {
+      print("스크롤 처리 중 오류 발생: $e");
+      // 오류 발생시에도 정류장 정보는 표시시
     }
   }
 }
@@ -552,6 +665,35 @@ class StationItem extends StatelessWidget {
   }) : super(key: key);
 
   Widget build(BuildContext context) {
+    return Obx(() {
+      // 강조 표시 여부 확인
+      final isHighlighted = BusMapViewModelExtension.highlightedStation.value == index;
+      
+      // 강조 표시된 정류장이면 애니메이션 효과 추가
+      if (isHighlighted) {
+        return TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 800),
+          builder: (context, value, child) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Color.lerp(Colors.transparent, Colors.yellow.withOpacity(0.3), value),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: child,
+            );
+          },
+          child: _buildStationContent(context, isHighlighted),
+        );
+      }
+      
+      // 일반 정류장
+      return _buildStationContent(context, isHighlighted);
+    });
+  }
+  
+  // 정류장 내용 위젯
+  Widget _buildStationContent(BuildContext context, bool isHighlighted) {
     return Column(
       children: [
         Container(
@@ -568,14 +710,15 @@ class StationItem extends StatelessWidget {
                       painter: StationPainter(
                         index: index,
                         isLastStation: isLastStation,
+                        isHighlighted: isHighlighted,
                       ),
                       size: const Size(24, 24),
                     ),
-                    const Center(
+                    Center(
                       child: Icon(
                         Icons.keyboard_arrow_down,
                         size: 18,
-                        color: Colors.grey,
+                        color: isHighlighted ? Colors.orange : Colors.grey,
                       ),
                     ),
                   ],
@@ -593,7 +736,10 @@ class StationItem extends StatelessWidget {
                         color: Colors.blue,
                         size: 20,
                       )
-                    : null,
+                    // 강조 표시된 정류장이면 위치 아이콘 표시
+                    : isHighlighted 
+                      ? _buildPulsingIcon()
+                      : null,
               ),
 
               // 정류장 이름과 번호
@@ -605,11 +751,14 @@ class StationItem extends StatelessWidget {
                       stationName,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight:
-                            isBusHere ? FontWeight.bold : FontWeight.normal,
-                        color: isBusHere
-                            ? Colors.blue
-                            : Theme.of(context).textTheme.bodyLarge?.color,
+                        fontWeight: isBusHere || isHighlighted 
+                            ? FontWeight.bold 
+                            : FontWeight.normal,
+                        color: isHighlighted 
+                            ? Colors.orange
+                            : isBusHere
+                              ? Colors.blue
+                              : Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -621,9 +770,9 @@ class StationItem extends StatelessWidget {
                               : "";
                       return Text(
                         "$stationNumber",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: isHighlighted ? Colors.orange[700] : Colors.grey,
                         ),
                       );
                     }),
@@ -636,11 +785,39 @@ class StationItem extends StatelessWidget {
 
         // 구분선
         if (!isLastStation)
-          const Padding(
-            padding: EdgeInsets.only(left: 76.0),
-            child: Divider(height: 0, thickness: 1, color: Colors.grey),
+          Padding(
+            padding: const EdgeInsets.only(left: 76.0),
+            child: Divider(
+              height: 0, 
+              thickness: 1, 
+              color: isHighlighted ? Colors.orange.withOpacity(0.3) : Colors.grey,
+            ),
           ),
       ],
+    );
+  }
+  
+  // 펄스 애니메이션 아이콘
+  Widget _buildPulsingIcon() {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0.8, end: 1.2),
+      duration: const Duration(milliseconds: 800),
+      // 애니메이션 반복
+      onEnd: () {
+        // 반복 애니메이션을 위해 다시 빌드하게 함
+        Future.microtask(() => BusMapViewModelExtension.highlightedStation.refresh());
+      },
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: child,
+        );
+      },
+      child: const Icon(
+        Icons.location_on,
+        color: Colors.orange,
+        size: 20,
+      ),
     );
   }
 }
@@ -648,23 +825,25 @@ class StationItem extends StatelessWidget {
 class StationPainter extends CustomPainter {
   final int index;
   final bool isLastStation;
+  final bool isHighlighted;
 
   StationPainter({
     required this.index,
     required this.isLastStation,
+    required this.isHighlighted,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     // 원 그리기
     final Paint circlePaint = Paint()
-      ..color = Colors.grey[300]!
+      ..color = isHighlighted ? Colors.orange[100]! : Colors.grey[300]!
       ..style = PaintingStyle.fill;
 
     final Paint borderPaint = Paint()
-      ..color = Colors.grey[400]!
+      ..color = isHighlighted ? Colors.orange : Colors.grey[400]!
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+      ..strokeWidth = isHighlighted ? 2.0 : 1.0;
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 1;
@@ -675,8 +854,8 @@ class StationPainter extends CustomPainter {
     // 세로선 그리기 (마지막 정류장이 아닌 경우)
     if (!isLastStation) {
       final Paint linePaint = Paint()
-        ..color = Colors.grey[300]!
-        ..strokeWidth = 2.0;
+        ..color = isHighlighted ? Colors.orange[300]! : Colors.grey[300]!
+        ..strokeWidth = isHighlighted ? 2.0 : 2.0;
 
       final startPoint = Offset(size.width / 2, size.height);
       final endPoint = Offset(size.width / 2, size.height + 64.0); // 다음 원까지의 거리
@@ -686,5 +865,5 @@ class StationPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

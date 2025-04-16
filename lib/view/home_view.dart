@@ -99,7 +99,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      '오늘의 교통 정보를 확인해보세요.',
+                      '호서대학교의 모든 교통 정보를 확인해보세요!',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
