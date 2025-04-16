@@ -6,25 +6,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
 import 'view/home_view.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/env_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print("앱 시작");
-  
   // .env 파일 로드
-  await dotenv.load(fileName: "assets/.env");
-  
+  await EnvConfig.init();
   await FlutterNaverMap().init(
-    clientId: dotenv.env['NAVER_MAP_CLIENT_ID'] ?? '',
-    onAuthFailed: (ex) => switch (ex) {
-      NQuotaExceededException(:final message) =>
-          print("사용량 초과 (message: $message)"),
-      NUnauthorizedClientException() ||
-      NClientUnspecifiedException() ||
-      NAnotherAuthFailedException() =>
-          print("인증 실패: $ex"),
-    }
+    clientId: EnvConfig.naverMapClientId,
+      onAuthFailed: (ex) => switch (ex) {
+        NQuotaExceededException(:final message) =>
+            print("사용량 초과 (message: $message)"),
+        NUnauthorizedClientException() ||
+        NClientUnspecifiedException() ||
+        NAnotherAuthFailedException() =>
+            print("인증 실패: $ex"),
+      }
   );
   // 화면 자동 회전 비활성화 - 세로 모드만 허용
   await SystemChrome.setPreferredOrientations([

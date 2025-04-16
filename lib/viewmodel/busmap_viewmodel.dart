@@ -8,6 +8,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/bus_city_model.dart';
+import '../utils/env_config.dart';
 
 class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final mapController = MapController();
@@ -101,19 +102,9 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
         );
       }, onDone: () {
         print("WebSocket Closed");
-        Fluttertoast.showToast(
-          msg: "웹소켓 연결 종료",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-        );
       });
     } catch (e) {
       print("WebSocket Connection Error: $e");
-      Fluttertoast.showToast(
-        msg: "웹소켓 연결 실패: $e",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-      );
     }
   }
 
@@ -331,6 +322,13 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   Future<void> checkLocationPermission() async {
     isLocationLoading.value = true;
     
+    // 로딩 중임을 사용자에게 알림
+    Fluttertoast.showToast(
+      msg: "위치 정보를 가져오는 중...",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+    
     try {
       // 위치 서비스가 활성화되어 있는지 확인
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -350,6 +348,12 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
       
       if (permission == LocationPermission.denied) {
         // 권한이 거부된 경우, 사용자에게 권한 요청
+        Fluttertoast.showToast(
+          msg: "위치 권한을 요청합니다",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+        
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           isLocationLoading.value = false;
@@ -377,7 +381,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
       // 권한이 있으면 현재 위치 가져오기
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5), // 5초 타임아웃 설정
+        timeLimit: const Duration(seconds: 10), // 10초 타임아웃 설정
       );
       
       currentLocation.value = LatLng(position.latitude, position.longitude);
@@ -479,9 +483,9 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 
 String _getWebSocketUrl() {
   if (GetPlatform.isAndroid) {
-    return "ws://192.168.45.138:8000/ws/bus";
+    return "ws://${EnvConfig.baseUrl.replaceAll('http://', '')}/ws/bus";
   } else if (GetPlatform.isIOS) {
-    return "ws://192.168.45.138:8000/ws/bus";
+    return "ws://${EnvConfig.baseUrl.replaceAll('http://', '')}/ws/bus";
   } else {
     return "ws://127.0.0.1/ws/bus"; // 기본 URL 추가 (선택 사항)
   }

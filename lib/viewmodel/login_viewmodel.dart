@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../view/home_view.dart';
 import '../view/auth/login_view.dart';
+import '../utils/env_config.dart';
 
 class LoginViewModel extends GetxController {
   final email = ''.obs;
@@ -129,9 +130,9 @@ class LoginViewModel extends GetxController {
 
 String _getloginUrl() {
   if (GetPlatform.isAndroid) {
-    return "http://192.168.45.138:8000/login";
+    return "${EnvConfig.baseUrl}/login";
   } else if (GetPlatform.isIOS) {
-    return "http://192.168.45.138:8000/login";
+    return "${EnvConfig.baseUrl}/login";
   }
   else {
     return "http://127.0.0.1:8000/login";

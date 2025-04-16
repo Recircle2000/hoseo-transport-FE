@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/notice_model.dart';
+import '../utils/env_config.dart';
 
 class NoticeViewModel extends GetxController {
   final notice = Rxn<Notice>();
@@ -73,9 +74,9 @@ class NoticeViewModel extends GetxController {
 
   String _getBaseUrl() {
     if (GetPlatform.isAndroid) {
-      return "http://192.168.45.138:8000";
+      return EnvConfig.baseUrl;
     } else if (GetPlatform.isIOS) {
-      return "http://192.168.45.138:8000";
+      return EnvConfig.baseUrl;
     }
     return "http://127.0.0.1:8000";
   }

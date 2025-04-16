@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../models/shuttle_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
+import '../utils/env_config.dart';
 
 class ShuttleViewModel extends GetxController {
   final RxList<ShuttleRoute> routes = <ShuttleRoute>[].obs;
@@ -23,7 +24,7 @@ class ShuttleViewModel extends GetxController {
   final RxBool isLoadingStations = false.obs;
   
   // API 기본 URL
-  final String baseUrl = 'http://192.168.45.138:8000/shuttle'; // 실제 API URL로 변경 필요
+  final String baseUrl = '${EnvConfig.baseUrl}/shuttle'; // 환경 변수에서 가져옴
 
   // 운행 일자 타입 목록
   final List<String> scheduleTypes = ['Weekday', 'Saturday', 'Holiday'];

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/user_model.dart';
 import '../view/home_view.dart';
+import '../utils/env_config.dart';
 
 class RegisterViewModel extends GetxController {
   final email = ''.obs;
@@ -48,7 +49,7 @@ class RegisterViewModel extends GetxController {
   }
 
   Future<http.Response> _performRegistration() async {
-    final url = Uri.parse('http://10.0.2.2:8000/register');
+    final url = Uri.parse('${EnvConfig.baseUrl}/register');
     final user = UserModel(
       email: email.value,
       password: password.value,
