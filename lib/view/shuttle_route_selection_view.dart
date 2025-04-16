@@ -6,6 +6,7 @@ import '../viewmodel/shuttle_viewmodel.dart';
 import '../models/shuttle_models.dart';
 import 'shuttle_schedule_view.dart'; // 시간표 화면 임포트
 import 'package:intl/intl.dart';
+import 'nearby_stops_view.dart'; // 가까운 정류장 찾기 화면 임포트
 
 class ShuttleRouteSelectionView extends StatelessWidget {
   final ShuttleViewModel viewModel = Get.put(ShuttleViewModel());
@@ -77,6 +78,33 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       });
                     },
                     child: Text('시간표 조회'),
+                  ),
+                ),
+                
+                SizedBox(height: 30),
+                
+                // 구분선 추가
+                Divider(
+                  color: shuttleColor.withOpacity(0.3),
+                  thickness: 1.5,
+                ),
+                
+                SizedBox(height: 30),
+                
+                // 가까운 정류장 찾기 버튼
+                Center(
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.location_on),
+                    label: Text('가까운 정류장 찾기'),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      backgroundColor: Colors.green.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      Get.to(() => NearbyStopsView());
+                    },
                   ),
                 ),
               ],

@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
 import 'view/home_view.dart';
 import 'utils/env_config.dart';
+import 'utils/location_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,8 @@ void main() async {
             print("인증 실패: $ex"),
       }
   );
+  // 위치 서비스 초기화
+  await LocationService().initLocationService();
   // 화면 자동 회전 비활성화 - 세로 모드만 허용
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

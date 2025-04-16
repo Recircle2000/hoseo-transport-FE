@@ -414,10 +414,12 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   void moveToCurrentLocation() async {
     if (currentLocation.value != null) {
       mapController.move(currentLocation.value!, 15);
+      update(); // GetX 상태 업데이트
     } else {
       await checkLocationPermission();
       if (currentLocation.value != null) {
         mapController.move(currentLocation.value!, 15);
+        update(); // GetX 상태 업데이트
       }
     }
   }

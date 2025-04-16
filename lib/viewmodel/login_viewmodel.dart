@@ -124,7 +124,6 @@ class LoginViewModel extends GetxController {
 
   void _handleError(String message) {
     errorMessage.value = message;
-    Get.snackbar('오류', message);
   }
 }
 

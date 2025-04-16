@@ -111,4 +111,27 @@ class ShuttleStation {
       imageUrl: json['image_url'],
     );
   }
+}
+
+class StationSchedule {
+  final int routeId;
+  final String stationName;
+  final String arrivalTime;
+  final int stopOrder;
+
+  StationSchedule({
+    required this.routeId,
+    required this.stationName,
+    required this.arrivalTime,
+    required this.stopOrder,
+  });
+
+  factory StationSchedule.fromJson(Map<String, dynamic> json) {
+    return StationSchedule(
+      routeId: json['route_id'],
+      stationName: json['station_name'],
+      arrivalTime: json['arrival_time'],
+      stopOrder: json['stop_order'],
+    );
+  }
 } 
