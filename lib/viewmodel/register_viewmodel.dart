@@ -1,10 +1,10 @@
 // lib/viewmodel/register_viewmodel.dart
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import '../utils/env_config.dart';
 import 'dart:convert';
 import '../models/user_model.dart';
 import '../view/home_view.dart';
-import '../utils/env_config.dart';
 
 class RegisterViewModel extends GetxController {
   final email = ''.obs;

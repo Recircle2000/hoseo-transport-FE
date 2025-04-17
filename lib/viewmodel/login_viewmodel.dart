@@ -5,8 +5,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../view/home_view.dart';
-import '../view/auth/login_view.dart';
 import '../utils/env_config.dart';
+import '../view/auth/login_view.dart';
 
 class LoginViewModel extends GetxController {
   final email = ''.obs;
@@ -14,6 +14,7 @@ class LoginViewModel extends GetxController {
   final isLoading = false.obs;
   final errorMessage = RxString('');
   final currentUser = Rxn<UserModel>();
+  final String baseUrl = '${EnvConfig.baseUrl}/login'; // 환경 변수에서 가져옴
 
   @override
   void onInit() {
@@ -54,7 +55,8 @@ class LoginViewModel extends GetxController {
   }
 
   Future<http.Response> _performLogin() async {
-    final url = Uri.parse(_getloginUrl());
+    final url = Uri.parse(baseUrl);
+    print(url);
     //10.0.2.2
     return await http.post(
       url,
@@ -124,16 +126,6 @@ class LoginViewModel extends GetxController {
 
   void _handleError(String message) {
     errorMessage.value = message;
-  }
-}
-
-String _getloginUrl() {
-  if (GetPlatform.isAndroid) {
-    return "${EnvConfig.baseUrl}/login";
-  } else if (GetPlatform.isIOS) {
-    return "${EnvConfig.baseUrl}/login";
-  }
-  else {
-    return "http://127.0.0.1:8000/login";
+    Get.snackbar('오류', message);
   }
 }

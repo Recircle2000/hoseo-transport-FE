@@ -61,12 +61,12 @@ class NearbyStopsView extends StatelessWidget {
                     size: 24,
                   ),
                   SizedBox(width: 8),
-                  Text(
+              Text(
                     '내 위치에서 가까운 정류장',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                   ),
                 ],
               ),
@@ -103,12 +103,12 @@ class NearbyStopsView extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+              Text(
                       '현재 위치를 기준으로 정류장이 정렬됩니다.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
                     ),
                     SizedBox(height: 8),
                     InkWell(
@@ -136,9 +136,9 @@ class NearbyStopsView extends StatelessWidget {
                   ],
                 ),
             ],
-          ),
         ),
-      );
+      ),
+    );
     });
   }
 
