@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import '../../viewmodel/nearby_stops_viewmodel.dart';
 import '../../models/shuttle_models.dart';
+import 'shuttle_route_detail_view.dart'; // 노선 상세 정보 화면 임포트
+import 'station_detail_view.dart'; // 정류장 상세 정보 화면 임포트
+import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
 
 class NearbyStopsView extends StatelessWidget {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
@@ -351,11 +354,29 @@ class NearbyStopsView extends StatelessWidget {
           ),
           Spacer(),
           if (stationName.isNotEmpty)
-            Text(
-              stationName,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+            InkWell(
+              onTap: () {
+                // 정류장 상세 정보 화면으로 이동
+                Get.to(() => StationDetailView(stationId: selectedId));
+              },
+              child: Row(
+                children: [
+                  Text(
+                    stationName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(
+                    Platform.isIOS 
+                      ? CupertinoIcons.info_circle_fill 
+                      : Icons.info_outline,
+                    size: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
               ),
             ),
         ],
@@ -467,32 +488,53 @@ class NearbyStopsView extends StatelessWidget {
         final schedule = viewModel.filteredSchedules[index];
         final routeName = viewModel.getRouteName(schedule.routeId);
         
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Text('${index + 1}'),
-              ),
-              Expanded(
-                flex: 3,
-                child: Text(
-                  routeName,
-                  overflow: TextOverflow.ellipsis,
+        return InkWell(
+          onTap: () {
+            // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
+            Get.to(() => ShuttleRouteDetailView(
+              scheduleId: schedule.scheduleId,
+              routeName: routeName,
+              round: 0, // 회차 정보가 없으므로 0으로 설정
+              startTime: _formatTime(schedule.arrivalTime),
+            ));
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text('${index + 1}'),
                 ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Text(
-                  _formatTime(schedule.arrivalTime),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: shuttleColor,
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    routeName,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    children: [
+                      Text(
+                        _formatTime(schedule.arrivalTime),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: shuttleColor,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -510,32 +552,53 @@ class NearbyStopsView extends StatelessWidget {
           final schedule = viewModel.filteredSchedules[index];
           final routeName = viewModel.getRouteName(schedule.routeId);
           
-          return Container(
-            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Text('${index + 1}'),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    routeName,
-                    overflow: TextOverflow.ellipsis,
+          return InkWell(
+            onTap: () {
+              // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
+              Get.to(() => ShuttleRouteDetailView(
+                scheduleId: schedule.scheduleId,
+                routeName: routeName,
+                round: 0, // 회차 정보가 없으므로 0으로 설정
+                startTime: _formatTime(schedule.arrivalTime),
+              ));
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Text('${index + 1}'),
                   ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    _formatTime(schedule.arrivalTime),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: shuttleColor,
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      routeName,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    flex: 2,
+                    child: Row(
+                      children: [
+                        Text(
+                          _formatTime(schedule.arrivalTime),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: shuttleColor,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
