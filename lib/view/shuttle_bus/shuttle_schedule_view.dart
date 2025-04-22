@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:io' show Platform;
-import '../viewmodel/shuttle_viewmodel.dart';
+import '../../viewmodel/shuttle_viewmodel.dart';
 import 'shuttle_route_detail_view.dart';
 
 class ShuttleScheduleView extends StatefulWidget {

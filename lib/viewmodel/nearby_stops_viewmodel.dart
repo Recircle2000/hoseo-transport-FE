@@ -257,6 +257,7 @@ class NearbyStopsViewModel extends GetxController {
       final response = await http.get(
         Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules')
       );
+      print('정류장 시간표 조회 응답: ${response.body}');
       
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);

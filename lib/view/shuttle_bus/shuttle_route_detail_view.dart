@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import '../viewmodel/shuttle_viewmodel.dart';
+import '../../viewmodel/shuttle_viewmodel.dart';
 import 'dart:io' show Platform;
 
 class ShuttleRouteDetailView extends StatefulWidget {

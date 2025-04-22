@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
-import '../viewmodel/nearby_stops_viewmodel.dart';
-import '../models/shuttle_models.dart';
+import '../../viewmodel/nearby_stops_viewmodel.dart';
+import '../../models/shuttle_models.dart';
 
 class NearbyStopsView extends StatelessWidget {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤

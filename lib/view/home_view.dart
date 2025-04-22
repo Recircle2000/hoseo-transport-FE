@@ -6,7 +6,7 @@ import '../viewmodel/notice_viewmodel.dart';
 import 'notice_detail_view.dart';
 import 'notice_list_view.dart';
 import 'city_bus/bus_map_view.dart';
-import 'shuttle_route_selection_view.dart';
+import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 
 class HomeView extends StatefulWidget {

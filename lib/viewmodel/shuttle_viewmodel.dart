@@ -298,6 +298,7 @@ class ShuttleViewModel extends GetxController {
     isLoadingStations.value = true;
     try {
       final response = await http.get(Uri.parse('$baseUrl/stations'));
+      print('정류장 목록 조회 응답: ${response.body}');
       
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);

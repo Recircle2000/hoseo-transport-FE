@@ -14,17 +14,6 @@ void main() async {
   print("앱 시작");
   // .env 파일 로드
   await EnvConfig.init();
-  await FlutterNaverMap().init(
-    clientId: EnvConfig.naverMapClientId,
-      onAuthFailed: (ex) => switch (ex) {
-        NQuotaExceededException(:final message) =>
-            print("사용량 초과 (message: $message)"),
-        NUnauthorizedClientException() ||
-        NClientUnspecifiedException() ||
-        NAnotherAuthFailedException() =>
-            print("인증 실패: $ex"),
-      }
-  );
   // 위치 서비스 초기화
   await LocationService().initLocationService();
   // 화면 자동 회전 비활성화 - 세로 모드만 허용
