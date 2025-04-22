@@ -133,7 +133,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('정류장 정보 (네이버맵)'),
+        title: Text('정류장 정보'),
       ),
       body: Obx(() {
         if (isLoading.value) {

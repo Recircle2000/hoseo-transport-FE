@@ -5,7 +5,6 @@ import 'dart:io' show Platform;
 import '../../viewmodel/nearby_stops_viewmodel.dart';
 import '../../models/shuttle_models.dart';
 import 'shuttle_route_detail_view.dart'; // 노선 상세 정보 화면 임포트
-import 'station_detail_view.dart'; // 정류장 상세 정보 화면 임포트
 import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
 
 class NearbyStopsView extends StatelessWidget {
@@ -357,7 +356,7 @@ class NearbyStopsView extends StatelessWidget {
             InkWell(
               onTap: () {
                 // 정류장 상세 정보 화면으로 이동
-                Get.to(() => StationDetailView(stationId: selectedId));
+                Get.to(() => NaverMapStationDetailView(stationId: selectedId));
               },
               child: Row(
                 children: [

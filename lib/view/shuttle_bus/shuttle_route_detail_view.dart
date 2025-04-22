@@ -331,7 +331,31 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                     stop.stationName,
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
-                  SizedBox(width: 4),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: InkWell(
+              onTap: () {
+                // station_id 필드가 있는 경우에만 상세 화면으로 이동
+                if (stop.stationId != null) { 
+                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+                } else {
+                  _showNoStationDetailAlert(context);
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    stop.arrivalTime.length > 5 ? stop.arrivalTime.substring(0, 5) : stop.arrivalTime,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                   Icon(
                     Platform.isIOS 
                       ? CupertinoIcons.info_circle_fill 
@@ -340,20 +364,6 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                     color: Colors.grey.shade400,
                   ),
                 ],
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              stop.arrivalTime,
-              style: TextStyle(
-                fontWeight: stop.stopOrder == 1 
-                  ? FontWeight.bold 
-                  : FontWeight.normal,
-                color: stop.stopOrder == 1
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
               ),
             ),
           ),
