@@ -71,7 +71,6 @@ class NoticeViewModel extends GetxController {
       isLoading.value = false;
     }
   }
-
   String _getBaseUrl() {
     if (GetPlatform.isAndroid) {
       return EnvConfig.baseUrl;

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
-import '../viewmodel/shuttle_viewmodel.dart';
-import '../models/shuttle_models.dart';
+import '../../viewmodel/shuttle_viewmodel.dart';
+import '../../models/shuttle_models.dart';
 import 'shuttle_schedule_view.dart'; // 시간표 화면 임포트
 import 'package:intl/intl.dart';
 import 'nearby_stops_view.dart'; // 가까운 정류장 찾기 화면 임포트

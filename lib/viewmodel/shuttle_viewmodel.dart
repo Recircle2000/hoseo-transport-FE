@@ -298,6 +298,7 @@ class ShuttleViewModel extends GetxController {
     isLoadingStations.value = true;
     try {
       final response = await http.get(Uri.parse('$baseUrl/stations'));
+      print('정류장 목록 조회 응답: ${response.body}');
       
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -354,5 +355,38 @@ class ShuttleViewModel extends GetxController {
   void selectSchedule(int scheduleId) {
     selectedScheduleId.value = scheduleId;
     fetchScheduleStops(scheduleId);
+  }
+  
+  // 특정 정류장의 상세 정보 조회
+  Future<ShuttleStation?> fetchStationDetail(int stationId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/stations?station_id=$stationId')
+      );
+      
+      if (response.statusCode == 200) {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final List<dynamic> data = json.decode(decodedBody);
+        
+        if (data.isNotEmpty) {
+          return ShuttleStation.fromJson(data[0]);
+        } else {
+          throw Exception('정류장 정보가 없습니다.');
+        }
+      } else {
+        throw Exception('정류장 정보를 불러오는데 실패했습니다 (${response.statusCode})');
+      }
+    } catch (e) {
+      print('정류장 정보를 불러오는데 실패했습니다: $e');
+      Get.snackbar(
+        '오류',
+        '정류장 정보를 불러오는데 실패했습니다',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
+        duration: Duration(seconds: 3),
+      );
+      return null;
+    }
   }
 } 

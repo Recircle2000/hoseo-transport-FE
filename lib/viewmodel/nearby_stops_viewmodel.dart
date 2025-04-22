@@ -257,6 +257,7 @@ class NearbyStopsViewModel extends GetxController {
       final response = await http.get(
         Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules')
       );
+      print('정류장 시간표 조회 응답: ${response.body}');
       
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
@@ -284,10 +285,38 @@ class NearbyStopsViewModel extends GetxController {
       
       // 테스트 더미 데이터
       if (stationSchedules.isEmpty) {
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:13:00', stopOrder: 2, scheduleType: 'Weekday'));
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:15:00', stopOrder: 2, scheduleType: 'Weekday'));
-        stationSchedules.add(StationSchedule(routeId: 1, stationName: '천안아산역(천캠방향)', arrivalTime: '21:43:00', stopOrder: 2, scheduleType: 'Saturday'));
-        stationSchedules.add(StationSchedule(routeId: 4, stationName: '천안아산역(천캠방향)', arrivalTime: '09:38:00', stopOrder: 2, scheduleType: 'Holiday'));
+        stationSchedules.add(StationSchedule(
+          routeId: 1, 
+          stationName: '천안아산역(천캠방향)', 
+          arrivalTime: '21:13:00', 
+          stopOrder: 2, 
+          scheduleType: 'Weekday',
+          scheduleId: 1001
+        ));
+        stationSchedules.add(StationSchedule(
+          routeId: 1, 
+          stationName: '천안아산역(천캠방향)', 
+          arrivalTime: '21:15:00', 
+          stopOrder: 2, 
+          scheduleType: 'Weekday',
+          scheduleId: 1002
+        ));
+        stationSchedules.add(StationSchedule(
+          routeId: 1, 
+          stationName: '천안아산역(천캠방향)', 
+          arrivalTime: '21:43:00', 
+          stopOrder: 2, 
+          scheduleType: 'Saturday',
+          scheduleId: 1003
+        ));
+        stationSchedules.add(StationSchedule(
+          routeId: 4, 
+          stationName: '천안아산역(천캠방향)', 
+          arrivalTime: '09:38:00', 
+          stopOrder: 2, 
+          scheduleType: 'Holiday',
+          scheduleId: 1004
+        ));
         
         // 필터링 적용
         filterSchedulesByType(selectedScheduleType.value);

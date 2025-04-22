@@ -68,11 +68,13 @@ class ScheduleStop {
   final String stationName;
   final String arrivalTime;
   final int stopOrder;
+  final int? stationId;
 
   ScheduleStop({
     required this.stationName,
     required this.arrivalTime,
     required this.stopOrder,
+    this.stationId,
   });
 
   factory ScheduleStop.fromJson(Map<String, dynamic> json) {
@@ -80,6 +82,7 @@ class ScheduleStop {
       stationName: json['station_name'],
       arrivalTime: json['arrival_time'],
       stopOrder: json['stop_order'],
+      stationId: json['station_id'],
     );
   }
 }
@@ -119,6 +122,7 @@ class StationSchedule {
   final String arrivalTime;
   final int stopOrder;
   final String scheduleType;
+  final int scheduleId;
 
   StationSchedule({
     required this.routeId,
@@ -126,6 +130,7 @@ class StationSchedule {
     required this.arrivalTime,
     required this.stopOrder,
     required this.scheduleType,
+    required this.scheduleId,
   });
 
   factory StationSchedule.fromJson(Map<String, dynamic> json) {
@@ -135,6 +140,7 @@ class StationSchedule {
       arrivalTime: json['arrival_time'],
       stopOrder: json['stop_order'],
       scheduleType: json['schedule_type'] ?? 'Weekday',
+      scheduleId: json['schedule_id'],
     );
   }
 } 

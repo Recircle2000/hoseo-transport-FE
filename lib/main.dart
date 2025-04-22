@@ -8,23 +8,27 @@ import 'dart:io' show Platform;
 import 'view/home_view.dart';
 import 'utils/env_config.dart';
 import 'utils/location_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  print("앱 시작");
-  // .env 파일 로드
-  await EnvConfig.init();
+  
+  // .env 파일 먼저 로드
+  await dotenv.load(fileName: 'assets/.env');
+  
+  print("네이버 맵 클라이언트 ID: ${EnvConfig.naverMapClientId}");
   await FlutterNaverMap().init(
-    clientId: EnvConfig.naverMapClientId,
+      clientId: EnvConfig.naverMapClientId,
       onAuthFailed: (ex) => switch (ex) {
-        NQuotaExceededException(:final message) =>
-            print("사용량 초과 (message: $message)"),
-        NUnauthorizedClientException() ||
-        NClientUnspecifiedException() ||
-        NAnotherAuthFailedException() =>
-            print("인증 실패: $ex"),
-      }
-  );
+            NQuotaExceededException(:final message) =>
+              print("사용량 초과 (message: $message)"),
+            NUnauthorizedClientException() ||
+            NClientUnspecifiedException() ||
+            NAnotherAuthFailedException() =>
+              print("인증 실패: $ex"),
+          });
+
+  print("앱 시작");
   // 위치 서비스 초기화
   await LocationService().initLocationService();
   // 화면 자동 회전 비활성화 - 세로 모드만 허용
@@ -32,7 +36,7 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   runApp(MyApp());
 }
 

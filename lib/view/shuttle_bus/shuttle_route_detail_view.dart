@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import '../viewmodel/shuttle_viewmodel.dart';
+import '../../viewmodel/shuttle_viewmodel.dart';
 import 'dart:io' show Platform;
+import 'station_detail_view.dart'; // 정류장 상세 정보 화면 임포트
+import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
 
 class ShuttleRouteDetailView extends StatefulWidget {
   final int scheduleId;
@@ -142,21 +144,48 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
             ],
           ),
           SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.access_time, 
-                color: shuttleColor),
-              SizedBox(width: 8),
-              Text(
-                '${widget.round}회차 (출발: ${widget.startTime})',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: shuttleColor,
+          Obx(() {
+            // 정류장 정보에서 출발 시간 가져오기 (stop_order가 1인 정류장)
+            String departureTime = '';
+            if (viewModel.scheduleStops.isNotEmpty) {
+              try {
+                // stop_order가 1인 정류장 찾기
+                final firstStop = viewModel.scheduleStops.firstWhere(
+                  (stop) => stop.stopOrder == 1,
+                  orElse: () => viewModel.scheduleStops.first,
+                );
+                
+                // HH:MM:SS 형식을 HH:MM으로 변환
+                if (firstStop.arrivalTime.length >= 5) {
+                  departureTime = firstStop.arrivalTime.substring(0, 5);
+                } else {
+                  departureTime = firstStop.arrivalTime;
+                }
+              } catch (e) {
+                departureTime = widget.startTime;
+              }
+            } else {
+              departureTime = widget.startTime;
+            }
+            
+            return Row(
+              children: [
+                Icon(Icons.access_time, 
+                  color: shuttleColor),
+                SizedBox(width: 8),
+                Text(
+                  widget.round > 0 
+                    ? '${widget.round}회차 (출발: $departureTime)'
+                    : '출발: $departureTime',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: shuttleColor,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -287,27 +316,92 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
           ),
           Expanded(
             flex: 2,
-            child: Text(
-              stop.stationName,
-              style: TextStyle(fontWeight: FontWeight.w500),
+            child: InkWell(
+              onTap: () {
+                // station_id 필드가 있는 경우에만 상세 화면으로 이동
+                if (stop.stationId != null) { 
+                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+                } else {
+                  _showNoStationDetailAlert(context);
+                }
+              },
+              child: Row(
+                children: [
+                  Text(
+                    stop.stationName,
+                    style: TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
             flex: 2,
-            child: Text(
-              stop.arrivalTime,
-              style: TextStyle(
-                fontWeight: stop.stopOrder == 1 
-                  ? FontWeight.bold 
-                  : FontWeight.normal,
-                color: stop.stopOrder == 1
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
+            child: InkWell(
+              onTap: () {
+                // station_id 필드가 있는 경우에만 상세 화면으로 이동
+                if (stop.stationId != null) { 
+                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+                } else {
+                  _showNoStationDetailAlert(context);
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    stop.arrivalTime.length > 5 ? stop.arrivalTime.substring(0, 5) : stop.arrivalTime,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  Icon(
+                    Platform.isIOS 
+                      ? CupertinoIcons.info_circle_fill 
+                      : Icons.info_outline,
+                    size: 14,
+                    color: Colors.grey.shade400,
+                  ),
+                ],
               ),
             ),
           ),
         ],
       ),
     );
+  }
+  
+  // 정류장 상세 정보가 없음을 알리는 팝업
+  void _showNoStationDetailAlert(BuildContext context) {
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+        context: context,
+        builder: (context) => CupertinoAlertDialog(
+          title: Text('정보 없음'),
+          content: Text('이 정류장의 상세 정보가 없습니다.'),
+          actions: [
+            CupertinoDialogAction(
+              child: Text('확인'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('정보 없음'),
+          content: Text('이 정류장의 상세 정보가 없습니다.'),
+          actions: [
+            TextButton(
+              child: Text('확인'),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+    }
   }
 } 

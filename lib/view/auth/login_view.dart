@@ -1,7 +1,5 @@
 // lib/view/login_view.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../viewmodel/login_viewmodel.dart';
 import 'register_view.dart';
@@ -12,114 +10,163 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('로그인'),
-        elevation: 0,
-        backgroundColor: Platform.isIOS 
-            ? CupertinoTheme.of(context).barBackgroundColor 
-            : Theme.of(context).primaryColor,
-      ),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-                // 로고 또는 앱 이름
-                Center(
-                  child: Icon(
-                    Icons.map_outlined,
-                    size: 80,
-                    color: Theme.of(context).primaryColor,
+                const SizedBox(height: 60),
+                const Text(
+                  '환영합니다!',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    '환영합니다',
-                    style: TextStyle(
-                      fontSize: 24, 
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                const SizedBox(height: 8),
+                const Text(
+                  '학번과 비밀번호로 로그인하세요.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                // 학번 입력 필드
+                TextField(
+                  onChanged: (value) {
+                    _loginViewModel.setStudentId(value);
+                    if (value.length == 8) {
+                      // 8자리 입력 완료 시 키보드 닫기
+                      FocusScope.of(context).unfocus();
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: '학번',
+                    hintText: '8자리 숫자',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    prefixIcon: const Icon(Icons.person_outline),
+                    suffixIcon: Obx(() => _loginViewModel.isStudentIdValid.value
+                        ? const Icon(Icons.check_circle, color: Colors.green)
+                        : const SizedBox.shrink()),
                   ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 8,
                 ),
-                const SizedBox(height: 40),
-                // 플랫폼별 입력 필드
-                if (Platform.isIOS) 
-                  _buildIOSInputFields()
-                else 
-                  _buildAndroidInputFields(),
-                const SizedBox(height: 32),
-                // 로그인 버튼
+                const SizedBox(height: 8),
+                // 자동 생성된 이메일 표시
                 Obx(() {
-                  if (_loginViewModel.isLoading.value) {
-                    return Center(
-                      child: Platform.isIOS 
-                          ? const CupertinoActivityIndicator() 
-                          : const CircularProgressIndicator(),
+                  if (_loginViewModel.studentId.value.isNotEmpty) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '이메일:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.email_outlined, color: Colors.blue.shade300, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                _loginViewModel.email,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   }
-                  return Platform.isIOS 
-                      ? CupertinoButton(
-                          color: Theme.of(context).primaryColor,
-                          onPressed: _loginViewModel.login,
-                          child: const Text('로그인'),
-                        )
-                      : ElevatedButton(
-                          onPressed: _loginViewModel.login,
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            '로그인',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        );
+                  return const SizedBox.shrink();
                 }),
-                
-                // 회원가입 링크 - 간단한 텍스트 버튼으로 추가
-                const SizedBox(height: 20),
-                Center(
-                  child: TextButton(
-                    onPressed: () => Get.to(() => RegisterView()),
-                    child: Text(
-                      '계정이 없으신가요? 회원가입',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 24),
+                // 비밀번호 입력 필드
+                _PasswordTextField(
+                  onChanged: _loginViewModel.setPassword,
+                  labelText: '비밀번호',
                 ),
-                
-                // 에러 메시지
+                const SizedBox(height: 40),
+                // 오류 메시지 표시
                 Obx(() {
                   final error = _loginViewModel.errorMessage.value;
                   if (error.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Text(
-                        error,
-                        style: TextStyle(color: Colors.red.shade800),
-                        textAlign: TextAlign.center,
-                      ),
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            error,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }),
+                const SizedBox(height: 40),
+                // 로그인 버튼
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: Obx(() {
+                    if (_loginViewModel.isLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return ElevatedButton(
+                      onPressed: _loginViewModel.login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        '로그인',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 24),
+                // 회원가입 링크
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('계정이 없으신가요?'),
+                    TextButton(
+                      onPressed: () => Get.to(() => RegisterView()),
+                      child: const Text('회원가입'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -127,75 +174,46 @@ class LoginView extends StatelessWidget {
       ),
     );
   }
+}
 
-  // iOS 스타일 입력 필드
-  Widget _buildIOSInputFields() {
-    return Column(
-      children: [
-        CupertinoTextField(
-          prefix: const Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Icon(CupertinoIcons.mail),
-          ),
-          placeholder: '이메일',
-          keyboardType: TextInputType.emailAddress,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: CupertinoColors.systemGrey4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          onChanged: _loginViewModel.setEmail,
-        ),
-        const SizedBox(height: 16),
-        CupertinoTextField(
-          prefix: const Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Icon(CupertinoIcons.padlock),
-          ),
-          placeholder: '비밀번호',
-          obscureText: true,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: CupertinoColors.systemGrey4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          onChanged: _loginViewModel.setPassword,
-        ),
-      ],
-    );
-  }
+class _PasswordTextField extends StatefulWidget {
+  final Function(String) onChanged;
+  final String labelText;
 
-  // 안드로이드 스타일 입력 필드
-  Widget _buildAndroidInputFields() {
-    return Column(
-      children: [
-        TextField(
-          decoration: InputDecoration(
-            labelText: '이메일',
-            hintText: 'example@email.com',
-            prefixIcon: const Icon(Icons.email_outlined),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          ),
-          keyboardType: TextInputType.emailAddress,
-          onChanged: _loginViewModel.setEmail,
+  const _PasswordTextField({
+    required this.onChanged,
+    required this.labelText,
+  });
+
+  @override
+  State<_PasswordTextField> createState() => _PasswordTextFieldState();
+}
+
+class _PasswordTextFieldState extends State<_PasswordTextField> {
+  bool _isVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      onChanged: widget.onChanged,
+      obscureText: !_isVisible,
+      decoration: InputDecoration(
+        labelText: widget.labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            labelText: '비밀번호',
-            prefixIcon: const Icon(Icons.lock_outline),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isVisible ? Icons.visibility_off : Icons.visibility,
           ),
-          obscureText: true,
-          onChanged: _loginViewModel.setPassword,
+          onPressed: () {
+            setState(() {
+              _isVisible = !_isVisible;
+            });
+          },
         ),
-      ],
+      ),
     );
   }
 }

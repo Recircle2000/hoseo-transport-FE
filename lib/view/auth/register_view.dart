@@ -1,7 +1,4 @@
-// lib/view/register_view.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../viewmodel/register_viewmodel.dart';
 
@@ -11,197 +8,419 @@ class RegisterView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('회원가입'),
-        elevation: 0,
-        backgroundColor: Platform.isIOS 
-            ? CupertinoTheme.of(context).barBackgroundColor 
-            : Theme.of(context).primaryColor,
-      ),
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 스크롤 가능한 메인 콘텐츠
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 20),
-                      // 회원가입 아이콘
-                      Center(
-                        child: Icon(
-                          Icons.person_add_outlined,
-                          size: 70,
-                          color: Theme.of(context).primaryColor,
-                        ),
+        child: Obx(() => _buildCurrentStep(context)),
+      ),
+    );
+  }
+
+  Widget _buildCurrentStep(BuildContext context) {
+    switch (_registerViewModel.currentStep.value) {
+      case 0:
+        return _StudentIdStep();
+      case 1:
+        return _PasswordStep();
+      default:
+        return _StudentIdStep();
+    }
+  }
+}
+
+class _StudentIdStep extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final RegisterViewModel viewModel = Get.find<RegisterViewModel>();
+    final screenSize = MediaQuery.of(context).size;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Get.back(),
+            ),
+            const SizedBox(height: 24),
+            _buildStepIndicator(0),
+            const SizedBox(height: 32),
+            const Text(
+              '학번을 \n입력해주세요',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '학교 이메일은 자동으로 생성됩니다',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 40),
+            TextField(
+              onChanged: (value) {
+                viewModel.setStudentId(value);
+                if (value.length == 8) {
+                  // 8자리 입력 완료 시 키보드 닫기
+                  FocusScope.of(context).unfocus();
+                }
+              },
+              decoration: InputDecoration(
+                labelText: '학번',
+                hintText: '8자리 숫자',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+                suffixIcon: Obx(() => viewModel.isStudentIdValid.value
+                    ? const Icon(Icons.check_circle, color: Colors.green)
+                    : const SizedBox.shrink()),
+              ),
+              keyboardType: TextInputType.number,
+              maxLength: 8,
+            ),
+            const SizedBox(height: 16),
+            Obx(() {
+              if (viewModel.studentId.value.isNotEmpty) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '이메일:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: Text(
-                          '새 계정 만들기',
-                          style: TextStyle(
-                            fontSize: 24, 
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 30),
-                      // 플랫폼별 입력 필드
-                      if (Platform.isIOS) 
-                        _buildIOSInputFields()
-                      else 
-                        _buildAndroidInputFields(),
-                      const SizedBox(height: 32),
-                      // 회원가입 버튼
-                      Obx(() {
-                        if (_registerViewModel.isLoading.value) {
-                          return Center(
-                            child: Platform.isIOS 
-                                ? const CupertinoActivityIndicator() 
-                                : const CircularProgressIndicator(),
-                          );
-                        }
-                        return Platform.isIOS 
-                            ? CupertinoButton(
-                                color: Theme.of(context).primaryColor,
-                                onPressed: _registerViewModel.register,
-                                child: const Text('회원가입'),
-                              )
-                            : ElevatedButton(
-                                onPressed: _registerViewModel.register,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: const Text(
-                                  '회원가입',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              );
-                      }),
-                      // 에러 메시지
-                      Obx(() {
-                        final error = _registerViewModel.errorMessage.value;
-                        if (error.isEmpty) return const SizedBox.shrink();
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.shade200),
-                            ),
-                            child: Text(
-                              error,
-                              style: TextStyle(color: Colors.red.shade800),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 20),
-                      // 로그인 링크 - 간단한 텍스트 버튼으로 추가
-                      Center(
-                        child: TextButton(
-                          onPressed: () => Get.back(),
-                          child: Text(
-                            '이미 계정이 있으신가요? 로그인',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
+                      child: Row(
+                        children: [
+                          Icon(Icons.email_outlined, color: Colors.blue.shade300, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            viewModel.email,
+                            style: const TextStyle(
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
-                              decoration: TextDecoration.underline,
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+            const SizedBox(height: 8),
+            Obx(() {
+              if (!viewModel.isStudentIdValid.value && viewModel.studentId.value.isNotEmpty) {
+                return const Text(
+                  '학번은 8자리 숫자여야 합니다',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: Obx(() => ElevatedButton(
+                    onPressed: viewModel.isStudentIdValid.value
+                        ? viewModel.nextStep
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      '다음',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  )),
+            ),
+            const SizedBox(height: 24), // 키보드와의 간격을 위한 여백
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PasswordStep extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final RegisterViewModel viewModel = Get.find<RegisterViewModel>();
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: viewModel.previousStep,
+            ),
+            const SizedBox(height: 24),
+            _buildStepIndicator(1),
+            const SizedBox(height: 32),
+            const Text(
+              '비밀번호를 \n설정해주세요',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '8자 이상, 특수문자를 포함해야 합니다.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 40),
+            Obx(() => _PasswordTextField(
+                  onChanged: viewModel.setPassword,
+                  labelText: '비밀번호',
+                  isValid: viewModel.isPasswordValid.value,
+                  password: viewModel.password.value,
+                )),
+            const SizedBox(height: 24),
+            Obx(() => _PasswordTextField(
+                  onChanged: viewModel.setConfirmPassword,
+                  labelText: '비밀번호 확인',
+                  isValid: viewModel.isPasswordMatch.value && viewModel.confirmPassword.value.isNotEmpty,
+                  password: viewModel.confirmPassword.value,
+                )),
+            const SizedBox(height: 16),
+            Obx(() {
+              if (!viewModel.isPasswordValid.value && viewModel.password.value.isNotEmpty) {
+                return const Text(
+                  '비밀번호는 8자 이상, 특수문자를 포함해야 합니다.',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                );
+              }
+              if (!viewModel.isPasswordMatch.value && viewModel.confirmPassword.value.isNotEmpty) {
+                return const Text(
+                  '비밀번호가 일치하지 않습니다.',
+                  style: TextStyle(color: Colors.red, fontSize: 12),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+            const SizedBox(height: 16),
+            // 이메일 정보 표시
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.email_outlined, color: Colors.blue.shade300),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '이메일',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
                         ),
                       ),
+                      Obx(() => Text(
+                            viewModel.email,
+                            style: const TextStyle(fontSize: 16),
+                          )),
                     ],
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
+            const SizedBox(height: 24),
+            Obx(() {
+              final error = viewModel.errorMessage.value;
+              if (error.isEmpty) return const SizedBox.shrink();
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        error,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: Obx(() {
+                if (viewModel.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return ElevatedButton(
+                  onPressed: (viewModel.isPasswordValid.value && viewModel.isPasswordMatch.value)
+                      ? viewModel.register
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    '회원가입 완료',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 24), // 키보드와의 간격을 위한 여백
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PasswordTextField extends StatefulWidget {
+  final Function(String) onChanged;
+  final String labelText;
+  final bool isValid;
+  final String password;
+
+  const _PasswordTextField({
+    required this.onChanged,
+    required this.labelText,
+    required this.isValid,
+    required this.password,
+  });
+
+  @override
+  State<_PasswordTextField> createState() => _PasswordTextFieldState();
+}
+
+class _PasswordTextFieldState extends State<_PasswordTextField> {
+  bool _isVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      onChanged: widget.onChanged,
+      obscureText: !_isVisible,
+      decoration: InputDecoration(
+        labelText: widget.labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.password.isNotEmpty)
+              Icon(
+                widget.isValid ? Icons.check_circle : Icons.error,
+                color: widget.isValid ? Colors.green : Colors.red,
+                size: 20,
+              ),
+            IconButton(
+              icon: Icon(
+                _isVisible ? Icons.visibility_off : Icons.visibility,
+              ),
+              onPressed: () {
+                setState(() {
+                  _isVisible = !_isVisible;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildStepIndicator(int currentStep) {
+  return Row(
+    children: [
+      _StepDot(isActive: currentStep >= 0, text: "1"),
+      _StepLine(isActive: currentStep >= 1),
+      _StepDot(isActive: currentStep >= 1, text: "2"),
+    ],
+  );
+}
+
+class _StepDot extends StatelessWidget {
+  final bool isActive;
+  final String text;
+
+  const _StepDot({required this.isActive, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isActive ? Colors.blue : Colors.grey.shade300,
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.grey,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
     );
   }
+}
 
-  // iOS 스타일 입력 필드
-  Widget _buildIOSInputFields() {
-    return Column(
-      children: [
-        CupertinoTextField(
-          prefix: const Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Icon(CupertinoIcons.mail),
-          ),
-          placeholder: '이메일',
-          keyboardType: TextInputType.emailAddress,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: CupertinoColors.systemGrey4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          onChanged: _registerViewModel.setEmail,
-        ),
-        const SizedBox(height: 16),
-        CupertinoTextField(
-          prefix: const Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Icon(CupertinoIcons.padlock),
-          ),
-          placeholder: '비밀번호 (6자 이상)',
-          obscureText: true,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: CupertinoColors.systemGrey4),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          onChanged: _registerViewModel.setPassword,
-        ),
-      ],
-    );
-  }
+class _StepLine extends StatelessWidget {
+  final bool isActive;
 
-  // 안드로이드 스타일 입력 필드
-  Widget _buildAndroidInputFields() {
-    return Column(
-      children: [
-        TextField(
-          decoration: InputDecoration(
-            labelText: '이메일',
-            hintText: 'example@email.com',
-            prefixIcon: const Icon(Icons.email_outlined),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          ),
-          keyboardType: TextInputType.emailAddress,
-          onChanged: _registerViewModel.setEmail,
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            labelText: '비밀번호',
-            hintText: '6자 이상 입력해주세요',
-            prefixIcon: const Icon(Icons.lock_outline),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          ),
-          obscureText: true,
-          onChanged: _registerViewModel.setPassword,
-        ),
-      ],
+  const _StepLine({required this.isActive});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 2,
+      color: isActive ? Colors.blue : Colors.grey.shade300,
     );
   }
 }
