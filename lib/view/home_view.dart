@@ -48,10 +48,10 @@ class _HomeViewState extends State<HomeView> {
           ),
           centerTitle: true,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.settings, size: 24),
-              onPressed: () => Get.to(() => SettingsView()),
-            ),
+            // IconButton(
+            //   icon: const Icon(Icons.settings, size: 24),
+            //   onPressed: () => Get.to(() => SettingsView()),
+            // ),
           ],
         ),
         body: _buildHomeContent(backgroundColor, userName, greeting),
