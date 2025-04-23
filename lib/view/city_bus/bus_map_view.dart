@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
@@ -176,8 +177,32 @@ class _BusMapViewState extends State<BusMapView> {
                     ),
                   ),
                   Expanded(
-                    child: Platform.isIOS
+                    child: kIsWeb || !Platform.isIOS
                         ? DefaultTabController(
+                            length: 2,
+                            child: Column(
+                              children: [
+                                TabBar(
+                                  tabs: const [
+                                    Tab(text: '노선 정보'),
+                                    Tab(text: '시간표'),
+                                  ],
+                                ),
+                                Expanded(
+                                  child: TabBarView(
+                                    children: [
+                                      RouteInfoView(
+                                        routeDisplayNames: routeDisplayNames,
+                                        routeSimpleNames: routeSimpleNames,
+                                      ),
+                                      TimetableView(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : DefaultTabController(
                           length: 2,
                           child: Column(
                             children: [
@@ -208,31 +233,7 @@ class _BusMapViewState extends State<BusMapView> {
                               ),
                             ],
                           ),
-                        )
-                        : DefaultTabController(
-                            length: 2,
-                            child: Column(
-                              children: [
-                                TabBar(
-                                  tabs: const [
-                                    Tab(text: '노선 정보'),
-                                    Tab(text: '시간표'),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: TabBarView(
-                                    children: [
-                                      RouteInfoView(
-                                        routeDisplayNames: routeDisplayNames,
-                                        routeSimpleNames: routeSimpleNames,
-                                      ),
-                                      TimetableView(),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        ),
                   ),
                 ],
               ),

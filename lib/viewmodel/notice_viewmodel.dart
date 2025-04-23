@@ -77,6 +77,6 @@ class NoticeViewModel extends GetxController {
     } else if (GetPlatform.isIOS) {
       return EnvConfig.baseUrl;
     }
-    return "http://127.0.0.1:8000";
+    return EnvConfig.baseUrl;
   }
 }

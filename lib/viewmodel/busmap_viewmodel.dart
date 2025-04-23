@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:convert';
+import 'dart:html' if (dart.library.io) 'dart:io' as platform;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/services.dart';
@@ -330,13 +332,20 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     );
     
     try {
+      // 웹 환경에서 위치 정보 가져오기 타임아웃 시간 증가
+      final Duration timeoutDuration = kIsWeb 
+          ? const Duration(seconds: 5) // 웹에서는 30초로 증가
+          : const Duration(seconds: 10); // 모바일에서는 10초 유지
+      
       // 위치 서비스가 활성화되어 있는지 확인
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         isLocationLoading.value = false;
         isLocationEnabled.value = false;
         Fluttertoast.showToast(
-          msg: "위치 서비스가 비활성화되어 있습니다. 설정에서 활성화해주세요.",
+          msg: kIsWeb 
+            ? "브라우저 위치 서비스에 접근할 수 없습니다. 브라우저 설정에서 위치 권한을 확인해주세요."
+            : "위치 서비스가 비활성화되어 있습니다. 설정에서 활성화해주세요.",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
         );
@@ -371,7 +380,9 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
         isLocationLoading.value = false;
         isLocationEnabled.value = false;
         Fluttertoast.showToast(
-          msg: "위치 권한이 영구적으로 거부되었습니다. 설정에서 변경해주세요.",
+          msg: kIsWeb 
+            ? "브라우저에서 위치 권한이 거부되었습니다. 브라우저 설정에서 변경해주세요."
+            : "위치 권한이 영구적으로 거부되었습니다. 설정에서 변경해주세요.",
           toastLength: Toast.LENGTH_LONG,
           gravity: ToastGravity.BOTTOM,
         );
@@ -381,7 +392,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
       // 권한이 있으면 현재 위치 가져오기
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10), // 10초 타임아웃 설정
+        timeLimit: timeoutDuration, 
       );
       
       currentLocation.value = LatLng(position.latitude, position.longitude);
@@ -397,9 +408,13 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
       // 오류 메시지 구체화
       String errorMessage = "위치 정보를 가져올 수 없습니다.";
       if (e.toString().contains("timeout")) {
-        errorMessage = "위치 정보를 가져오는 데 시간이 너무 오래 걸립니다.";
+        errorMessage = kIsWeb 
+          ? "브라우저에서 위치 정보 요청 시간이 초과되었습니다. 위치 권한을 확인하고 다시 시도해주세요."
+          : "위치 정보를 가져오는 데 시간이 너무 오래 걸립니다.";
       } else if (e.toString().contains("permission")) {
-        errorMessage = "위치 권한이 필요합니다. 설정에서 권한을 허용해주세요.";
+        errorMessage = kIsWeb 
+          ? "브라우저에서 위치 권한이 필요합니다. 주소창 왼쪽의 위치 권한을 허용해주세요."
+          : "위치 권한이 필요합니다. 설정에서 권한을 허용해주세요.";
       }
       
       Fluttertoast.showToast(
@@ -484,11 +499,15 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 }
 
 String _getWebSocketUrl() {
-  if (GetPlatform.isAndroid) {
+  if (kIsWeb) {
+    // 웹의 경우 보안 웹소켓 사용 (wss 또는 서버가 설정에 따라 ws)
+    final protocol = platform.window.location.protocol == 'https:' ? 'wss' : 'ws';
+    return "$protocol://${EnvConfig.baseUrl.replaceAll('http://', '').replaceAll('https://', '')}/ws/bus";
+  } else if (GetPlatform.isAndroid) {
     return "ws://${EnvConfig.baseUrl.replaceAll('http://', '')}/ws/bus";
   } else if (GetPlatform.isIOS) {
     return "ws://${EnvConfig.baseUrl.replaceAll('http://', '')}/ws/bus";
   } else {
-    return "ws://127.0.0.1/ws/bus"; // 기본 URL 추가 (선택 사항)
+    return "ws://${EnvConfig.baseUrl.replaceAll('http://', '')}/ws/bus";
   }
-}
+} 
