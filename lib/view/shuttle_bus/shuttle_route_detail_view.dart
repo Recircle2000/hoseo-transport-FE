@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'station_detail_view.dart'; // 정류장 상세 정보 화면 임포트
 import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
 
@@ -44,24 +43,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
   
   // 404 에러 - 정류장 정보가 없음을 알리는 팝업
   void _showNoStopsAlert(BuildContext context) {
-    if (kIsWeb) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('알림'),
-          content: Text('해당 스케줄의 정류장 정보가 없습니다.'),
-          actions: [
-            TextButton(
-              child: Text('확인'),
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context); // 이전 화면으로 돌아가기
-              },
-            ),
-          ],
-        ),
-      );
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
@@ -210,13 +192,13 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
   }
   
   Widget _buildStopsList() {
-    final bool isIOS = !kIsWeb && Platform.isIOS;
+    final bool isIOS = Platform.isIOS;
     
     return Obx(() => viewModel.isLoadingStops.value
       ? Center(
           child: isIOS
             ? CupertinoActivityIndicator() // iOS 기본 인디케이터
-            : CircularProgressIndicator() // Android/웹 기본 인디케이터
+            : CircularProgressIndicator() // Android 기본 인디케이터
         )
       : viewModel.scheduleStops.isEmpty
           ? Center(child: Text('정류장 정보를 불러올 수 없습니다'))
@@ -285,18 +267,18 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                   
                   // 데이터 행
                   Expanded(
-                    child: kIsWeb || !Platform.isIOS
-                      ? Scrollbar( // Android/웹 기본 스크롤바
+                    child: Platform.isIOS
+                      ? ListView.builder(
+                          itemCount: viewModel.scheduleStops.length,
+                          itemBuilder: _buildStopItem,
+                        )
+                      : Scrollbar( // Android 기본 스크롤바
                           interactive: true,
                           thumbVisibility: true,
                           child: ListView.builder(
                             itemCount: viewModel.scheduleStops.length,
                             itemBuilder: _buildStopItem,
                           ),
-                        )
-                      : ListView.builder( // iOS 리스트뷰
-                          itemCount: viewModel.scheduleStops.length,
-                          itemBuilder: _buildStopItem,
                         ),
                   ),
                 ],
@@ -308,8 +290,6 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
   // 정류장 아이템 빌더
   Widget _buildStopItem(BuildContext context, int index) {
     final stop = viewModel.scheduleStops[index];
-    final bool isIOS = !kIsWeb && Platform.isIOS;
-    
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -338,10 +318,12 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
             flex: 2,
             child: InkWell(
               onTap: () {
-                // 정류장 상세 정보 화면으로 이동
-                Get.to(() => kIsWeb 
-                  ? StationDetailView(stationId: stop.stationId!)
-                  : NaverMapStationDetailView(stationId: stop.stationId!));
+                // station_id 필드가 있는 경우에만 상세 화면으로 이동
+                if (stop.stationId != null) { 
+                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+                } else {
+                  _showNoStationDetailAlert(context);
+                }
               },
               child: Row(
                 children: [
@@ -357,10 +339,12 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
             flex: 2,
             child: InkWell(
               onTap: () {
-                // 정류장 상세 정보 화면으로 이동
-                Get.to(() => kIsWeb
-                  ? StationDetailView(stationId: stop.stationId!)
-                  : NaverMapStationDetailView(stationId: stop.stationId!));
+                // station_id 필드가 있는 경우에만 상세 화면으로 이동
+                if (stop.stationId != null) { 
+                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+                } else {
+                  _showNoStationDetailAlert(context);
+                }
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -373,7 +357,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                     ),
                   ),
                   Icon(
-                    isIOS
+                    Platform.isIOS 
                       ? CupertinoIcons.info_circle_fill 
                       : Icons.info_outline,
                     size: 14,
@@ -390,21 +374,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
   
   // 정류장 상세 정보가 없음을 알리는 팝업
   void _showNoStationDetailAlert(BuildContext context) {
-    if (kIsWeb) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('정보 없음'),
-          content: Text('이 정류장의 상세 정보가 없습니다.'),
-          actions: [
-            TextButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(

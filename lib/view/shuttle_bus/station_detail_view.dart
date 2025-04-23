@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
@@ -173,7 +172,6 @@ class _StationDetailViewState extends State<StationDetailView> {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final bool isIOS = !kIsWeb && Platform.isIOS;
     
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +180,7 @@ class _StationDetailViewState extends State<StationDetailView> {
       body: Obx(() {
         if (isLoading.value) {
           return Center(
-            child: isIOS
+            child: Platform.isIOS
                 ? CupertinoActivityIndicator()
                 : CircularProgressIndicator(),
           );
@@ -227,9 +225,7 @@ class _StationDetailViewState extends State<StationDetailView> {
   }
   
   Widget _buildRetryButton() {
-    final bool isIOS = !kIsWeb && Platform.isIOS;
-    
-    if (isIOS) {
+    if (Platform.isIOS) {
       return CupertinoButton(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         color: Colors.blue,
@@ -442,9 +438,8 @@ class _StationDetailViewState extends State<StationDetailView> {
     final stationInfo = station.value!;
     final hasImage = stationInfo.imageUrl != null;
     final brightness = Theme.of(context).brightness;
-    final bool isIOS = !kIsWeb && Platform.isIOS;
     
-    if (isIOS) {
+    if (Platform.isIOS) {
       return CupertinoButton(
         padding: EdgeInsets.zero,
         child: Container(
@@ -551,9 +546,7 @@ class _StationDetailViewState extends State<StationDetailView> {
   }
   
   void _showNoImageAlert() {
-    final bool isIOS = !kIsWeb && Platform.isIOS;
-    
-    if (isIOS) {
+    if (Platform.isIOS) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(
@@ -586,85 +579,8 @@ class _StationDetailViewState extends State<StationDetailView> {
   
   void _showImageViewer(String imageUrl) {
     final brightness = Theme.of(context).brightness;
-    final bool isIOS = !kIsWeb && Platform.isIOS;
     
-    if (kIsWeb) {
-      // 웹에서 이미지 뷰어
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          backgroundColor: brightness == Brightness.dark ? Colors.black : Colors.white,
-          insetPadding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '정류장 사진',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.7,
-                ),
-                child: InteractiveViewer(
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        height: 300,
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 300,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 50,
-                                color: Colors.red,
-                              ),
-                              SizedBox(height: 16),
-                              Text('이미지를 불러올 수 없습니다.'),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else if (isIOS) {
+    if (Platform.isIOS) {
       showCupertinoModalPopup(
         context: context,
         builder: (context) => Container(

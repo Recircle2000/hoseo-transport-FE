@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../viewmodel/shuttle_viewmodel.dart';
 import '../../models/shuttle_models.dart';
 import 'shuttle_schedule_view.dart'; // 시간표 화면 임포트
@@ -162,9 +161,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   // 플랫폼별 로딩 인디케이터
   Widget _buildPlatformLoadingIndicator() {
-    if (kIsWeb) {
-      return CircularProgressIndicator(color: shuttleColor);
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       return CupertinoActivityIndicator(radius: 15.0);
     } else {
       return CircularProgressIndicator(color: shuttleColor);
@@ -239,9 +236,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildRouteSelector(BuildContext context) {
-    if (kIsWeb) {
-      return _buildAndroidRouteSelector();
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       return _buildIOSRouteSelector(context);
     } else {
       return _buildAndroidRouteSelector();
@@ -393,9 +388,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildScheduleTypeSelector(BuildContext context) {
-    if (kIsWeb) {
-      return _buildAndroidScheduleTypeSelector();
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       return _buildIOSScheduleTypeSelector(context);
     } else {
       return _buildAndroidScheduleTypeSelector();
@@ -544,21 +537,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   // 404 에러 - 해당 날짜에 운행하는 셔틀 노선이 없음을 알리는 팝업
   void _showNoScheduleAlert(BuildContext context) {
-    if (kIsWeb) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('알림'),
-          content: Text('해당 날짜에 운행하는 셔틀노선이 없습니다.'),
-          actions: [
-            TextButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-    } else if (Platform.isIOS) {
+    if (Platform.isIOS) {
       showCupertinoDialog(
         context: context,
         builder: (context) => CupertinoAlertDialog(

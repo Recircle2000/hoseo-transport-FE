@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../viewmodel/shuttle_viewmodel.dart';
 import 'shuttle_route_detail_view.dart';
 
@@ -148,13 +147,13 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
   }
   
   Widget _buildScheduleList() {
-    final bool isIOS = !kIsWeb && Platform.isIOS;
+    final bool isIOS = Platform.isIOS;
     
     return Obx(() => viewModel.isLoadingSchedules.value
       ? Center(
           child: isIOS
             ? CupertinoActivityIndicator() // iOS 기본 인디케이터
-            : CircularProgressIndicator() // Android/웹 기본 인디케이터
+            : CircularProgressIndicator() // Android 기본 인디케이터
         )
       : viewModel.schedules.isEmpty
           ? Center(child: Text('선택한 노선과 일자에 해당하는 운행 정보가 없습니다'))
@@ -204,28 +203,20 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                     color: Colors.grey.withOpacity(0.3),
                   ),
                   
-                  // 데이터 행
+                  // 데이터 행 - 스크롤바 추가
                   Expanded(
-                    child: kIsWeb || !Platform.isIOS
-                      ? Scrollbar( // Android/웹 기본 스크롤바
+                    child: isIOS
+                      ? ListView.builder(
+                          itemCount: viewModel.schedules.length,
+                          itemBuilder: _buildScheduleItem,
+                        )
+                      : Scrollbar( // Android 기본 스크롤바
                           interactive: true,
                           thumbVisibility: true,
-                          child: ListView.separated(
+                          child: ListView.builder(
                             itemCount: viewModel.schedules.length,
-                            separatorBuilder: (context, index) => Divider(
-                              height: 1,
-                              color: Colors.grey.withOpacity(0.3),
-                            ),
-                            itemBuilder: (context, index) => _buildScheduleItem(index),
+                            itemBuilder: _buildScheduleItem,
                           ),
-                        )
-                      : ListView.separated( // iOS 리스트뷰
-                          itemCount: viewModel.schedules.length,
-                          separatorBuilder: (context, index) => Divider(
-                            height: 1,
-                            color: Colors.grey.withOpacity(0.3),
-                          ),
-                          itemBuilder: (context, index) => _buildScheduleItem(index),
                         ),
                   ),
                 ],
@@ -234,13 +225,12 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
     );
   }
   
-  Widget _buildScheduleItem(int index) {
+  // 스케줄 아이템 빌더 (코드 중복 제거)
+  Widget _buildScheduleItem(BuildContext context, int index) {
     final schedule = viewModel.schedules[index];
-    final bool isIOS = !kIsWeb && Platform.isIOS;
-    
     return InkWell(
       onTap: () {
-        // 스케줄 항목 클릭시 노선 상세 화면으로 이동
+        // 상세 화면으로 이동
         Get.to(() => ShuttleRouteDetailView(
           scheduleId: schedule.id,
           routeName: widget.routeName,
@@ -249,36 +239,31 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
         ));
       },
       child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.grey.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+        ),
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Row(
           children: [
             Expanded(
               flex: 1,
-              child: Text(
-                '${schedule.round}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('${schedule.round}회차'),
             ),
             Expanded(
               flex: 2,
-              child: Text(
-                DateFormat('HH:mm').format(schedule.startTime),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text(DateFormat('HH:mm').format(schedule.startTime)),
             ),
             Expanded(
               flex: 1,
               child: Icon(
-                isIOS
-                  ? CupertinoIcons.chevron_right
-                  : Icons.arrow_forward_ios,
+                Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey,
+                color: Theme.of(context).hintColor,
               ),
             ),
           ],
