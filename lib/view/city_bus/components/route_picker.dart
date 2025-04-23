@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../viewmodel/busmap_viewmodel.dart';
 
 /// 시내버스 노선 선택 위젯
@@ -21,7 +22,9 @@ class RoutePicker extends StatelessWidget {
     final controller = Get.find<BusMapViewModel>();
     
     return Obx(() {
-      if (Platform.isIOS) {
+      if (kIsWeb) {
+        return _buildAndroidPicker(context, controller);
+      } else if (Platform.isIOS) {
         return _buildIOSPicker(context, controller);
       } else {
         return _buildAndroidPicker(context, controller);

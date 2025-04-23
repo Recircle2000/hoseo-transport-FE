@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'view/home_view.dart';
 import 'utils/env_config.dart';
 import 'utils/location_service.dart';
@@ -16,17 +17,20 @@ void main() async {
   // .env 파일 먼저 로드
   await dotenv.load(fileName: 'assets/.env');
   
-  print("네이버 맵 클라이언트 ID: ${EnvConfig.naverMapClientId}");
-  await FlutterNaverMap().init(
-      clientId: EnvConfig.naverMapClientId,
-      onAuthFailed: (ex) => switch (ex) {
-            NQuotaExceededException(:final message) =>
-              print("사용량 초과 (message: $message)"),
-            NUnauthorizedClientException() ||
-            NClientUnspecifiedException() ||
-            NAnotherAuthFailedException() =>
-              print("인증 실패: $ex"),
-          });
+  // 웹이 아닌 경우에만 네이버 맵 초기화
+  if (!kIsWeb) {
+    print("네이버 맵 클라이언트 ID: ${EnvConfig.naverMapClientId}");
+    await FlutterNaverMap().init(
+        clientId: EnvConfig.naverMapClientId,
+        onAuthFailed: (ex) => switch (ex) {
+              NQuotaExceededException(:final message) =>
+                print("사용량 초과 (message: $message)"),
+              NUnauthorizedClientException() ||
+              NClientUnspecifiedException() ||
+              NAnotherAuthFailedException() =>
+                print("인증 실패: $ex"),
+            });
+  }
 
   print("앱 시작");
   // 위치 서비스 초기화
@@ -183,7 +187,9 @@ class _DisclaimerManagerState extends State<DisclaimerManager> {
 
   // 면책 사항 다이얼로그 표시
   void _showDisclaimerDialog() {
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      _showAndroidDisclaimerDialog(); // 웹에서는 Android 스타일 다이얼로그 사용
+    } else if (Platform.isIOS) {
       _showIOSDisclaimerDialog();
     } else {
       _showAndroidDisclaimerDialog();

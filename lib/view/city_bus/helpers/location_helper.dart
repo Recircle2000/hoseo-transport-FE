@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get/get.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../../../viewmodel/busmap_viewmodel.dart';
 import '../components/station_item.dart';
+import '../bus_map_view.dart';  // BusMapViewModelExtension 사용을 위해 추가
 
 /// 위치 관련 헬퍼 기능 모음
 class LocationHelper {
@@ -15,12 +17,22 @@ class LocationHelper {
 
     if (controller.currentLocation.value == null) {
       // 위치 정보가 없으면 먼저 위치 권한 요청
+      Fluttertoast.showToast(
+        msg: kIsWeb 
+            ? "브라우저에서 위치 정보를 가져오는 중입니다. 잠시 기다려주세요..." 
+            : "위치 정보를 가져오는 중입니다...",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      
       controller.checkLocationPermission().then((_) {
         if (controller.currentLocation.value != null) {
           _processNearestStation(context, controller, scrollController);
         } else {
           Fluttertoast.showToast(
-            msg: "위치 정보를 가져올 수 없습니다. 다시 시도해주세요.",
+            msg: kIsWeb 
+                ? "브라우저에서 위치 정보를 가져오지 못했습니다. 브라우저 설정에서 위치 권한을 확인해주세요."
+                : "위치 정보를 가져올 수 없습니다. 다시 시도해주세요.",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.BOTTOM,
           );
@@ -41,7 +53,9 @@ class LocationHelper {
 
     if (nearestStationIndex == null) {
       Fluttertoast.showToast(
-        msg: "가까운 정류장을 찾을 수 없습니다.",
+        msg: kIsWeb 
+            ? "현재 위치에서 가까운 정류장을 찾을 수 없습니다. 위치 정보가 정확한지 확인해주세요."
+            : "가까운 정류장을 찾을 수 없습니다.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
@@ -49,14 +63,14 @@ class LocationHelper {
     }
 
     try {
-      // 정류장 강조 표시
-      StationHighlightManager.highlightedStation.value = nearestStationIndex;
+      // 정류장 강조 표시 - BusMapViewModelExtension 사용
+      controller.highlightStation(nearestStationIndex);
       
       // 5초 후 강조 표시 해제 타이머 설정
       Future.delayed(const Duration(seconds: 5), () {
         // 현재도 같은 정류장이 강조되어 있다면 해제
-        if (StationHighlightManager.highlightedStation.value == nearestStationIndex) {
-          StationHighlightManager.highlightedStation.value = -1;
+        if (BusMapViewModelExtension.highlightedStation.value == nearestStationIndex) {
+          controller.clearHighlightedStation();
         }
       });
       
@@ -127,6 +141,11 @@ class LocationHelper {
     } catch (e) {
       debugPrint("스크롤 처리 중 오류 발생: $e");
       // 오류 발생시에도 정류장 정보는 표시
+      Fluttertoast.showToast(
+        msg: "정류장 정보 처리 중 오류가 발생했습니다: $e",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
     }
   }
 } 

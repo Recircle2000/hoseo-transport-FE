@@ -6,6 +6,8 @@ import '../../viewmodel/nearby_stops_viewmodel.dart';
 import '../../models/shuttle_models.dart';
 import 'shuttle_route_detail_view.dart'; // 노선 상세 정보 화면 임포트
 import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'station_detail_view.dart'; // 일반 지도 정류장 상세 정보 화면 임포트
 
 class NearbyStopsView extends StatelessWidget {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
@@ -43,6 +45,8 @@ class NearbyStopsView extends StatelessWidget {
   }
 
   Widget _buildLocationHeader(BuildContext context) {
+    final bool isIOS = !kIsWeb && Platform.isIOS;
+    
     return Obx(() {
       final isLoading = viewModel.isLoadingLocation.value;
       final hasLocation = viewModel.currentPosition.value != null;
@@ -77,7 +81,7 @@ class NearbyStopsView extends StatelessWidget {
                 Center(
                   child: Column(
                     children: [
-                      Platform.isIOS
+                      isIOS
                         ? CupertinoActivityIndicator()
                         : CircularProgressIndicator(),
                       SizedBox(height: 8),
@@ -145,7 +149,18 @@ class NearbyStopsView extends StatelessWidget {
   }
 
   Widget _buildGetLocationButton(BuildContext context) {
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      return ElevatedButton.icon(
+        icon: Icon(Icons.my_location, size: 18),
+        label: Text('현재 위치 확인하기'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green.shade700,
+          foregroundColor: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        ),
+        onPressed: () => viewModel.getCurrentLocation(),
+      );
+    } else if (Platform.isIOS) {
       return CupertinoButton(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         color: Colors.green.shade700,
@@ -174,6 +189,8 @@ class NearbyStopsView extends StatelessWidget {
   }
 
   Widget _buildStationSelector(BuildContext context) {
+    final bool isIOS = !kIsWeb && Platform.isIOS;
+    
     return Obx(() {
       final isLoading = viewModel.isLoadingStations.value;
       final hasLocation = viewModel.currentPosition.value != null;
@@ -183,7 +200,7 @@ class NearbyStopsView extends StatelessWidget {
       
       if (isLoading) {
         return Center(
-          child: Platform.isIOS
+          child: isIOS
             ? CupertinoActivityIndicator()
             : CircularProgressIndicator(),
         );
@@ -328,6 +345,8 @@ class NearbyStopsView extends StatelessWidget {
   }
 
   Widget _buildScheduleHeader(BuildContext context) {
+    final bool isIOS = !kIsWeb && Platform.isIOS;
+    
     return Obx(() {
       final selectedId = viewModel.selectedStationId.value;
       final stationName = selectedId != -1
@@ -355,8 +374,11 @@ class NearbyStopsView extends StatelessWidget {
           if (stationName.isNotEmpty)
             InkWell(
               onTap: () {
-                // 정류장 상세 정보 화면으로 이동
-                Get.to(() => NaverMapStationDetailView(stationId: selectedId));
+                // 정류장 ID를 기억하고 상세 화면으로 이동
+                final selectedId = viewModel.selectedStationId.value;
+                Get.to(() => kIsWeb
+                  ? StationDetailView(stationId: selectedId)
+                  : NaverMapStationDetailView(stationId: selectedId));
               },
               child: Row(
                 children: [
@@ -369,7 +391,7 @@ class NearbyStopsView extends StatelessWidget {
                   ),
                   SizedBox(width: 4),
                   Icon(
-                    Platform.isIOS 
+                    isIOS
                       ? CupertinoIcons.info_circle_fill 
                       : Icons.info_outline,
                     size: 14,
@@ -384,6 +406,7 @@ class NearbyStopsView extends StatelessWidget {
   }
   
   Widget _buildScheduleTable(BuildContext context) {
+    final bool isIOS = !kIsWeb && Platform.isIOS;
     final brightness = Theme.of(context).brightness;
     final headerBgColor = brightness == Brightness.dark 
         ? Colors.grey.shade800 
@@ -392,7 +415,7 @@ class NearbyStopsView extends StatelessWidget {
     return Obx(() {
       if (viewModel.isLoadingSchedules.value) {
         return Center(
-          child: Platform.isIOS
+          child: isIOS
             ? CupertinoActivityIndicator()
             : CircularProgressIndicator(),
         );
@@ -469,7 +492,7 @@ class NearbyStopsView extends StatelessWidget {
             
             // 테이블 내용
             Expanded(
-              child: Platform.isIOS
+              child: isIOS
                 ? _buildIosScheduleList()
                 : _buildAndroidScheduleList(),
             ),
