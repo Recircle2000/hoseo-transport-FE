@@ -1,0 +1,561 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'dart:async';
+import '../../viewmodel/upcoming_departure_viewmodel.dart';
+
+class UpcomingDeparturesWidget extends StatefulWidget {
+  UpcomingDeparturesWidget({Key? key}) : super(key: key);
+
+  @override
+  _UpcomingDeparturesWidgetState createState() => _UpcomingDeparturesWidgetState();
+}
+
+class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
+  final UpcomingDepartureViewModel viewModel = Get.put(UpcomingDepartureViewModel());
+  int _remainingSeconds = 30; // 자동 새로고침까지 남은 시간(초)
+  Timer? _refreshCountdownTimer;
+  
+  @override
+  void initState() {
+    super.initState();
+    _startRefreshCountdown();
+    
+    // 뷰모델의 새로고침 콜백 등록
+    viewModel.setRefreshCallback(() {
+      // 뷰모델에서 새로고침이 발생할 때 카운트다운 초기화
+      _startRefreshCountdown();
+    });
+  }
+  
+  @override
+  void dispose() {
+    _refreshCountdownTimer?.cancel();
+    super.dispose();
+  }
+  
+  void _startRefreshCountdown() {
+    // 기존 타이머 취소
+    _refreshCountdownTimer?.cancel();
+    
+    // 초기값 설정
+    _remainingSeconds = 30;
+    
+    // 1초마다 카운트다운
+    _refreshCountdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          // 카운트다운 종료 시 다시 시작
+          _remainingSeconds = 30;
+          // 타이머 초기화와 동시에 수행되는 자동 새로고침
+          // 뷰모델의 타이머가 자동으로 새로고침을 실행하므로 여기서는 호출하지 않음
+        }
+      });
+    });
+  }
+  
+  // 수동 새로고침 시 카운트다운도 리셋
+  void _manualRefresh() {
+    viewModel.loadData();
+    _startRefreshCountdown();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 제목
+          Row(
+            children: [
+              Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 6),
+              Text(
+                '곧 출발',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Spacer(),
+              // 남은 시간 표시
+              Text(
+                '${_remainingSeconds}초',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(width: 4),
+              InkWell(
+                onTap: _manualRefresh,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Icon(
+                    Icons.refresh,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 8),
+          
+          // 로딩 상태에 따른 표시
+          Obx(() {
+            if (viewModel.isLoading.value) {
+              return Container(
+                height: 150, // 로딩 상태에서의 고정된 높이
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+              );
+            }
+            
+            if (viewModel.error.isNotEmpty) {
+              return Container(
+                height: 150, // 에러 상태에서의 고정된 높이
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    viewModel.error.value,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            
+            // 셔틀과 시내버스 데이터 모두 없는 경우
+            if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
+              return Container(
+                height: 150, // 데이터 없음 상태에서의 고정된 높이
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.grey.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    '60분 내에 출발 예정인 버스/셔틀이 없습니다',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            
+            // 기본 데이터가 있는 경우는 고정된 컨테이너로 감싸기
+            return Container(
+              height: 150, // 데이터 표시 상태에서의 고정된 높이
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 셔틀버스 (왼쪽)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle(context, '셔틀버스'),
+                        viewModel.upcomingShuttles.isEmpty 
+                          ? _buildEmptyMessage(context, '셔틀')
+                          : Column(
+                              children: viewModel.upcomingShuttles
+                                .take(2) // 최대 2개만 표시
+                                .map((shuttle) => _buildCompactShuttleItem(
+                                  context, 
+                                  shuttle, 
+                                  Colors.deepOrange,
+                                  Icons.airport_shuttle,
+                                )).toList(),
+                            ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(width: 10),
+                  
+                  // 시내버스 (오른쪽)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle(context, '시내버스'),
+                        viewModel.upcomingCityBuses.isEmpty 
+                          ? _buildEmptyMessage(context, '버스')
+                          : Column(
+                              children: viewModel.upcomingCityBuses
+                                .take(2) // 최대 2개만 표시
+                                .map((cityBus) => _buildCompactBusItem(
+                                  context, 
+                                  cityBus, 
+                                  Colors.blue,
+                                  Icons.directions_bus,
+                                )).toList(),
+                            ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyMessage(BuildContext context, String type) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          '60분 내 출발 $type 없음',
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 11,
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 4, left: 2),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
+  }
+  
+  // 셔틀버스용 아이템 (노선명만 표시)
+  Widget _buildCompactShuttleItem(
+    BuildContext context, 
+    BusDeparture departure, 
+    Color color,
+    IconData icon,
+  ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[800] : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 12,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 자동 롤링 텍스트
+                  AutoScrollText(
+                    text: departure.destination,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    height: 16,
+                  ),
+                  Text(
+                    '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${departure.minutesLeft}분',
+                style: TextStyle(
+                  color: _getTimeColor(departure.minutesLeft),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // 시내버스용 아이템 (노선명 → 목적지 표시)
+  Widget _buildCompactBusItem(
+    BuildContext context, 
+    BusDeparture departure, 
+    Color color,
+    IconData icon,
+  ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[800] : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 12,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 자동 롤링 텍스트
+                  AutoScrollText(
+                    text: '${departure.routeName} → ${departure.destination}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    height: 16,
+                  ),
+                  Text(
+                    '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${departure.minutesLeft}분',
+                style: TextStyle(
+                  color: _getTimeColor(departure.minutesLeft),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Color _getTimeColor(int minutes) {
+    if (minutes <= 5) {
+      return Colors.red;
+    } else if (minutes <= 15) {
+      return Colors.orange;
+    } else {
+      return Colors.green;
+    }
+  }
+}
+
+// 자동 스크롤 텍스트 위젯
+class AutoScrollText extends StatefulWidget {
+  final String text;
+  final TextStyle style;
+  final double height;
+  final Duration pauseDuration;
+  final Duration scrollDuration;
+
+  AutoScrollText({
+    required this.text,
+    required this.style,
+    this.height = 20,
+    this.pauseDuration = const Duration(seconds: 1),
+    this.scrollDuration = const Duration(seconds: 2),
+  });
+
+  @override
+  _AutoScrollTextState createState() => _AutoScrollTextState();
+}
+
+class _AutoScrollTextState extends State<AutoScrollText> {
+  late ScrollController _scrollController;
+  Timer? _timer;
+  bool _isScrolling = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startScrolling();
+    });
+  }
+  
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  void _startScrolling() {
+    // 스크롤할 필요가 없는 경우는 타이머 설정 안함
+    if (!_hasOverflow()) {
+      return;
+    }
+    
+    // 일정 시간 후에 스크롤 시작
+    _timer = Timer(widget.pauseDuration, () {
+      if (_scrollController.hasClients && mounted) {
+        setState(() {
+          _isScrolling = true;
+        });
+        
+        // 오른쪽 끝까지 스크롤
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: widget.scrollDuration,
+          curve: Curves.easeInOut,
+        ).then((_) {
+          // 스크롤이 끝나면 다시 처음으로 돌아가기 전에 잠시 멈춤
+          if (mounted) {
+            setState(() {
+              _isScrolling = false;
+            });
+            
+            _timer = Timer(widget.pauseDuration, () {
+              if (_scrollController.hasClients && mounted) {
+                // 처음으로 돌아가기
+                _scrollController.animateTo(
+                  0,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                ).then((_) {
+                  if (mounted) {
+                    // 다시 시작
+                    _startScrolling();
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  bool _hasOverflow() {
+    if (!_scrollController.hasClients) {
+      return false;
+    }
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+    return maxScrollExtent > 0;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: widget.height,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        controller: _scrollController,
+        physics: NeverScrollableScrollPhysics(), // 사용자 스크롤 비활성화
+        child: Text(
+          widget.text,
+          style: widget.style,
+        ),
+      ),
+    );
+  }
+} 

@@ -3,11 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import '../viewmodel/notice_viewmodel.dart';
+import '../viewmodel/settings_viewmodel.dart';
 import 'notice_detail_view.dart';
 import 'notice_list_view.dart';
 import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
+import 'components/upcoming_departures_widget.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -86,7 +88,7 @@ class _HomeViewState extends State<HomeView> {
               // 환영 메시지
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -97,19 +99,12 @@ class _HomeViewState extends State<HomeView> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '호서대학교의 모든 교통 정보를 확인해보세요!',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                      ),
-                    ),
                   ],
                 ),
               ),
-              
-              const SizedBox(height: 20),
+
+              const SizedBox(height: 16),
+             
               
               // 공지사항
               Padding(
@@ -122,177 +117,145 @@ class _HomeViewState extends State<HomeView> {
                   child: Material(
                     color: Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        final notice = noticeViewModel.notice.value;
-                        if (notice != null) {
-                          Get.to(() => NoticeDetailView(notice: notice));
-                        } else {
-                          noticeViewModel.fetchLatestNotice();
-                        }
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
+                    child: Column(
+                      children: [
+                        // 공지사항 제목과 전체보기 버튼이 있는 헤더
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                '공지사항',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.campaign_outlined,
-                                color: Colors.blue,
-                                size: 24,
+                              TextButton(
+                                onPressed: () {
+                                  noticeViewModel.fetchAllNotices();
+                                  Get.to(() => const NoticeListView());
+                                },
+                                style: TextButton.styleFrom(
+                                  minimumSize: Size.zero,
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  '전체보기',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            ],
+                          ),
+                        ),
+                        // 공지사항 내용
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            final notice = noticeViewModel.notice.value;
+                            if (notice != null) {
+                              Get.to(() => NoticeDetailView(notice: notice));
+                            } else {
+                              noticeViewModel.fetchLatestNotice();
+                            }
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.campaign_outlined,
+                                    color: Colors.blue,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        '공지사항',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
                                       Obx(() {
-                                        final notice = noticeViewModel.notice.value;
-                                        if (notice == null) return const SizedBox();
-                                        
-                                        // 현재 시간과 공지 생성 시간의 차이 계산
-                                        final now = DateTime.now();
-                                        final difference = now.difference(notice.createdAt);
-                                        
-                                        // 1일(24시간) 이내인 경우 NEW 배지 표시
-                                        if (difference.inHours < 24) {
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.red,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: const Text(
-                                              'NEW',
-                                              style: TextStyle(
-                                                fontSize: 8,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          // 1일 이상인 경우 경과 시간 표시
-                                          String timeAgo;
-                                          if (difference.inDays < 1) {
-                                            timeAgo = '오늘';
-                                          } else if (difference.inDays < 7) {
-                                            timeAgo = '${difference.inDays}일 전';
-                                          } else if (difference.inDays < 30) {
-                                            timeAgo = '${(difference.inDays / 7).floor()}주 전';
-                                          } else if (difference.inDays < 365) {
-                                            timeAgo = '${(difference.inDays / 30).floor()}개월 전';
-                                          } else {
-                                            timeAgo = '${(difference.inDays / 365).floor()}년 전';
-                                          }
-                                          
-                                          return Text(
-                                            timeAgo,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.normal,
-                                            ),
+                                        if (noticeViewModel.isLoading.value) {
+                                          return const Text(
+                                            '로딩중...',
+                                            style: TextStyle(fontSize: 14, color: Colors.grey),
                                           );
                                         }
+
+                                        if (noticeViewModel.error.isNotEmpty) {
+                                          return Text(
+                                            noticeViewModel.error.value,
+                                            style: const TextStyle(fontSize: 14, color: Colors.red),
+                                          );
+                                        }
+
+                                        final notice = noticeViewModel.notice.value;
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    notice?.title ?? '공지사항이 없습니다',
+                                                    style: const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                if (notice != null) 
+                                                  const SizedBox(width: 6),
+                                                if (notice != null) ...[
+                                                  _buildNoticeBadge(notice.createdAt),
+                                                ],
+                                              ],
+                                            ),
+                                            if (notice != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 4),
+                                                child: Text(
+                                                  _getTimeAgo(notice.createdAt),
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        );
                                       }),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  Obx(() {
-                                    if (noticeViewModel.isLoading.value) {
-                                      return const Text(
-                                        '로딩중...',
-                                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                                      );
-                                    }
-
-                                    if (noticeViewModel.error.isNotEmpty) {
-                                      return Text(
-                                        noticeViewModel.error.value,
-                                        style: const TextStyle(fontSize: 14, color: Colors.red),
-                                      );
-                                    }
-
-                                    final notice = noticeViewModel.notice.value;
-                                    return Text(
-                                      notice?.title ?? '공지사항이 없습니다',
-                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    );
-                                  }),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: Colors.grey,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              
-              // 공지사항 전체보기 버튼
-              Padding(
-                padding: const EdgeInsets.only(top: 6, right: 20),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      noticeViewModel.fetchAllNotices();
-                      Get.to(() => const NoticeListView());
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          '전체보기',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey,
                           ),
-                        ),
-                        SizedBox(width: 2),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 12,
-                          color: Colors.grey,
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              
               const SizedBox(height: 24),
+              // 곧 출발 섹션
+              UpcomingDeparturesWidget(),
               
+             // const SizedBox(height: 16),
               // 메뉴
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -419,5 +382,49 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
+  }
+
+  Widget _buildNoticeBadge(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+    
+    // 24시간 이내인 경우에만 NEW 배지 표시
+    if (difference.inHours < 24) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Text(
+          'NEW',
+          style: TextStyle(
+            fontSize: 8,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    }
+    
+    // 24시간 이상인 경우 빈 위젯 반환
+    return const SizedBox();
+  }
+
+  String _getTimeAgo(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+    
+    if (difference.inDays < 1) {
+      return '오늘';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}일 전';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()}주 전';
+    } else if (difference.inDays < 365) {
+      return '${(difference.inDays / 30).floor()}개월 전';
+    } else {
+      return '${(difference.inDays / 365).floor()}년 전';
+    }
   }
 }

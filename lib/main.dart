@@ -9,6 +9,7 @@ import 'view/home_view.dart';
 import 'utils/env_config.dart';
 import 'utils/location_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'viewmodel/settings_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,9 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // Settings ViewModel 등록
+  Get.put(SettingsViewModel(), permanent: true);
 
   runApp(MyApp());
 }

@@ -144,12 +144,10 @@ class RegisterViewModel extends GetxController {
     } else if(response.statusCode == 400) {
       final error = jsonDecode(response.body)['message'] ?? '이미 존재하는 학번입니다.';
       errorMessage.value = error;
-      Get.snackbar('이미 존재하는 학번입니다.', error);
     }
     else{
       final error = jsonDecode(response.body)['message'] ?? '회원가입에 실패했습니다.';
       errorMessage.value = error;
-      Get.snackbar('실패', error);
     }
   }
 }
