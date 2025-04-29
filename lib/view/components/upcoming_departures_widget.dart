@@ -104,7 +104,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   // 수동 새로고침 시 카운트다운도 리셋
   void _manualRefresh() {
     // 햅틱 피드백 추가
-    HapticFeedback.mediumImpact();
+    HapticFeedback.lightImpact();
     viewModel.loadData();
     _startRefreshCountdown();
   }
