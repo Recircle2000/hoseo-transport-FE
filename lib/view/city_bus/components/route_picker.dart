@@ -58,7 +58,7 @@ class RoutePicker extends StatelessWidget {
   void _showCupertinoPicker(BuildContext context, BusMapViewModel controller) {
     String tempSelectedRoute = controller.selectedRoute.value;
     
-    final routes = ["순환5_DOWN", "순환5_UP", "900_UP", "900_DOWN"];
+    final routes = [ "순환5_UP","순환5_DOWN", "1000_UP", "1000_DOWN", "810_UP", "810_DOWN", "820_UP", "820_DOWN", "821_UP", "821_DOWN"];
     int initialIndex = routes.indexOf(controller.selectedRoute.value);
     
     if (initialIndex < 0) initialIndex = 0;
@@ -130,7 +130,7 @@ class RoutePicker extends StatelessWidget {
       isExpanded: true,
       value: controller.selectedRoute.value,
       alignment: Alignment.center,
-      items: ["순환5_DOWN", "순환5_UP", "900_UP", "900_DOWN"]
+        items: [ "순환5_UP","순환5_DOWN", "1000_UP", "1000_DOWN", "810_UP", "810_DOWN", "820_UP", "820_DOWN", "821_UP", "821_DOWN"]
           .map((route) => DropdownMenuItem(
                 value: route,
                 child: Text(

@@ -15,7 +15,7 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   final markers = RxList<Marker>([]);
   final stationMarkers = RxList<Marker>([]);  // 🚀 정류장 마커 추가
   final polylines = RxList<Polyline>([]);
-  final selectedRoute = "900_UP".obs;
+  final selectedRoute = "순환5_DOWN".obs;
   final currentPositions = RxList<int>([]); // 여러 버스의 위치를 저장하는 리스트
   final stationNames = RxList<String>([]); // 정류장 이름 목록
   final stationNumbers = RxList<String>([]); // 정류장 번호 목록
@@ -321,13 +321,6 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   /// 위치 권한 확인 및 현재 위치 가져오기
   Future<void> checkLocationPermission() async {
     isLocationLoading.value = true;
-    
-    // 로딩 중임을 사용자에게 알림
-    Fluttertoast.showToast(
-      msg: "위치 정보를 가져오는 중...",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-    );
     
     try {
       // 위치 서비스가 활성화되어 있는지 확인

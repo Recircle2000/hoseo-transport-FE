@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 import '../../viewmodel/upcoming_departure_viewmodel.dart';
 
 class UpcomingDeparturesWidget extends StatefulWidget {
@@ -10,26 +13,69 @@ class UpcomingDeparturesWidget extends StatefulWidget {
   _UpcomingDeparturesWidgetState createState() => _UpcomingDeparturesWidgetState();
 }
 
-class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
+class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> with RouteAware {
   final UpcomingDepartureViewModel viewModel = Get.put(UpcomingDepartureViewModel());
   int _remainingSeconds = 30; // 자동 새로고침까지 남은 시간(초)
   Timer? _refreshCountdownTimer;
   
+  final RouteObserver<PageRoute> _routeObserver = Get.find<RouteObserver<PageRoute>>();
+  
   @override
   void initState() {
     super.initState();
-    _startRefreshCountdown();
     
     // 뷰모델의 새로고침 콜백 등록
     viewModel.setRefreshCallback(() {
       // 뷰모델에서 새로고침이 발생할 때 카운트다운 초기화
       _startRefreshCountdown();
     });
+  
+    // 초기 타이머 시작
+    _startRefreshCountdown();
+  }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 라우트 옵저버에 등록
+    _routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+  }
+  
+  @override
+  void didPush() {
+    // 새 페이지가 이 위젯으로 푸시될 때 (진입할 때)
+    viewModel.setHomePageState(true);
+    _resetTimerDisplay();
+    super.didPush();
+  }
+  
+  @override
+  void didPopNext() {
+    // 이 페이지가 최상위로 올라왔을 때 (다른 페이지에서 돌아왔을 때)
+    viewModel.setHomePageState(true);
+    _resetTimerDisplay();
+    super.didPopNext();
+  }
+  
+  @override
+  void didPushNext() {
+    // 이 페이지 위에 새 페이지가 푸시될 때 (다른 페이지로 이동할 때)
+    viewModel.setHomePageState(false);
+    super.didPushNext();
+  }
+  
+  @override
+  void didPop() {
+    // 이 페이지가 스택에서 제거될 때 (뒤로가기 등)
+    viewModel.setHomePageState(false);
+    super.didPop();
   }
   
   @override
   void dispose() {
     _refreshCountdownTimer?.cancel();
+    // 라우트 옵저버에서 구독 해제
+    _routeObserver.unsubscribe(this);
     super.dispose();
   }
   
@@ -57,8 +103,17 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
   
   // 수동 새로고침 시 카운트다운도 리셋
   void _manualRefresh() {
+    // 햅틱 피드백 추가
+    HapticFeedback.mediumImpact();
     viewModel.loadData();
     _startRefreshCountdown();
+  }
+
+  // 타이머 디스플레이를 리셋하는 메소드
+  void _resetTimerDisplay() {
+    setState(() {
+      _remainingSeconds = 30;
+    });
   }
 
   @override
@@ -81,6 +136,15 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
+              const SizedBox(width: 4),
+              Obx(() => Text(
+                '(${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '천캠' : '아캠'} 출발 기준)',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                ),
+              )),
               Spacer(),
               // 남은 시간 표시
               Text(
@@ -91,15 +155,21 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
                 ),
               ),
               const SizedBox(width: 4),
-              InkWell(
-                onTap: _manualRefresh,
+              Material(
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(
-                    Icons.refresh,
-                    size: 14,
-                    color: Theme.of(context).colorScheme.secondary,
+                child: InkWell(
+                  onTap: _manualRefresh,
+                  borderRadius: BorderRadius.circular(12),
+                  splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: Icon(
+                      Icons.refresh,
+                      size: 16,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
                 ),
               ),
@@ -112,22 +182,26 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
           Obx(() {
             if (viewModel.isLoading.value) {
               return Container(
-                height: 150, // 로딩 상태에서의 고정된 높이
+                height: 200, // 로딩 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
+                  child: Platform.isIOS 
+                    ? CupertinoActivityIndicator(
+                        radius: 12,
+                      )
+                    : CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
                 ),
               );
             }
             
             if (viewModel.error.isNotEmpty) {
               return Container(
-                height: 150, // 에러 상태에서의 고정된 높이
+                height: 200, // 에러 상태에서의 고정된 높이
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
@@ -146,7 +220,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
             // 셔틀과 시내버스 데이터 모두 없는 경우
             if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
               return Container(
-                height: 150, // 데이터 없음 상태에서의 고정된 높이
+                height: 200, // 데이터 없음 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
@@ -170,7 +244,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
             
             // 기본 데이터가 있는 경우는 고정된 컨테이너로 감싸기
             return Container(
-              height: 150, // 데이터 표시 상태에서의 고정된 높이
+              height: 200, // 데이터 표시 상태에서의 고정된 높이
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
@@ -188,7 +262,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
                           ? _buildEmptyMessage(context, '셔틀')
                           : Column(
                               children: viewModel.upcomingShuttles
-                                .take(2) // 최대 2개만 표시
+                                .take(3) // 최대 2개만 표시
                                 .map((shuttle) => _buildCompactShuttleItem(
                                   context, 
                                   shuttle, 
@@ -212,7 +286,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> {
                           ? _buildEmptyMessage(context, '버스')
                           : Column(
                               children: viewModel.upcomingCityBuses
-                                .take(2) // 최대 2개만 표시
+                                .take(3) // 최대 2개만 표시
                                 .map((cityBus) => _buildCompactBusItem(
                                   context, 
                                   cityBus, 

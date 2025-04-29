@@ -21,7 +21,7 @@ class BusDeparture {
   });
 }
 
-class UpcomingDepartureViewModel extends GetxController {
+class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObserver {
   final settingsViewModel = Get.find<SettingsViewModel>();
   
   // 데이터 관련 변수들
@@ -38,6 +38,10 @@ class UpcomingDepartureViewModel extends GetxController {
   // 새로고침 콜백 - UI와 동기화하기 위함
   Function? _onRefreshCallback;
   
+  // 활성 상태 추적
+  final isActive = true.obs;
+  final isOnHomePage = true.obs;
+  
   void setRefreshCallback(Function callback) {
     _onRefreshCallback = callback;
   }
@@ -45,7 +49,81 @@ class UpcomingDepartureViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadData();
+    // 앱 상태 감지를 위한 옵저버 등록
+    WidgetsBinding.instance.addObserver(this);
+    
+    // 활성 상태 추적 변수 설정
+    isActive.value = true;
+    isOnHomePage.value = true;
+    
+    // 캠퍼스 설정이 변경되면 데이터 다시 로드
+    ever(settingsViewModel.selectedCampus, (_) => loadData());
+    
+    // 활성 상태 변경 리스너 (앱 포그라운드/백그라운드)
+    ever(isActive, (active) {
+      if (active && isOnHomePage.value) {
+        print('앱이 활성화됨 -> 즉시 새로고침 및 타이머 시작');
+        loadData();
+        _startRefreshTimer();
+        // UI 타이머도 초기화하기 위해 콜백 호출
+        _onRefreshCallback?.call();
+      } else {
+        print('앱이 비활성화됨 -> 타이머 중지');
+        _stopRefreshTimer();
+      }
+    });
+    
+    // 페이지 상태 변경 리스너 (홈 페이지/다른 페이지)
+    ever(isOnHomePage, (onHomePage) {
+      if (onHomePage && isActive.value) {
+        print('홈페이지로 돌아옴 -> 즉시 새로고침 및 타이머 시작');
+        loadData();
+        _startRefreshTimer();
+        // UI 타이머도 초기화하기 위해 콜백 호출
+        _onRefreshCallback?.call();
+      } else {
+        print('다른 페이지로 이동 -> 타이머 중지');
+        _stopRefreshTimer();
+      }
+    });
+    
+    // 초기 데이터 로드 및 타이머 시작 (프레임이 완전히 렌더링된 후 실행)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('위젯 렌더링 완료 후 초기 데이터 로드');
+      loadData();
+      _startRefreshTimer();
+    });
+  }
+  
+  // 페이지 상태 업데이트 함수
+  void setHomePageState(bool isOnHome) {
+    isOnHomePage.value = isOnHome;
+  }
+  
+  @override
+  void onClose() {
+    // 앱 상태 감지 옵저버 제거
+    WidgetsBinding.instance.removeObserver(this);
+    _stopRefreshTimer();
+    super.onClose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || 
+        state == AppLifecycleState.inactive || 
+        state == AppLifecycleState.detached) {
+      // 앱이 백그라운드로 갔을 때
+      isActive.value = false;
+    } else if (state == AppLifecycleState.resumed) {
+      // 앱이 포그라운드로 돌아왔을 때
+      isActive.value = true;
+    }
+  }
+  
+  void _startRefreshTimer() {
+    // 기존 타이머 취소
+    _stopRefreshTimer();
     
     // 30초마다 자동 업데이트
     _refreshTimer = Timer.periodic(Duration(seconds: 30), (_) {
@@ -54,18 +132,15 @@ class UpcomingDepartureViewModel extends GetxController {
       // 콜백 호출로 UI의 카운트다운도 초기화
       _onRefreshCallback?.call();
     });
-    
-    // 캠퍼스 설정이 변경되면 데이터 다시 로드
-    ever(settingsViewModel.selectedCampus, (_) => loadData());
   }
   
-  @override
-  void onClose() {
+  void _stopRefreshTimer() {
     _refreshTimer?.cancel();
-    super.onClose();
+    _refreshTimer = null;
   }
   
   Future<void> loadData() async {
+    print('데이터 로드 시작');
     isLoading.value = true;
     error.value = '';
     
@@ -75,7 +150,10 @@ class UpcomingDepartureViewModel extends GetxController {
       
       // 셔틀버스 데이터 로드
       await loadShuttleData();
+      
+      print('데이터 로드 완료');
     } catch (e) {
+      print('데이터 로드 중 오류: $e');
       error.value = '데이터 로드 중 오류가 발생했습니다: $e';
     } finally {
       isLoading.value = false;
@@ -155,6 +233,7 @@ class UpcomingDepartureViewModel extends GetxController {
   }
 
   Future<void> loadShuttleData() async {
+    print('셔틀버스 데이터 로드 시작');
     try {
       // 현재 캠퍼스 확인
       final currentCampus = settingsViewModel.selectedCampus.value;
@@ -167,7 +246,7 @@ class UpcomingDepartureViewModel extends GetxController {
       
       // 스케줄 타입 확인 (평일/토요일/공휴일)
       final scheduleType = await _getScheduleType();
-      print(scheduleType);
+      print('현재 스케줄 타입: $scheduleType');
       
       // API 요청
       final response = await http.get(

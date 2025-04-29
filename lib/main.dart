@@ -16,8 +16,6 @@ void main() async {
   
   // .env 파일 먼저 로드
   await dotenv.load(fileName: 'assets/.env');
-  
-  print("네이버 맵 클라이언트 ID: ${EnvConfig.naverMapClientId}");
   await FlutterNaverMap().init(
       clientId: EnvConfig.naverMapClientId,
       onAuthFailed: (ex) => switch (ex) {
@@ -40,6 +38,9 @@ void main() async {
 
   // Settings ViewModel 등록
   Get.put(SettingsViewModel(), permanent: true);
+  
+  // RouteObserver 등록
+  Get.put(RouteObserver<PageRoute>(), permanent: true);
 
   runApp(MyApp());
 }
@@ -47,9 +48,13 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final routeObserver = Get.find<RouteObserver<PageRoute>>();
+    
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'University Transport App',
+      // 라우트 옵저버 등록
+      navigatorObservers: [routeObserver],
       // lib/main.dart의 theme 부분 수정
       theme: ThemeData(
         primaryColor: Colors.white,

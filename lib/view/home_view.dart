@@ -86,25 +86,7 @@ class _HomeViewState extends State<HomeView> {
           child: Column(
             children: [
               // 환영 메시지
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "$userName님, $greeting",
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-             
+            
               
               // 공지사항
               Padding(
@@ -125,12 +107,17 @@ class _HomeViewState extends State<HomeView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                '공지사항',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
+                              Row(
+                                children: [
+                                  
+                                  const Text(
+                                    '공지사항',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
                               ),
                               TextButton(
                                 onPressed: () {
@@ -152,6 +139,17 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        // 구분선 추가
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 4),
+                          child: Divider(
+                            height: 1,
+                            thickness: 1,
+                            indent: 16,
+                            endIndent: 16,
+                            color: Colors.grey.withOpacity(0.2),
                           ),
                         ),
                         // 공지사항 내용
@@ -228,12 +226,22 @@ class _HomeViewState extends State<HomeView> {
                                             if (notice != null)
                                               Padding(
                                                 padding: const EdgeInsets.only(top: 4),
-                                                child: Text(
-                                                  _getTimeAgo(notice.createdAt),
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.grey[600],
-                                                  ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.access_time,
+                                                      size: 10,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      _getTimeAgo(notice.createdAt),
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                           ],
@@ -304,8 +312,8 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '이 앱은 호서대학교 비공식 앱입니다. \n '
-                        '시내버스 : 공공데이터 포털\n '
+                        '이 앱은 호서대학교 비공식 앱입니다. \n'
+                        '시내버스 : 공공데이터 포털\n'
                         '셔틀버스 : 호서대 공지사항 시간표를 기반으로 정보를 제공합니다. \n'
                         '실제 운행과 차이가 있을 수 있으니 공식 정보를 함께 확인해 주세요.\n'
                         '현재 시내버스 정보는 아산캠퍼스를 기준으로 제공됩니다.',
@@ -395,6 +403,13 @@ class _HomeViewState extends State<HomeView> {
         decoration: BoxDecoration(
           color: Colors.red,
           borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.3),
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
         child: const Text(
           'NEW',
@@ -402,6 +417,7 @@ class _HomeViewState extends State<HomeView> {
             fontSize: 8,
             color: Colors.white,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
       );

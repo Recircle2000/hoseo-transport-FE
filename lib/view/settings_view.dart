@@ -54,7 +54,7 @@ class SettingsView extends StatelessWidget {
             const SizedBox(height: 8),
             // 캠퍼스 선택 섹션
             Text(
-              '캠퍼스 선택',
+              '기준 캠퍼스 선택',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
