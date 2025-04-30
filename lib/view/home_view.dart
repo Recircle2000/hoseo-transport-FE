@@ -25,31 +25,25 @@ class _HomeViewState extends State<HomeView> {
   
   @override
   Widget build(BuildContext context) {
-    // 사용자 이름
-    final String userName = "사용자";
-    // 인사말
-    final int hour = DateTime.now().hour;
-    String greeting = "안녕하세요!";
-    
     // 다크모드 감지
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDarkMode ? Colors.grey[900] : const Color(0xFFFAFAFA);
-    
+
     return WillPopScope(
       // 뒤로가기 처리
       onWillPop: () async {
         // Android에서만 동작
         if (!Platform.isAndroid) return true;
-        
+
         // 현재 시간
         final currentTime = DateTime.now();
-        
+
         // 처음 뒤로가기를 누른 경우 또는 마지막으로 누른 지 3초가 지난 경우
-        if (_lastBackPressedTime == null || 
+        if (_lastBackPressedTime == null ||
             currentTime.difference(_lastBackPressedTime!) > const Duration(seconds: 2)) {
           // 현재 시간 저장
           _lastBackPressedTime = currentTime;
-          
+
           // 뒤로가기 안내 메시지 표시
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -57,10 +51,10 @@ class _HomeViewState extends State<HomeView> {
               duration: Duration(seconds: 2),
             ),
           );
-          
+
           return false; // 앱 종료 방지
         }
-        
+
         return true; // 두 번째 누른 경우 앱 종료
       },
       child: Scaffold(
@@ -85,9 +79,6 @@ class _HomeViewState extends State<HomeView> {
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // 환영 메시지
-            
-              
               // 공지사항
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -109,7 +100,6 @@ class _HomeViewState extends State<HomeView> {
                             children: [
                               Row(
                                 children: [
-                                  
                                   const Text(
                                     '공지사항',
                                     style: TextStyle(
