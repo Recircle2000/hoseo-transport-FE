@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // 환경 변수 사용을 위한 패키지 추가
 import 'settings_viewmodel.dart';
 
 class BusDeparture {
@@ -22,6 +23,8 @@ class BusDeparture {
 }
 
 class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObserver {
+  // 환경 변수에서 BASE_URL 가져오기
+  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://default.url';
   final settingsViewModel = Get.find<SettingsViewModel>();
   
   // 데이터 관련 변수들
@@ -248,9 +251,11 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final scheduleType = await _getScheduleType();
       print('현재 스케줄 타입: $scheduleType');
       
+
+
       // API 요청
       final response = await http.get(
-        Uri.parse('http://52.78.121.35:8000/shuttle/stations/$stationId/schedules'),
+        Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules'),
         headers: {'Accept-Charset': 'UTF-8'}
       );
       
@@ -282,7 +287,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           if (!routeNames.containsKey(routeId)) {
             try {
               final routeResponse = await http.get(
-                Uri.parse('http://52.78.121.35:8000/shuttle/routes?route_id=$routeId'),
+                Uri.parse('$baseUrl/shuttle/routes?route_id=$routeId'),
                 headers: {'Accept-Charset': 'UTF-8'}
               );
               
