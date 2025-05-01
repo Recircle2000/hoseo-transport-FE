@@ -44,6 +44,11 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   // 활성 상태 추적
   final isActive = true.obs;
   final isOnHomePage = true.obs;
+
+  // 셔틀 데이터 캐시를 위한 변수들
+  List<dynamic>? _cachedShuttleData;
+  Map<int, String>? _cachedRouteNames; // 노선 정보 캐시 추가
+  int? _previousStationId;
   
   void setRefreshCallback(Function callback) {
     _onRefreshCallback = callback;
@@ -238,113 +243,115 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   Future<void> loadShuttleData() async {
     print('셔틀버스 데이터 로드 시작');
     try {
-      // 현재 캠퍼스 확인
       final currentCampus = settingsViewModel.selectedCampus.value;
-      
-      // 캠퍼스에 따라 정류장 ID 설정
       final int stationId = (currentCampus == '천안') ? 14 : 1;
-      
-      // 캠퍼스에 따라 정류장 이름 설정
+
+      // 캠퍼스 변경 확인
+      if (_previousStationId != stationId) {
+        _cachedShuttleData = null; // 캐시 초기화
+        _cachedRouteNames = null; // 노선 정보 캐시 초기화
+        _previousStationId = stationId;
+      }
+
+      // 노선 정보 캐시 초기화
+      _cachedRouteNames ??= {};
+
       final String stationName = (currentCampus == '천안') ? '천안캠퍼스(출발)' : '아산캠퍼스(출발)';
-      
-      // 스케줄 타입 확인 (평일/토요일/공휴일)
       final scheduleType = await _getScheduleType();
       print('현재 스케줄 타입: $scheduleType');
-      
 
-
-      // API 요청
-      final response = await http.get(
-        Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules'),
-        headers: {'Accept-Charset': 'UTF-8'}
-      );
+      List<dynamic> schedulesData;
       
-      if (response.statusCode == 200) {
-        // UTF-8로 응답 데이터 디코딩
-        final String decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> schedulesData = json.decode(decodedBody);
-        print(schedulesData);
+      // 캐시된 데이터가 없는 경우에만 API 호출
+      if (_cachedShuttleData == null) {
+        final response = await http.get(
+          Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules'),
+          headers: {'Accept-Charset': 'UTF-8'}
+        );
         
-        // 현재 시간 가져오기
-        final now = DateTime.now();
+        if (response.statusCode == 200) {
+          final String decodedBody = utf8.decode(response.bodyBytes);
+          schedulesData = json.decode(decodedBody);
+          _cachedShuttleData = schedulesData; // 데이터 캐시
+        } else {
+          throw Exception('API 오류: ${response.statusCode}');
+        }
+      } else {
+        schedulesData = _cachedShuttleData!;
+      }
+
+      final now = DateTime.now();
+      final Map<int, String> routeNames = _cachedRouteNames ?? {};
+      final upcomingShuttleList = <BusDeparture>[];
+
+      // 스케줄 타입에 맞는 스케줄 필터링
+      final filteredSchedules = schedulesData.where((schedule) => 
+          schedule['schedule_type'] == scheduleType && 
+          schedule['station_name'] == stationName).toList();
+      
+      // 각 스케줄에 대해 출발 시간 계산
+      for (final schedule in filteredSchedules) {
+        final int routeId = schedule['route_id'];
         
-        // 노선 정보와 스케줄 매핑 위한 맵
-        final Map<int, String> routeNames = {};
-        
-        // 곧 출발하는 셔틀 리스트
-        final upcomingShuttleList = <BusDeparture>[];
-        
-        // 스케줄 타입에 맞는 스케줄 필터링
-        final filteredSchedules = schedulesData.where((schedule) => 
-            schedule['schedule_type'] == scheduleType && 
-            schedule['station_name'] == stationName).toList();
-        
-        // 각 스케줄에 대해 출발 시간 계산
-        for (final schedule in filteredSchedules) {
-          final int routeId = schedule['route_id'];
-          
-          // 아직 해당 노선 정보가 없는 경우, API 호출로 가져오기
-          if (!routeNames.containsKey(routeId)) {
-            try {
-              final routeResponse = await http.get(
-                Uri.parse('$baseUrl/shuttle/routes?route_id=$routeId'),
-                headers: {'Accept-Charset': 'UTF-8'}
-              );
-              
-              if (routeResponse.statusCode == 200) {
-                // UTF-8로 응답 데이터 디코딩
-                final String decodedRouteBody = utf8.decode(routeResponse.bodyBytes);
-                final List<dynamic> routeData = json.decode(decodedRouteBody);
-                print(routeData);
-                if (routeData.isNotEmpty) {
-                  routeNames[routeId] = routeData[0]['route_name'];
-                }
+        // 캐시된 노선 정보가 없는 경우에만 API 호출
+        if (!routeNames.containsKey(routeId)) {
+          try {
+            final routeResponse = await http.get(
+              Uri.parse('$baseUrl/shuttle/routes?route_id=$routeId'),
+              headers: {'Accept-Charset': 'UTF-8'}
+            );
+            
+            if (routeResponse.statusCode == 200) {
+              // UTF-8로 응답 데이터 디코딩
+              final String decodedRouteBody = utf8.decode(routeResponse.bodyBytes);
+              final List<dynamic> routeData = json.decode(decodedRouteBody);
+              print(routeData);
+              if (routeData.isNotEmpty) {
+                routeNames[routeId] = routeData[0]['route_name'];
+                _cachedRouteNames = routeNames; // 노선 정보 캐시 업데이트
               }
-            } catch (e) {
-              print('노선 정보 로드 중 오류: $e');
-              routeNames[routeId] = '노선 $routeId';
             }
-          }
-          
-          // 도착 시간 파싱
-          final arrivalTimeStr = schedule['arrival_time'];
-          final timeParts = arrivalTimeStr.split(':');
-          final hour = int.parse(timeParts[0]);
-          final minute = int.parse(timeParts[1]);
-          final second = timeParts.length > 2 ? int.parse(timeParts[2]) : 0;
-          
-          // 오늘 날짜에 시간 더해서 출발 시간 생성
-          final departureTime = DateTime(
-            now.year, now.month, now.day, hour, minute, second
-          );
-          
-          // 현재시간과 출발시간 사이의 차이 계산
-          final difference = departureTime.difference(now);
-          
-          // 차이를 분으로 계산 (올림)
-          final minutesLeft = (difference.inSeconds / 60).ceil();
-          
-          // 앞으로 60분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
-          // 같은 분(예: 3시 59분 → 4시 00분)이라도 초가 남아있으면 표시
-          if (difference.inSeconds > 0 && difference.inMinutes <= 60) {
-            upcomingShuttleList.add(BusDeparture(
-              routeName: '셔틀',
-              destination: routeNames[routeId] ?? '알 수 없음',
-              departureTime: departureTime,
-              minutesLeft: minutesLeft == 0 ? 1 : minutesLeft, // 1분 미만은 1분으로 표시
-            ));
+          } catch (e) {
+            print('노선 정보 로드 중 오류: $e');
+            routeNames[routeId] = '노선 $routeId';
           }
         }
         
-        // 출발시간 기준으로 정렬
-        upcomingShuttleList.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
+        // 도착 시간 파싱
+        final arrivalTimeStr = schedule['arrival_time'];
+        final timeParts = arrivalTimeStr.split(':');
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        final second = timeParts.length > 2 ? int.parse(timeParts[2]) : 0;
         
-        // 최대 3개만 표시
-        upcomingShuttles.value = upcomingShuttleList.take(3).toList();
-      } else {
-        print('API 오류: ${response.statusCode}');
-        upcomingShuttles.clear();
+        // 오늘 날짜에 시간 더해서 출발 시간 생성
+        final departureTime = DateTime(
+          now.year, now.month, now.day, hour, minute, second
+        );
+        
+        // 현재시간과 출발시간 사이의 차이 계산
+        final difference = departureTime.difference(now);
+        
+        // 차이를 분으로 계산 (올림)
+        final minutesLeft = (difference.inSeconds / 60).ceil();
+        
+        // 앞으로 60분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
+        // 같은 분(예: 3시 59분 → 4시 00분)이라도 초가 남아있으면 표시
+        if (difference.inSeconds > 0 && difference.inMinutes <= 60) {
+          upcomingShuttleList.add(BusDeparture(
+            routeName: '셔틀',
+            destination: routeNames[routeId] ?? '알 수 없음',
+            departureTime: departureTime,
+            minutesLeft: minutesLeft == 0 ? 1 : minutesLeft, // 1분 미만은 1분으로 표시
+          ));
+        }
       }
+      
+      // 출발시간 기준으로 정렬
+      upcomingShuttleList.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
+      
+      // 최대 3개만 표시
+      upcomingShuttles.value = upcomingShuttleList.take(3).toList();
     } catch (e) {
       print('셔틀버스 데이터 로드 중 오류: $e');
       upcomingShuttles.clear();
@@ -400,3 +407,4 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     }
   }
 } 
+
