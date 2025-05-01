@@ -343,28 +343,33 @@ class NearbyStopsView extends StatelessWidget {
             size: 22,
           ),
           SizedBox(width: 8),
-          Text(
-            '정류장 시간표 ($scheduleTypeName)',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: shuttleColor,
+          Expanded(  // Expanded 추가
+            child: Text(
+              '정류장 시간표 ($scheduleTypeName)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: shuttleColor,
+              ),
+              overflow: TextOverflow.ellipsis,  // 텍스트 오버플로우 처리
             ),
           ),
-          Spacer(),
           if (stationName.isNotEmpty)
             InkWell(
               onTap: () {
-                // 정류장 상세 정보 화면으로 이동
                 Get.to(() => NaverMapStationDetailView(stationId: selectedId));
               },
               child: Row(
+                mainAxisSize: MainAxisSize.min,  // Row의 크기를 최소화
                 children: [
-                  Text(
-                    stationName,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                  Flexible(  // Flexible 추가
+                    child: Text(
+                      stationName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(width: 4),

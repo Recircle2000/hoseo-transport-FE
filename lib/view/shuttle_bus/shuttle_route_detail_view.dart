@@ -131,14 +131,19 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
           Row(
             children: [
               Icon(Icons.directions_bus, 
-                color: shuttleColor),
+                color: shuttleColor,
+                size: 20,
+              ),
               SizedBox(width: 8),
-              Text(
-                '노선: ${widget.routeName}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: shuttleColor,
+              Expanded(
+                child: Text(
+                  '노선: ${widget.routeName}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: shuttleColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -171,16 +176,21 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
             return Row(
               children: [
                 Icon(Icons.access_time, 
-                  color: shuttleColor),
+                  color: shuttleColor,
+                  size: 20,
+                ),
                 SizedBox(width: 8),
-                Text(
-                  widget.round > 0 
-                    ? '${widget.round}회차 (출발: $departureTime)'
-                    : '출발: $departureTime',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: shuttleColor,
+                Expanded(
+                  child: Text(
+                    widget.round > 0 
+                      ? '${widget.round}회차 (출발: $departureTime)'
+                      : '출발: $departureTime',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: shuttleColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -251,15 +261,19 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                       children: [
                         Expanded(
                           flex: 1,
-                          child: Text('순서', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('순서', style: TextStyle(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.left), // 순서 번호 가운데 정렬
                         ),
                         Expanded(
                           flex: 2,
-                          child: Text('정류장', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('정류장', style: TextStyle(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center, // 정류장 이름 가운데 정렬
+                          ),
                         ),
                         Expanded(
                           flex: 2,
-                          child: Text('도착(경유) 시간', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('도착(경유) 시간', style: TextStyle(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.right), // 도착 시간 가운데 정렬
                         ),
                       ],
                     ),
@@ -302,8 +316,8 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
         children: [
-          Expanded(
-            flex: 1,
+          SizedBox(
+            width: 10,
             child: Text(
               '${stop.stopOrder}',
               style: TextStyle(
@@ -311,60 +325,60 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
-              
             ),
           ),
+          SizedBox(width: 50),
           Expanded(
             flex: 2,
             child: InkWell(
               onTap: () {
-                // station_id 필드가 있는 경우에만 상세 화면으로 이동
                 if (stop.stationId != null) { 
                   Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
                 } else {
                   _showNoStationDetailAlert(context);
                 }
               },
-              child: Row(
-                children: [
-                  Text(
-                    stop.stationName,
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
+
+                child: Text(
+                  stop.stationName,
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.left, // 텍스트 가운데 정렬
+                ),
+
             ),
           ),
-          Expanded(
-            flex: 2,
-            child: InkWell(
-              onTap: () {
-                // station_id 필드가 있는 경우에만 상세 화면으로 이동
-                if (stop.stationId != null) { 
-                  Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
-                } else {
-                  _showNoStationDetailAlert(context);
-                }
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
+          SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              if (stop.stationId != null) { 
+                Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
+              } else {
+                _showNoStationDetailAlert(context);
+              }
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  alignment: Alignment.topLeft, // 경유 시간 왼쪽 정렬
+                  child: Text(
                     stop.arrivalTime.length > 5 ? stop.arrivalTime.substring(0, 5) : stop.arrivalTime,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  Icon(
-                    Platform.isIOS 
-                      ? CupertinoIcons.info_circle_fill 
-                      : Icons.info_outline,
-                    size: 14,
-                    color: Colors.grey.shade400,
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(width: 4),
+                Icon(
+                  Platform.isIOS 
+                    ? CupertinoIcons.info_circle_fill 
+                    : Icons.info_outline,
+                  size: 14,
+                  color: Colors.grey.shade400,
+                ),
+              ],
             ),
           ),
         ],

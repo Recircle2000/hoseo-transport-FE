@@ -83,14 +83,19 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
           Row(
             children: [
               Icon(Icons.directions_bus, 
-                color: shuttleColor),
+                color: shuttleColor,
+                size: 20,
+              ),
               SizedBox(width: 8),
-              Text(
-                '노선: ${widget.routeName}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: shuttleColor,
+              Expanded(
+                child: Text(
+                  '노선: ${widget.routeName}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: shuttleColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
