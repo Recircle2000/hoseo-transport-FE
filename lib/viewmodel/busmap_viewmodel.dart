@@ -477,5 +477,5 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 }
 
 String _getWebSocketUrl() {
-  return "ws://${EnvConfig.baseUrl.replaceAll('https://', '')}/ws/bus";
+  return "wss://${EnvConfig.baseUrl.replaceAll('https://', '')}/ws/bus";
 } 
