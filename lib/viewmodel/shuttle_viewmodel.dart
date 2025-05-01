@@ -14,8 +14,9 @@ class ShuttleViewModel extends GetxController {
   
   // 선택된 아이템 관리
   final RxInt selectedRouteId = (-1).obs;
-  final RxString selectedScheduleType = ''.obs;
+  final RxString selectedDate = ''.obs;
   final RxInt selectedScheduleId = (-1).obs;
+  final RxString scheduleTypeName = ''.obs; // 응답에서 받은 스케줄 타입 이름
   
   // 로딩 상태 관리
   final RxBool isLoadingRoutes = false.obs;
@@ -26,10 +27,7 @@ class ShuttleViewModel extends GetxController {
   // API 기본 URL
   final String baseUrl = '${EnvConfig.baseUrl}/shuttle'; // 환경 변수에서 가져옴
 
-  // 운행 일자 타입 목록
-  final List<String> scheduleTypes = ['Weekday', 'Saturday', 'Holiday'];
-  
-  // 운행 일자 타입 한글 매핑
+  // 운행 일자 타입 정보 - 응답에서만 사용
   final Map<String, String> scheduleTypeNames = {
     'Weekday': '평일',
     'Saturday': '토요일',
@@ -53,8 +51,8 @@ class ShuttleViewModel extends GetxController {
   // 기본값 설정 함수
   void setDefaultValues() {
     try {
-      // 현재 요일에 따라 기본 스케줄 타입 설정
-      setDefaultScheduleType();
+      // 현재 날짜를 기본값으로 설정
+      setDefaultDate();
       
       // 첫 번째 라우트를 기본값으로 설정 (API 호출 없이)
       if (routes.isNotEmpty && selectedRouteId.value == -1) {
@@ -66,30 +64,22 @@ class ShuttleViewModel extends GetxController {
     }
   }
   
-  // 현재 요일에 따라 기본 스케줄 타입 설정
-  void setDefaultScheduleType() {
+  // 현재 날짜를 기본값으로 설정
+  void setDefaultDate() {
     try {
       final now = DateTime.now();
-      final currentDay = DateFormat('EEEE').format(now);
+      final defaultDate = DateFormat('yyyy-MM-dd').format(now);
       
-      String defaultType;
-      if (currentDay == 'Saturday') {
-        defaultType = 'Saturday';
-      } else if (currentDay == 'Sunday') {
-        defaultType = 'Holiday';
-      } else {
-        defaultType = 'Weekday';
-      }
-      
-      // 기본값 설정 (selectedScheduleType이 빈 문자열인 경우에만)
-      if (selectedScheduleType.value.isEmpty) {
-        selectedScheduleType.value = defaultType;
+      // 기본값 설정 (selectedDate가 빈 문자열인 경우에만)
+      if (selectedDate.value.isEmpty) {
+        selectedDate.value = defaultDate;
       }
     } catch (e) {
-      print('기본 스케줄 타입 설정 중 오류 발생: $e');
-      // 오류 발생 시 기본값으로 평일 설정
-      if (selectedScheduleType.value.isEmpty) {
-        selectedScheduleType.value = 'Weekday';
+      print('기본 날짜 설정 중 오류 발생: $e');
+      // 오류 발생 시 기본값으로 오늘 날짜 설정
+      if (selectedDate.value.isEmpty) {
+        final now = DateTime.now();
+        selectedDate.value = DateFormat('yyyy-MM-dd').format(now);
       }
     }
   }
@@ -138,35 +128,46 @@ class ShuttleViewModel extends GetxController {
   }
   
   // 시간표 조회
-  Future<bool> fetchSchedules(int routeId, String scheduleType) async {
+  Future<bool> fetchSchedules(int routeId, String date) async {
     isLoadingSchedules.value = true;
     schedules.clear();
     selectedScheduleId.value = -1;
     scheduleStops.clear();
+    String scheduleTypeName = '';
     
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/schedules?route_id=$routeId&schedule_type=$scheduleType')
+        Uri.parse('$baseUrl/schedules-by-date?route_id=$routeId&date=$date')
       );
       
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
-        final List<dynamic> data = json.decode(decodedBody);
+        final data = json.decode(decodedBody);
         print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
         
+        // schedule_type_name 정보 저장 (있는 경우)
+        if (data.containsKey('schedule_type_name')) {
+          scheduleTypeName = data['schedule_type_name'];
+          this.scheduleTypeName.value = scheduleTypeName;
+        } else {
+          this.scheduleTypeName.value = '';
+        }
+        
+        final List<dynamic> scheduleData = data['schedules'];
+        
         // 데이터 시간순으로 정렬
-        data.sort((a, b) {
+        scheduleData.sort((a, b) {
           final aTime = a['start_time'];
           final bTime = b['start_time'];
           return aTime.compareTo(bTime);
         });
         
         // 정렬된 데이터에 회차 정보 추가 (1회차부터 시작)
-        for (int i = 0; i < data.length; i++) {
-          data[i]['round'] = i + 1;
+        for (int i = 0; i < scheduleData.length; i++) {
+          scheduleData[i]['round'] = i + 1;
         }
         
-        schedules.value = data.map((item) => Schedule.fromJson(item)).toList();
+        schedules.value = scheduleData.map((item) => Schedule.fromJson(item)).toList();
         
         // 현재 시간에 가장 가까운 스케줄 자동 선택 (옵션)
         if (useDefaultValues.value && schedules.isNotEmpty) {
@@ -201,7 +202,7 @@ class ShuttleViewModel extends GetxController {
           schedules.add(Schedule(
             id: i + 1,
             routeId: routeId,
-            scheduleType: scheduleType,
+            scheduleType: "Weekday", // 기본값
             startTime: now.add(Duration(minutes: 30 * i)),
             round: i + 1
           ));
@@ -336,19 +337,15 @@ class ShuttleViewModel extends GetxController {
     // }
   }
   
-  // 운행 일자 선택 처리
-  void selectScheduleType(String scheduleType) {
-    if (selectedScheduleType.value == scheduleType) return;
+  // 날짜 선택 처리
+  void selectDate(String date) {
+    if (selectedDate.value == date) return;
     
-    selectedScheduleType.value = scheduleType;
+    selectedDate.value = date;
     schedules.clear();
     selectedScheduleId.value = -1;
     scheduleStops.clear();
-    
-    // 자동 API 호출 제거
-    // if (selectedRouteId.value != -1) {
-    //   fetchSchedules(selectedRouteId.value, scheduleType);
-    // }
+    scheduleTypeName.value = ''; // 새 날짜 선택 시 초기화
   }
   
   // 시간표 선택 처리
