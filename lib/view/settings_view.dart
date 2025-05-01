@@ -8,71 +8,85 @@ class SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text('설정'),
+        title: const Text(
+          '설정',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.white,
       ),
       body: GetBuilder<SettingsViewModel>(
         init: SettingsViewModel(),
         builder: (controller) => ListView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           children: [
-
-
-            // 계정 섹션
-            Text(
-              '계정 정보',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
             const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Obx(() => Text(
-                          '이메일: ${controller.email.value}',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        )),
-                    const SizedBox(height: 16),
-                    Obx(() => SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: Theme.of(context).elevatedButtonTheme.style,
-                            onPressed: controller.isLoggedIn.value
-                                ? controller.logout
-                                : () => Get.to(() => LoginView()),
-                            child: Text(
-                              controller.isLoggedIn.value ? '로그아웃' : '로그인',
-                            ),
-                          ),
-                        )),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // 캠퍼스 선택 섹션
             Text(
               '기준 캠퍼스 선택',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Colors.grey[200]!),
+              ),
               child: Column(
                 children: [
                   Obx(() => RadioListTile<String>(
-                    title: const Text('아산캠퍼스'),
-                    value: '아산',
-                    groupValue: controller.selectedCampus.value,
-                    onChanged: (value) => controller.setCampus(value!),
-                  )),
+                        title: Text(
+                          '아산캠퍼스',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[800],
+                            fontWeight: controller.selectedCampus.value == '아산'
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        value: '아산',
+                        groupValue: controller.selectedCampus.value,
+                        onChanged: (value) => controller.setCampus(value!),
+                        activeColor: Colors.blue[700],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                      )),
+                  Divider(height: 1, color: Colors.grey[200]),
                   Obx(() => RadioListTile<String>(
-                    title: const Text('천안캠퍼스'),
-                    value: '천안',
-                    groupValue: controller.selectedCampus.value,
-                    onChanged: (value) => controller.setCampus(value!),
-                  )),
+                        title: Text(
+                          '천안캠퍼스',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[800],
+                            fontWeight: controller.selectedCampus.value == '천안'
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        value: '천안',
+                        groupValue: controller.selectedCampus.value,
+                        onChanged: (value) => controller.setCampus(value!),
+                        activeColor: Colors.blue[700],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                      )),
                 ],
               ),
             ),

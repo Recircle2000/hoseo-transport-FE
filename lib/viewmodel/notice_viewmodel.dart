@@ -15,6 +15,7 @@ class NoticeViewModel extends GetxController {
   void onInit() {
     super.onInit();
     fetchLatestNotice();
+    fetchAllNotices();
   }
 
   Future<void> fetchAllNotices() async {
@@ -72,11 +73,6 @@ class NoticeViewModel extends GetxController {
     }
   }
   String _getBaseUrl() {
-    if (GetPlatform.isAndroid) {
-      return EnvConfig.baseUrl;
-    } else if (GetPlatform.isIOS) {
-      return EnvConfig.baseUrl;
-    }
     return EnvConfig.baseUrl;
   }
 }

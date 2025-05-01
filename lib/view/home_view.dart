@@ -10,6 +10,7 @@ import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
+import '../utils/platform_utils.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -25,31 +26,25 @@ class _HomeViewState extends State<HomeView> {
   
   @override
   Widget build(BuildContext context) {
-    // 사용자 이름
-    final String userName = "사용자";
-    // 인사말
-    final int hour = DateTime.now().hour;
-    String greeting = "안녕하세요!";
-    
     // 다크모드 감지
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDarkMode ? Colors.grey[900] : const Color(0xFFFAFAFA);
-    
+
     return WillPopScope(
       // 뒤로가기 처리
       onWillPop: () async {
         // Android에서만 동작
         if (!Platform.isAndroid) return true;
-        
+
         // 현재 시간
         final currentTime = DateTime.now();
-        
+
         // 처음 뒤로가기를 누른 경우 또는 마지막으로 누른 지 3초가 지난 경우
-        if (_lastBackPressedTime == null || 
+        if (_lastBackPressedTime == null ||
             currentTime.difference(_lastBackPressedTime!) > const Duration(seconds: 2)) {
           // 현재 시간 저장
           _lastBackPressedTime = currentTime;
-          
+
           // 뒤로가기 안내 메시지 표시
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -57,10 +52,10 @@ class _HomeViewState extends State<HomeView> {
               duration: Duration(seconds: 2),
             ),
           );
-          
+
           return false; // 앱 종료 방지
         }
-        
+
         return true; // 두 번째 누른 경우 앱 종료
       },
       child: Scaffold(
@@ -85,9 +80,6 @@ class _HomeViewState extends State<HomeView> {
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // 환영 메시지
-            
-              
               // 공지사항
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -109,7 +101,6 @@ class _HomeViewState extends State<HomeView> {
                             children: [
                               Row(
                                 children: [
-                                  
                                   const Text(
                                     '공지사항',
                                     style: TextStyle(
@@ -302,7 +293,7 @@ class _HomeViewState extends State<HomeView> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.info_outline,
@@ -312,15 +303,28 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '이 앱은 호서대학교 비공식 앱입니다. \n'
-                        '시내버스 : 공공데이터 포털\n'
-                        '셔틀버스 : 호서대 공지사항 시간표를 기반으로 정보를 제공합니다. \n'
-                        '실제 운행과 차이가 있을 수 있으니 공식 정보를 함께 확인해 주세요.\n'
-                        '현재 시내버스 정보는 아산캠퍼스를 기준으로 제공됩니다.',
+                        PlatformUtils.shortDisclaimer,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade600,
                           height: 1.4,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        PlatformUtils.showPlatformDisclaimerDialog(context);
+                      },
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        '자세히 보기',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.blue.shade700,
                         ),
                       ),
                     ),

@@ -17,30 +17,30 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   final UpcomingDepartureViewModel viewModel = Get.put(UpcomingDepartureViewModel());
   int _remainingSeconds = 30; // 자동 새로고침까지 남은 시간(초)
   Timer? _refreshCountdownTimer;
-  
+
   final RouteObserver<PageRoute> _routeObserver = Get.find<RouteObserver<PageRoute>>();
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // 뷰모델의 새로고침 콜백 등록
     viewModel.setRefreshCallback(() {
       // 뷰모델에서 새로고침이 발생할 때 카운트다운 초기화
       _startRefreshCountdown();
     });
-  
+
     // 초기 타이머 시작
     _startRefreshCountdown();
   }
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // 라우트 옵저버에 등록
     _routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
   }
-  
+
   @override
   void didPush() {
     // 새 페이지가 이 위젯으로 푸시될 때 (진입할 때)
@@ -48,7 +48,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     _resetTimerDisplay();
     super.didPush();
   }
-  
+
   @override
   void didPopNext() {
     // 이 페이지가 최상위로 올라왔을 때 (다른 페이지에서 돌아왔을 때)
@@ -56,21 +56,21 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     _resetTimerDisplay();
     super.didPopNext();
   }
-  
+
   @override
   void didPushNext() {
     // 이 페이지 위에 새 페이지가 푸시될 때 (다른 페이지로 이동할 때)
     viewModel.setHomePageState(false);
     super.didPushNext();
   }
-  
+
   @override
   void didPop() {
     // 이 페이지가 스택에서 제거될 때 (뒤로가기 등)
     viewModel.setHomePageState(false);
     super.didPop();
   }
-  
+
   @override
   void dispose() {
     _refreshCountdownTimer?.cancel();
@@ -78,14 +78,14 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     _routeObserver.unsubscribe(this);
     super.dispose();
   }
-  
+
   void _startRefreshCountdown() {
     // 기존 타이머 취소
     _refreshCountdownTimer?.cancel();
-    
+
     // 초기값 설정
     _remainingSeconds = 30;
-    
+
     // 1초마다 카운트다운
     _refreshCountdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
@@ -100,7 +100,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       });
     });
   }
-  
+
   // 수동 새로고침 시 카운트다운도 리셋
   void _manualRefresh() {
     // 햅틱 피드백 추가
@@ -125,6 +125,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
         children: [
           // 제목
           Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 6),
@@ -137,16 +138,17 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 ),
               ),
               const SizedBox(width: 4),
-              Obx(() => Text(
-                '(${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '천캠' : '아캠'} 출발 기준)',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              )),
-              Spacer(),
-              // 남은 시간 표시
+              Expanded(
+                child: Obx(() => Text(
+                  '(${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '천캠' : '아캠'} 출발 기준)',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                )),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '${_remainingSeconds}초',
                 style: TextStyle(
@@ -175,20 +177,20 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               ),
             ],
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // 로딩 상태에 따른 표시
           Obx(() {
             if (viewModel.isLoading.value) {
               return Container(
-                height: 200, // 로딩 상태에서의 고정된 높이
+                //height: 200, // 로딩 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Platform.isIOS 
+                  child: Platform.isIOS
                     ? CupertinoActivityIndicator(
                         radius: 12,
                       )
@@ -198,10 +200,10 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 ),
               );
             }
-            
+
             if (viewModel.error.isNotEmpty) {
               return Container(
-                height: 200, // 에러 상태에서의 고정된 높이
+                //height: 210, // 에러 상태에서의 고정된 높이
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
@@ -216,11 +218,11 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 ),
               );
             }
-            
+
             // 셔틀과 시내버스 데이터 모두 없는 경우
             if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
               return Container(
-                height: 200, // 데이터 없음 상태에서의 고정된 높이
+                //height: 210, // 데이터 없음 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
@@ -241,10 +243,10 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 ),
               );
             }
-            
+
             // 기본 데이터가 있는 경우는 고정된 컨테이너로 감싸기
             return Container(
-              height: 200, // 데이터 표시 상태에서의 고정된 높이
+              //height: 210, // 데이터 표시 상태에서의 고정된 높이
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
@@ -254,47 +256,55 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 children: [
                   // 셔틀버스 (왼쪽)
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle(context, '셔틀버스'),
-                        viewModel.upcomingShuttles.isEmpty 
-                          ? _buildEmptyMessage(context, '셔틀')
-                          : Column(
-                              children: viewModel.upcomingShuttles
-                                .take(3) // 최대 2개만 표시
-                                .map((shuttle) => _buildCompactShuttleItem(
-                                  context, 
-                                  shuttle, 
-                                  Colors.deepOrange,
-                                  Icons.airport_shuttle,
-                                )).toList(),
-                            ),
-                      ],
+                    child: Container(
+                      //height: 210,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // 추가
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle(context, '셔틀버스'),
+                          viewModel.upcomingShuttles.isEmpty
+                            ? _buildEmptyMessage(context, '셔틀')
+                            : Column(
+                                children: viewModel.upcomingShuttles
+                                  .take(3) // 최대 2개만 표시
+                                  .map((shuttle) => _buildCompactShuttleItem(
+                                    context,
+                                    shuttle,
+                                    Colors.deepOrange,
+                                    Icons.airport_shuttle,
+                                  )).toList(),
+                              ),
+                        ],
+                      ),
                     ),
                   ),
-                  
+
                   SizedBox(width: 10),
-                  
+
                   // 시내버스 (오른쪽)
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle(context, '시내버스'),
-                        viewModel.upcomingCityBuses.isEmpty 
-                          ? _buildEmptyMessage(context, '버스')
-                          : Column(
-                              children: viewModel.upcomingCityBuses
-                                .take(3) // 최대 2개만 표시
-                                .map((cityBus) => _buildCompactBusItem(
-                                  context, 
-                                  cityBus, 
-                                  Colors.blue,
-                                  Icons.directions_bus,
-                                )).toList(),
-                            ),
-                      ],
+                    child: Container(
+                     // height: 210,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // 추가
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle(context, '시내버스'),
+                          viewModel.upcomingCityBuses.isEmpty
+                            ? _buildEmptyMessage(context, '버스')
+                            : Column(
+                                children: viewModel.upcomingCityBuses
+                                  .take(3) // 최대 2개만 표시
+                                  .map((cityBus) => _buildCompactBusItem(
+                                    context,
+                                    cityBus,
+                                    Colors.blue,
+                                    Icons.directions_bus,
+                                  )).toList(),
+                              ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -305,7 +315,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
     );
   }
-  
+
   Widget _buildEmptyMessage(BuildContext context, String type) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -328,7 +338,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
     );
   }
-  
+
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(top: 4, bottom: 4, left: 2),
@@ -342,16 +352,16 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
     );
   }
-  
+
   // 셔틀버스용 아이템 (노선명만 표시)
   Widget _buildCompactShuttleItem(
-    BuildContext context, 
-    BusDeparture departure, 
+    BuildContext context,
+    BusDeparture departure,
     Color color,
     IconData icon,
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
@@ -394,13 +404,13 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
-                    height: 16,
                   ),
                   Text(
                     '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.grey[600],
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -426,16 +436,16 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
     );
   }
-  
+
   // 시내버스용 아이템 (노선명 → 목적지 표시)
   Widget _buildCompactBusItem(
-    BuildContext context, 
-    BusDeparture departure, 
+    BuildContext context,
+    BusDeparture departure,
     Color color,
     IconData icon,
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
@@ -478,13 +488,13 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
-                    height: 16,
                   ),
                   Text(
                     '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
                     style: TextStyle(
                       fontSize: 10,
                       color: Colors.grey[600],
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -510,7 +520,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
     );
   }
-  
+
   Color _getTimeColor(int minutes) {
     if (minutes <= 5) {
       return Colors.red;
@@ -546,7 +556,7 @@ class _AutoScrollTextState extends State<AutoScrollText> {
   late ScrollController _scrollController;
   Timer? _timer;
   bool _isScrolling = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -555,27 +565,27 @@ class _AutoScrollTextState extends State<AutoScrollText> {
       _startScrolling();
     });
   }
-  
+
   @override
   void dispose() {
     _timer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   void _startScrolling() {
     // 스크롤할 필요가 없는 경우는 타이머 설정 안함
     if (!_hasOverflow()) {
       return;
     }
-    
+
     // 일정 시간 후에 스크롤 시작
     _timer = Timer(widget.pauseDuration, () {
       if (_scrollController.hasClients && mounted) {
         setState(() {
           _isScrolling = true;
         });
-        
+
         // 오른쪽 끝까지 스크롤
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
@@ -587,13 +597,13 @@ class _AutoScrollTextState extends State<AutoScrollText> {
             setState(() {
               _isScrolling = false;
             });
-            
+
             _timer = Timer(widget.pauseDuration, () {
               if (_scrollController.hasClients && mounted) {
                 // 처음으로 돌아가기
                 _scrollController.animateTo(
                   0,
-                  duration: Duration(milliseconds: 500),
+                  duration: Duration(milliseconds: 1),
                   curve: Curves.easeInOut,
                 ).then((_) {
                   if (mounted) {
@@ -608,7 +618,7 @@ class _AutoScrollTextState extends State<AutoScrollText> {
       }
     });
   }
-  
+
   bool _hasOverflow() {
     if (!_scrollController.hasClients) {
       return false;
@@ -616,7 +626,7 @@ class _AutoScrollTextState extends State<AutoScrollText> {
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
     return maxScrollExtent > 0;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -632,4 +642,4 @@ class _AutoScrollTextState extends State<AutoScrollText> {
       ),
     );
   }
-} 
+}
