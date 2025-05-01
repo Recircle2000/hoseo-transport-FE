@@ -15,6 +15,7 @@ class NoticeViewModel extends GetxController {
   void onInit() {
     super.onInit();
     fetchLatestNotice();
+    fetchAllNotices();
   }
 
   Future<void> fetchAllNotices() async {
