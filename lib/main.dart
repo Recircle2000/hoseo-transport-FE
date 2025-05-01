@@ -11,10 +11,10 @@ import 'utils/location_service.dart';
 import 'utils/platform_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'viewmodel/settings_viewmodel.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   // .env 파일 먼저 로드
   await dotenv.load(fileName: 'assets/.env');
   await FlutterNaverMap().init(
@@ -52,6 +52,15 @@ class MyApp extends StatelessWidget {
     final routeObserver = Get.find<RouteObserver<PageRoute>>();
     
     return GetMaterialApp(
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('ko', ''), // 한국어
+        Locale('en', ''), // 영어
+      ],
       debugShowCheckedModeBanner: false,
       title: 'University Transport App',
       // 라우트 옵저버 등록

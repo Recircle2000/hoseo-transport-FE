@@ -482,8 +482,12 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 onDateTimeChanged: (DateTime date) {
                   selectedDate = date;
                 },
-                minimumDate: DateTime.now().subtract(Duration(days: 365)),
-                maximumDate: DateTime.now().add(Duration(days: 365)),
+                minimumYear: DateTime.now().year,
+                maximumYear: DateTime.now().year,
+                //minimumDate: DateTime.now().subtract(Duration(days: 365)),
+                //maximumDate: DateTime.now().add(Duration(days: 365)),
+
+
               ),
             ),
           ],
