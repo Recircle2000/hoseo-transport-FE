@@ -8,6 +8,7 @@ import 'dart:io' show Platform;
 import 'view/home_view.dart';
 import 'utils/env_config.dart';
 import 'utils/location_service.dart';
+import 'utils/platform_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'viewmodel/settings_viewmodel.dart';
 
@@ -186,66 +187,8 @@ class _DisclaimerManagerState extends State<DisclaimerManager> {
       // 최초 실행으로 표시를 저장
       await prefs.setBool('first_run', false);
       // 면책 사항 팝업 표시
-      _showDisclaimerDialog();
+      PlatformUtils.showPlatformDisclaimerDialog(context);
     }
-  }
-
-  // 면책 사항 다이얼로그 표시
-  void _showDisclaimerDialog() {
-    if (Platform.isIOS) {
-      _showIOSDisclaimerDialog();
-    } else {
-      _showAndroidDisclaimerDialog();
-    }
-  }
-
-  // iOS용 면책 사항 다이얼로그
-  void _showIOSDisclaimerDialog() {
-    showCupertinoDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text('서비스 이용 안내'),
-        content: Text(
-          '이 앱은 공식 애플리케이션이 아닙니다.\n\n'
-          '시내버스 정보는 실시간 데이터 갱신이 지연될 수 있으며,\n\n'
-          '셔틀버스 정보는 도로 교통 상황에 따라 지연될 수 있습니다.',
-          style: TextStyle(fontSize: 14),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: Text('확인했습니다'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Android용 면책 사항 다이얼로그
-  void _showAndroidDisclaimerDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text('서비스 이용 안내'),
-        content: Text(
-          '이 앱은 공식 애플리케이션이 아닙니다.\n\n'
-          '시내버스 정보는 실시간 데이터 갱신이 지연될 수 있으며,\n\n'
-          '셔틀버스 정보는 도로 교통 상황에 따라 지연될 수 있습니다.',
-        ),
-        actions: [
-          TextButton(
-            child: Text('확인했습니다'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   @override

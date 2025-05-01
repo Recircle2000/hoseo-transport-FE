@@ -10,6 +10,7 @@ import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
+import '../utils/platform_utils.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -292,7 +293,7 @@ class _HomeViewState extends State<HomeView> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.info_outline,
@@ -302,15 +303,28 @@ class _HomeViewState extends State<HomeView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '이 앱은 호서대학교 비공식 앱입니다. \n'
-                        '시내버스 : 공공데이터 포털\n'
-                        '셔틀버스 : 호서대 공지사항 시간표를 기반으로 정보를 제공합니다. \n'
-                        '실제 운행과 차이가 있을 수 있으니 공식 정보를 함께 확인해 주세요.\n'
-                        '현재 시내버스 정보는 아산캠퍼스를 기준으로 제공됩니다.',
+                        PlatformUtils.shortDisclaimer,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade600,
                           height: 1.4,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        PlatformUtils.showPlatformDisclaimerDialog(context);
+                      },
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        '자세히 보기',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.blue.shade700,
                         ),
                       ),
                     ),
