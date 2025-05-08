@@ -8,13 +8,13 @@ import 'shuttle_route_detail_view.dart';
 
 class ShuttleScheduleView extends StatefulWidget {
   final int routeId;
-  final String scheduleType;
+  final String date;
   final String routeName;
   
   const ShuttleScheduleView({
     Key? key, 
     required this.routeId, 
-    required this.scheduleType,
+    required this.date,
     required this.routeName,
   }) : super(key: key);
 
@@ -28,12 +28,15 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
   @override
   void initState() {
     super.initState();
+    
+    // 스케줄이 비어있는 경우 데이터 로드
+    if (viewModel.schedules.isEmpty) {
+      viewModel.fetchSchedules(widget.routeId, widget.date);
+    }
   }
   
   @override
   Widget build(BuildContext context) {
-    final String scheduleTypeName = viewModel.scheduleTypeNames[widget.scheduleType] ?? widget.scheduleType;
-    
     return Scaffold(
       appBar: AppBar(
         title: Text('운행 시간표'),
@@ -44,7 +47,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 선택된 노선 정보
-            _buildHeaderInfo(scheduleTypeName),
+            _buildHeaderInfo(),
             
             SizedBox(height: 20),
             
@@ -58,7 +61,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
     );
   }
   
-  Widget _buildHeaderInfo(String scheduleTypeName) {
+  Widget _buildHeaderInfo() {
     // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
     final Color shuttleColor = Color(0xFFB83227);
     final brightness = Theme.of(context).brightness;
@@ -107,7 +110,8 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                 color: shuttleColor),
               SizedBox(width: 8),
               Text(
-                '운행일: $scheduleTypeName',
+                // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+                '날짜: ${_formatDate(widget.date)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -115,6 +119,31 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                 ),
               ),
             ],
+          ),
+          // 요일 타입 정보 표시 (API 응답에서 가져온 경우)
+          Obx(() => viewModel.scheduleTypeName.isNotEmpty 
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.event, 
+                        color: shuttleColor),
+                      SizedBox(width: 8),
+                      Text(
+                        '유형: ${viewModel.scheduleTypeName.value}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: shuttleColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : SizedBox.shrink()
           ),
           SizedBox(height: 8),
           Obx(() {
@@ -149,6 +178,16 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
         ],
       ),
     );
+  }
+  
+  // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateFormat('yyyy-MM-dd').parse(dateStr);
+      return DateFormat('yyyy년 MM월 dd일').format(date);
+    } catch (e) {
+      return dateStr;
+    }
   }
   
   Widget _buildScheduleList() {

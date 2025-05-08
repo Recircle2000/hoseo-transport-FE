@@ -50,10 +50,10 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                         return;
                       }
                       
-                      if (viewModel.selectedScheduleType.value.isEmpty) {
+                      if (viewModel.selectedDate.value.isEmpty) {
                         Get.snackbar(
                           '알림',
-                          '운행 일자를 선택해주세요',
+                          '운행 날짜를 선택해주세요',
                           snackPosition: SnackPosition.BOTTOM,
                         );
                         return;
@@ -62,7 +62,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       // 조회 버튼을 누를 때만 API를 호출하도록 변경
                       viewModel.fetchSchedules(
                         viewModel.selectedRouteId.value, 
-                        viewModel.selectedScheduleType.value
+                        viewModel.selectedDate.value
                       ).then((success) {
                         if (!success) {
                           // 404 에러: 해당 날짜에 운행하는 셔틀 노선이 없음
@@ -71,7 +71,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                           // API 호출 성공 또는 더미 데이터로 대체된 경우
                           Get.to(() => ShuttleScheduleView(
                             routeId: viewModel.selectedRouteId.value,
-                            scheduleType: viewModel.selectedScheduleType.value,
+                            date: viewModel.selectedDate.value,
                             routeName: _getSelectedRouteName(),
                           ));
                         }
@@ -152,7 +152,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         
         SizedBox(height: 30), // 간격 증가
         
-        Text('운행 일자 선택', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text('운행 날짜 선택', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         SizedBox(height: 16), // 간격 증가
         _buildScheduleTypeSelector(context),
       ],
@@ -224,7 +224,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
           ),
           SizedBox(height: 12),
           Text(
-            '아래에서 노선과 운행 일자를 선택하여 셔틀버스 시간표를 확인하세요.',
+            '아래에서 노선과 운행 날짜를 선택하여 셔틀버스 시간표를 확인하세요.',
             style: TextStyle(
               color: Theme.of(context).hintColor,
               fontSize: 14,
@@ -389,18 +389,18 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   Widget _buildScheduleTypeSelector(BuildContext context) {
     if (Platform.isIOS) {
-      return _buildIOSScheduleTypeSelector(context);
+      return _buildIOSDateSelector(context);
     } else {
-      return _buildAndroidScheduleTypeSelector();
+      return _buildAndroidDateSelector(context);
     }
   }
 
-  Widget _buildIOSScheduleTypeSelector(BuildContext context) {
+  Widget _buildIOSDateSelector(BuildContext context) {
     // 셔틀버스 색상으로 통일
     final Color shuttleColor = Color(0xFFB83227);
     
     return GestureDetector(
-      onTap: () => _showIOSScheduleTypePicker(context),
+      onTap: () => _showIOSDatePicker(context),
       child: Container(
         height: 50,
         decoration: BoxDecoration(
@@ -413,14 +413,21 @@ class ShuttleRouteSelectionView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Obx(() {
-                if (viewModel.selectedScheduleType.value.isEmpty) {
-                  return Text('운행 일자를 선택하세요', 
+                if (viewModel.selectedDate.value.isEmpty) {
+                  return Text('운행 날짜를 선택하세요', 
                     style: TextStyle(color: Theme.of(context).hintColor));
                 } else {
-                  return Text(viewModel.scheduleTypeNames[viewModel.selectedScheduleType.value] ?? '');
+                  // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+                  final dateStr = viewModel.selectedDate.value;
+                  try {
+                    final date = DateFormat('yyyy-MM-dd').parse(dateStr);
+                    return Text('${DateFormat('yyyy년 MM월 dd일').format(date)}');
+                  } catch (e) {
+                    return Text(dateStr);
+                  }
                 }
               }),
-              Icon(Icons.arrow_drop_down, color: Theme.of(context).hintColor),
+              Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
             ],
           ),
         ),
@@ -428,25 +435,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     );
   }
 
-  void _showIOSScheduleTypePicker(BuildContext context) {
-    int selectedIndex = 0;
+  void _showIOSDatePicker(BuildContext context) {
+    DateTime selectedDate = DateTime.now();
     
-    // 현재 선택된 운행 일자의 인덱스 찾기
-    if (viewModel.selectedScheduleType.value.isNotEmpty) {
-      final index = viewModel.scheduleTypes.indexOf(viewModel.selectedScheduleType.value);
-      if (index != -1) {
-        selectedIndex = index;
+    // 현재 선택된 날짜가 있으면 해당 날짜로 초기화
+    if (viewModel.selectedDate.value.isNotEmpty) {
+      try {
+        selectedDate = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
+      } catch (e) {
+        print('날짜 파싱 오류: $e');
       }
-    }
-    
-    // 스케줄 타입이 비어있는 경우 처리
-    if (viewModel.scheduleTypes.isEmpty) {
-      Get.snackbar(
-        '알림', 
-        '운행 일자 정보를 불러올 수 없습니다',
-        snackPosition: SnackPosition.BOTTOM
-      );
-      return;
     }
     
     showCupertinoModalPopup(
@@ -469,9 +467,8 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                   CupertinoButton(
                     child: Text('확인'),
                     onPressed: () {
-                      if (viewModel.scheduleTypes.isNotEmpty) {
-                        viewModel.selectScheduleType(viewModel.scheduleTypes[selectedIndex]);
-                      }
+                      final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                      viewModel.selectDate(formattedDate);
                       Navigator.pop(context);
                     },
                   ),
@@ -479,20 +476,18 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: CupertinoPicker(
-                itemExtent: 40,
-                scrollController: FixedExtentScrollController(initialItem: selectedIndex),
-                onSelectedItemChanged: (int index) {
-                  selectedIndex = index;
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.date,
+                initialDateTime: selectedDate,
+                onDateTimeChanged: (DateTime date) {
+                  selectedDate = date;
                 },
-                children: viewModel.scheduleTypes.map((type) {
-                  return Center(
-                    child: Text(
-                      viewModel.scheduleTypeNames[type] ?? type,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  );
-                }).toList(),
+                minimumYear: DateTime.now().year,
+                maximumYear: DateTime.now().year,
+                //minimumDate: DateTime.now().subtract(Duration(days: 365)),
+                //maximumDate: DateTime.now().add(Duration(days: 365)),
+
+
               ),
             ),
           ],
@@ -501,7 +496,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     );
   }
 
-  Widget _buildAndroidScheduleTypeSelector() {
+  Widget _buildAndroidDateSelector(BuildContext context) {
     // 셔틀버스 색상으로 통일
     final Color shuttleColor = Color(0xFFB83227);
     
@@ -512,27 +507,65 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Obx(() {
-        return DropdownButton<String>(
-          value: viewModel.selectedScheduleType.value.isNotEmpty ? viewModel.selectedScheduleType.value : null,
-          hint: Text('운행 일자를 선택하세요'),
-          isExpanded: true,
-          underline: SizedBox(), // 밑줄 제거
-          icon: Icon(Icons.arrow_drop_down, color: Theme.of(Get.context!).hintColor),
-          onChanged: (String? value) {
-            if (value != null) {
-              viewModel.selectScheduleType(value);
-            }
-          },
-          items: viewModel.scheduleTypes.map<DropdownMenuItem<String>>((type) {
-            return DropdownMenuItem<String>(
-              value: type,
-              child: Text(viewModel.scheduleTypeNames[type] ?? type),
-            );
-          }).toList(),
-        );
-      }),
+      child: InkWell(
+        onTap: () => _showAndroidDatePicker(context),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Obx(() {
+              if (viewModel.selectedDate.value.isEmpty) {
+                return Text('운행 날짜를 선택하세요', style: TextStyle(color: Theme.of(context).hintColor));
+              } else {
+                // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+                final dateStr = viewModel.selectedDate.value;
+                try {
+                  final date = DateFormat('yyyy-MM-dd').parse(dateStr);
+                  return Text('${DateFormat('yyyy년 MM월 dd일').format(date)}');
+                } catch (e) {
+                  return Text(dateStr);
+                }
+              }
+            }),
+            Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _showAndroidDatePicker(BuildContext context) async {
+    DateTime selectedDate = DateTime.now();
+    
+    // 현재 선택된 날짜가 있으면 해당 날짜로 초기화
+    if (viewModel.selectedDate.value.isNotEmpty) {
+      try {
+        selectedDate = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
+      } catch (e) {
+        print('날짜 파싱 오류: $e');
+      }
+    }
+    
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xFFB83227), // 셔틀버스 테마 색상
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null) {
+      final formattedDate = DateFormat('yyyy-MM-dd').format(picked);
+      viewModel.selectDate(formattedDate);
+    }
   }
 
   // 404 에러 - 해당 날짜에 운행하는 셔틀 노선이 없음을 알리는 팝업
