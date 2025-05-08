@@ -9,23 +9,22 @@ class NoticeDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '공지사항',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+          style: theme.appBarTheme.titleTextStyle,
         ),
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: theme.appBarTheme.iconTheme?.color, size: 20),
           onPressed: () => Get.back(),
         ),
       ),
@@ -42,23 +41,20 @@ class NoticeDetailView extends StatelessWidget {
                   children: [
                     Text(
                       notice.title,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                        Icon(Icons.access_time, size: 16, color: colorScheme.onSurfaceVariant),
                         const SizedBox(width: 6),
                         Text(
                           notice.createdAt.toLocal().toString().split('.')[0],
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -70,15 +66,13 @@ class NoticeDetailView extends StatelessWidget {
               Divider(
                 height: 1,
                 thickness: 1,
-                color: Colors.grey[200],
+                color: colorScheme.surfaceVariant,
               ),
               const SizedBox(height: 24),
               Text(
                 notice.content,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: theme.textTheme.bodyLarge?.copyWith(
                   height: 1.8,
-                  color: Colors.black87,
                   letterSpacing: 0.2,
                 ),
               ),

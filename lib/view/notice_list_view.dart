@@ -9,23 +9,22 @@ class NoticeListView extends GetView<NoticeViewModel> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           '공지사항',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+          style: theme.appBarTheme.titleTextStyle,
         ),
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
+          icon: Icon(Icons.arrow_back_ios, color: theme.appBarTheme.iconTheme?.color, size: 20),
           onPressed: () => Get.back(),
         ),
       ),
@@ -33,7 +32,7 @@ class NoticeListView extends GetView<NoticeViewModel> {
         if (controller.isLoading.value) {
           return Center(
             child: CircularProgressIndicator(
-              color: Colors.blue[700],
+              color: colorScheme.primary,
               strokeWidth: 3,
             ),
           );
@@ -44,13 +43,12 @@ class NoticeListView extends GetView<NoticeViewModel> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text(
                   controller.error.value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -66,7 +64,7 @@ class NoticeListView extends GetView<NoticeViewModel> {
             // 진동 피드백 (새로고침 완료)
             HapticFeedback.lightImpact();
           },
-          color: Colors.blue[700],
+          color: colorScheme.primary,
           child: ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -74,7 +72,7 @@ class NoticeListView extends GetView<NoticeViewModel> {
             separatorBuilder: (context, index) => Divider(
               height: 1,
               thickness: 1,
-              color: Colors.grey[200],
+              color: colorScheme.surfaceVariant,
             ),
             itemBuilder: (context, index) {
               final notice = controller.allNotices[index];
@@ -87,10 +85,8 @@ class NoticeListView extends GetView<NoticeViewModel> {
                     children: [
                       Text(
                         notice.title,
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -102,14 +98,13 @@ class NoticeListView extends GetView<NoticeViewModel> {
                           Icon(
                             Icons.access_time,
                             size: 14,
-                            color: Colors.grey[600],
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             notice.createdAt.toLocal().toString().split('.')[0],
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
