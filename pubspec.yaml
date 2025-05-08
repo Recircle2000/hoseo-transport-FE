@@ -58,7 +58,7 @@ flutter_launcher_icons:
   image_path: "assets/icons/app_icon_new.png" # 런처 아이콘으로 사용할 이미지 경로
   adaptive_icon_background: "#000000" # 안드로이드 적응형 아이콘의 배경색 (검정색)
   adaptive_icon_foreground: "assets/icons/app_icon_new.png" # 안드로이드 적응형 아이콘의 전경 이미지 경로
-  min_sdk_android: 23 # 안드로이드 최소 SDK 버전 (API 21(Android 5.0) 이상)
+  min_sdk_android: 23 # 안드로이드 최소 SDK 버전 (API 23(Android 5.0) 이상)
 
 flutter_native_splash:
   color: "#FFFFFF" # 스플래시 화면의 배경색 설정 (흰색)
