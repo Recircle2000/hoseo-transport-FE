@@ -74,8 +74,6 @@ class LoginViewModel extends GetxController {
 
   Future<http.Response> _performLogin() async {
     final url = Uri.parse(baseUrl);
-    print(url);
-    //10.0.2.2
     return await http.post(
       url,
       body: jsonEncode({
