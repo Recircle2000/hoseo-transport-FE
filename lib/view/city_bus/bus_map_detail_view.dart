@@ -16,7 +16,7 @@ class BusMapDetailView extends StatefulWidget {
 class _BusMapDetailViewState extends State<BusMapDetailView> {
   final BusMapViewModel controller = Get.find<BusMapViewModel>();
   // 기본 중심 위치 (위치 권한이 없을 경우 사용)
-  final LatLng defaultCenter = LatLng(36.769423, 127.047998);
+  final LatLng defaultCenter = LatLng(36.769423, 127.08);
   
   @override
   void initState() {
@@ -25,13 +25,13 @@ class _BusMapDetailViewState extends State<BusMapDetailView> {
     _getCurrentLocation();
     
     // 지도가 로드된 후 현재 위치로 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (controller.currentLocation.value != null) {
-          controller.moveToCurrentLocation();
-        }
-      });
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Future.delayed(const Duration(milliseconds: 500), () {
+    //     if (controller.currentLocation.value != null) {
+    //       controller.moveToCurrentLocation();
+    //     }
+    //   });
+    // });
   }
   
   // 현재 위치 확인 메서드
@@ -58,7 +58,8 @@ class _BusMapDetailViewState extends State<BusMapDetailView> {
               mapController: controller.mapController,
               options: MapOptions(
                 // 현재 위치가 있으면 현재 위치를, 없으면 기본 위치를 중심으로 설정
-                initialCenter: controller.currentLocation.value ?? defaultCenter,
+                //initialCenter: controller.currentLocation.value ?? defaultCenter,
+                initialCenter: defaultCenter,
                 initialZoom: 13,
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.pinchZoom | 
