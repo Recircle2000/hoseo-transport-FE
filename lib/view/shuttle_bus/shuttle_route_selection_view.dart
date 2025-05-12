@@ -59,23 +59,46 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                         return;
                       }
                       
-                      // 조회 버튼을 누를 때만 API를 호출하도록 변경
-                      viewModel.fetchSchedules(
-                        viewModel.selectedRouteId.value, 
-                        viewModel.selectedDate.value
-                      ).then((success) {
-                        if (!success) {
-                          // 404 에러: 해당 날짜에 운행하는 셔틀 노선이 없음
-                          _showNoScheduleAlert(context);
-                        } else {
-                          // API 호출 성공 또는 더미 데이터로 대체된 경우
-                          Get.to(() => ShuttleScheduleView(
-                            routeId: viewModel.selectedRouteId.value,
-                            date: viewModel.selectedDate.value,
-                            routeName: _getSelectedRouteName(),
-                          ));
-                        }
-                      });
+                      try {
+                        // 날짜 포맷 변환 및 요일 가져오기
+                        final date = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
+                        final dayOfWeek = _getDayOfWeekString(date);
+                        
+                        // 조회 버튼을 누를 때만 API를 호출하도록 변경
+                        viewModel.fetchSchedules(
+                          viewModel.selectedRouteId.value, 
+                          viewModel.selectedDate.value
+                        ).then((success) {
+                          if (!success) {
+                            // 404 에러: 해당 날짜에 운행하는 셔틀 노선이 없음
+                            _showNoScheduleAlert(context);
+                          } else {
+                            // API 호출 성공 또는 더미 데이터로 대체된 경우
+                            Get.to(() => ShuttleScheduleView(
+                              routeId: viewModel.selectedRouteId.value,
+                              date: viewModel.selectedDate.value,
+                              routeName: _getSelectedRouteName(),
+                            ));
+                          }
+                        });
+                      } catch (e) {
+                        print('날짜 포맷 변환 오류: $e');
+                        // 에러가 발생해도 기본 API 호출은 계속 진행
+                        viewModel.fetchSchedules(
+                          viewModel.selectedRouteId.value, 
+                          viewModel.selectedDate.value
+                        ).then((success) {
+                          if (!success) {
+                            _showNoScheduleAlert(context);
+                          } else {
+                            Get.to(() => ShuttleScheduleView(
+                              routeId: viewModel.selectedRouteId.value,
+                              date: viewModel.selectedDate.value,
+                              routeName: _getSelectedRouteName(),
+                            ));
+                          }
+                        });
+                      }
                     },
                     child: Text('시간표 조회'),
                   ),
@@ -150,9 +173,6 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               : _buildRouteSelector(context),
         ),
         
-        SizedBox(height: 30), // 간격 증가
-        
-        Text('운행 날짜 선택', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         SizedBox(height: 16), // 간격 증가
         _buildScheduleTypeSelector(context),
       ],
@@ -213,7 +233,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               Icon(Icons.calendar_today, color: shuttleColor),
               SizedBox(width: 8),
               Text(
-                '오늘: $dayOfWeek',
+                '오늘: ${DateFormat('yyyy년 MM월 dd일').format(now)} ($dayOfWeek)',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -396,42 +416,52 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildIOSDateSelector(BuildContext context) {
-    // 셔틀버스 색상으로 통일
-    final Color shuttleColor = Color(0xFFB83227);
-    
-    return GestureDetector(
-      onTap: () => _showIOSDatePicker(context),
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Obx(() {
-                if (viewModel.selectedDate.value.isEmpty) {
-                  return Text('운행 날짜를 선택하세요', 
-                    style: TextStyle(color: Theme.of(context).hintColor));
-                } else {
-                  // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
-                  final dateStr = viewModel.selectedDate.value;
-                  try {
-                    final date = DateFormat('yyyy-MM-dd').parse(dateStr);
-                    return Text('${DateFormat('yyyy년 MM월 dd일').format(date)}');
-                  } catch (e) {
-                    return Text(dateStr);
-                  }
-                }
-              }),
-              Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '운행 날짜 선택',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
-      ),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _showIOSDatePicker(context),
+          child: Container(
+            height: 50,
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Obx(() {
+                    if (viewModel.selectedDate.value.isEmpty) {
+                      return Text('운행 날짜를 선택하세요', 
+                        style: TextStyle(color: Theme.of(context).hintColor));
+                    } else {
+                      // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+                      final dateStr = viewModel.selectedDate.value;
+                      try {
+                        final date = DateFormat('yyyy-MM-dd').parse(dateStr);
+                        return Text('${DateFormat('yyyy년 MM월 dd일').format(date)} (${_getDayOfWeekString(date)})');
+                      } catch (e) {
+                        return Text(dateStr);
+                      }
+                    }
+                  }),
+                  Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -482,12 +512,8 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 onDateTimeChanged: (DateTime date) {
                   selectedDate = date;
                 },
-                minimumYear: DateTime.now().year,
-                maximumYear: DateTime.now().year,
-                //minimumDate: DateTime.now().subtract(Duration(days: 365)),
-                //maximumDate: DateTime.now().add(Duration(days: 365)),
-
-
+                minimumYear: DateTime.now().year - 1,
+                maximumYear: DateTime.now().year + 1,
               ),
             ),
           ],
@@ -497,39 +523,49 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildAndroidDateSelector(BuildContext context) {
-    // 셔틀버스 색상으로 통일
-    final Color shuttleColor = Color(0xFFB83227);
-    
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(Get.context!).dividerColor),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: InkWell(
-        onTap: () => _showAndroidDatePicker(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Obx(() {
-              if (viewModel.selectedDate.value.isEmpty) {
-                return Text('운행 날짜를 선택하세요', style: TextStyle(color: Theme.of(context).hintColor));
-              } else {
-                // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
-                final dateStr = viewModel.selectedDate.value;
-                try {
-                  final date = DateFormat('yyyy-MM-dd').parse(dateStr);
-                  return Text('${DateFormat('yyyy년 MM월 dd일').format(date)}');
-                } catch (e) {
-                  return Text(dateStr);
-                }
-              }
-            }),
-            Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
-          ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '운행 날짜 선택',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      ),
+        SizedBox(height: 8),
+        Container(
+          height: 50,
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: InkWell(
+            onTap: () => _showAndroidDatePicker(context),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Obx(() {
+                  if (viewModel.selectedDate.value.isEmpty) {
+                    return Text('운행 날짜를 선택하세요', style: TextStyle(color: Theme.of(context).hintColor));
+                  } else {
+                    // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
+                    final dateStr = viewModel.selectedDate.value;
+                    try {
+                      final date = DateFormat('yyyy-MM-dd').parse(dateStr);
+                      return Text('${DateFormat('yyyy년 MM월 dd일').format(date)} (${_getDayOfWeekString(date)})');
+                    } catch (e) {
+                      return Text(dateStr);
+                    }
+                  }
+                }),
+                Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -554,7 +590,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Color(0xFFB83227), // 셔틀버스 테마 색상
+              primary: shuttleColor, // 셔틀버스 테마 색상
             ),
           ),
           child: child!,
@@ -568,36 +604,90 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     }
   }
 
+  // 요일 이름 가져오기
+  String _getDayOfWeekString(DateTime date) {
+    final dayOfWeek = date.weekday;
+    switch (dayOfWeek) {
+      case 1: return '월';
+      case 2: return '화';
+      case 3: return '수';
+      case 4: return '목';
+      case 5: return '금';
+      case 6: return '토';
+      case 7: return '일';
+      default: return '';
+    }
+  }
+
   // 404 에러 - 해당 날짜에 운행하는 셔틀 노선이 없음을 알리는 팝업
   void _showNoScheduleAlert(BuildContext context) {
-    if (Platform.isIOS) {
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: Text('알림'),
-          content: Text('해당 날짜에 운행하는 셔틀노선이 없습니다.'),
-          actions: [
-            CupertinoDialogAction(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('알림'),
-          content: Text('해당 날짜에 운행하는 셔틀노선이 없습니다.'),
-          actions: [
-            TextButton(
-              child: Text('확인'),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
+    try {
+      final date = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
+      final formattedDate = '${DateFormat('yyyy년 MM월 dd일').format(date)} (${_getDayOfWeekString(date)})';
+      final routeName = _getSelectedRouteName();
+      
+      final message = '$formattedDate에\n$routeName 노선의 운행 정보가 없습니다.';
+      
+      if (Platform.isIOS) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: Text('운행 정보 없음'),
+            content: Text(message),
+            actions: [
+              CupertinoDialogAction(
+                child: Text('확인'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('운행 정보 없음'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                child: Text('확인'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // 날짜 형식 변환 오류 시 기본 메시지 표시
+      if (Platform.isIOS) {
+        showCupertinoDialog(
+          context: context,
+          builder: (context) => CupertinoAlertDialog(
+            title: Text('알림'),
+            content: Text('해당 날짜에 운행하는 셔틀노선이 없습니다.'),
+            actions: [
+              CupertinoDialogAction(
+                child: Text('확인'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('알림'),
+            content: Text('해당 날짜에 운행하는 셔틀노선이 없습니다.'),
+            actions: [
+              TextButton(
+                child: Text('확인'),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 } 
