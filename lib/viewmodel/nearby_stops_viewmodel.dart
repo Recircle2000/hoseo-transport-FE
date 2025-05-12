@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import '../models/shuttle_models.dart';
 import '../utils/env_config.dart';
 import '../utils/location_service.dart';
@@ -22,6 +23,8 @@ class NearbyStopsViewModel extends GetxController {
   final Rx<Position?> currentPosition = Rx<Position?>(null);
   final RxInt selectedStationId = (-1).obs;
   final RxString selectedScheduleType = 'Weekday'.obs;
+  final RxString selectedDate = ''.obs;
+  final RxString scheduleTypeName = ''.obs;
   
   // 운행 일자 타입 목록
   final List<String> scheduleTypes = ['Weekday', 'Saturday', 'Holiday'];
@@ -39,7 +42,7 @@ class NearbyStopsViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    setDefaultScheduleType();
+    setDefaultDate();
     fetchStations();
     checkLocationPermission();
   }
@@ -128,13 +131,6 @@ class NearbyStopsViewModel extends GetxController {
         colorText: Colors.red,
         duration: Duration(seconds: 3),
       );
-      
-      // 테스트 더미 데이터
-      if (stations.isEmpty) {
-        stations.add(ShuttleStation(id: 1, name: '아산캠퍼스(출발)', latitude: 36.738529, longitude: 127.077037, description: '아캠출발'));
-        stations.add(ShuttleStation(id: 2, name: '천안아산역(천캠방향)', latitude: 36.794076, longitude: 127.10345, description: '1층정문 시내버스정류장 앞 5번 정류장'));
-        stations.add(ShuttleStation(id: 3, name: 'KTX캠퍼스', latitude: 36.790865, longitude: 127.107828));
-      }
     } finally {
       isLoadingStations.value = false;
     }
@@ -247,82 +243,110 @@ class NearbyStopsViewModel extends GetxController {
     }
   }
   
-  // 특정 정류장의 시간표 조회
-  Future<void> fetchStationSchedules(int stationId) async {
+  // 날짜 선택 메서드
+  void selectDate(String date) {
+    selectedDate.value = date;
+    if (selectedStationId.value != -1) {
+      fetchStationSchedulesByDate(selectedStationId.value, date);
+    }
+  }
+  
+  // 오늘 날짜로 초기화
+  void setDefaultDate() {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    selectedDate.value = formattedDate;
+    
+    // 현재 요일에 맞는 스케줄 타입 설정
+    final currentDay = now.weekday; // 1-월요일, 7-일요일
+    
+    if (currentDay == 6) {
+      selectedScheduleType.value = 'Saturday';
+    } else if (currentDay == 7) {
+      selectedScheduleType.value = 'Holiday';
+    } else {
+      selectedScheduleType.value = 'Weekday';
+    }
+  }
+  
+  // 특정 정류장의 시간표 조회 (날짜로 조회)
+  Future<void> fetchStationSchedulesByDate(int stationId, String date) async {
     selectedStationId.value = stationId;
     isLoadingSchedules.value = true;
     stationSchedules.clear();
     
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules')
+        Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules-by-date?date=$date')
       );
-      print('정류장 시간표 조회 응답: ${response.body}');
+      print('정류장 시간표 조회 응답: ${response.statusCode} - ${response.body}');
       
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> data = json.decode(decodedBody);
-        stationSchedules.value = data.map((item) => StationSchedule.fromJson(item)).toList();
+        final Map<String, dynamic> data = json.decode(decodedBody);
+        
+        // 스케줄 타입과 타입명 가져오기
+        selectedScheduleType.value = data['schedule_type'] ?? 'Weekday';
+        scheduleTypeName.value = data['schedule_type_name'] ?? scheduleTypeNames[selectedScheduleType.value] ?? '알 수 없음';
+        
+        // 스케줄 목록 파싱
+        if (data.containsKey('schedules') && data['schedules'] is List) {
+          final List<dynamic> schedules = data['schedules'];
+          stationSchedules.value = schedules.map((item) => StationSchedule.fromJson(item)).toList();
+        }
         
         // 모든 노선 정보 가져오기 (필터링 위해)
         await fetchRoutes();
         
         // 기본 일정 유형으로 필터링
-        filterSchedulesByType(selectedScheduleType.value);
+        filteredSchedules.value = List.from(stationSchedules);
+        
+        // 도착 시간 순으로 정렬
+        filteredSchedules.sort((a, b) => a.arrivalTime.compareTo(b.arrivalTime));
       } else {
         throw Exception('정류장 시간표를 불러오는데 실패했습니다 (${response.statusCode})');
       }
     } catch (e) {
       print('정류장 시간표를 불러오는데 실패했습니다: $e');
-      Get.snackbar(
-        '오류',
-        '정류장 시간표를 불러오는데 실패했습니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
-        duration: Duration(seconds: 3),
-      );
-      
-      // 테스트 더미 데이터
-      if (stationSchedules.isEmpty) {
-        stationSchedules.add(StationSchedule(
-          routeId: 1, 
-          stationName: '천안아산역(천캠방향)', 
-          arrivalTime: '21:13:00', 
-          stopOrder: 2, 
-          scheduleType: 'Weekday',
-          scheduleId: 1001
-        ));
-        stationSchedules.add(StationSchedule(
-          routeId: 1, 
-          stationName: '천안아산역(천캠방향)', 
-          arrivalTime: '21:15:00', 
-          stopOrder: 2, 
-          scheduleType: 'Weekday',
-          scheduleId: 1002
-        ));
-        stationSchedules.add(StationSchedule(
-          routeId: 1, 
-          stationName: '천안아산역(천캠방향)', 
-          arrivalTime: '21:43:00', 
-          stopOrder: 2, 
-          scheduleType: 'Saturday',
-          scheduleId: 1003
-        ));
-        stationSchedules.add(StationSchedule(
-          routeId: 4, 
-          stationName: '천안아산역(천캠방향)', 
-          arrivalTime: '09:38:00', 
-          stopOrder: 2, 
-          scheduleType: 'Holiday',
-          scheduleId: 1004
-        ));
-        
-        // 필터링 적용
-        filterSchedulesByType(selectedScheduleType.value);
-      }
     } finally {
       isLoadingSchedules.value = false;
+    }
+  }
+  
+  // 기존 시간표 조회 메서드 (하위 호환성 유지)
+  Future<void> fetchStationSchedules(int stationId) async {
+    if (selectedDate.value.isNotEmpty) {
+      fetchStationSchedulesByDate(stationId, selectedDate.value);
+    } else {
+      // 날짜가 없는 경우, 기존 방식으로 조회 (레거시 지원)
+      selectedStationId.value = stationId;
+      isLoadingSchedules.value = true;
+      stationSchedules.clear();
+      
+      try {
+        final response = await http.get(
+          Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules')
+        );
+        
+        if (response.statusCode == 200) {
+          final decodedBody = utf8.decode(response.bodyBytes);
+          final List<dynamic> data = json.decode(decodedBody);
+          stationSchedules.value = data.map((item) => StationSchedule.fromJson(item)).toList();
+          
+          // 모든 노선 정보 가져오기 (필터링 위해)
+          await fetchRoutes();
+          
+          // 기본 일정 유형으로 필터링
+          filterSchedulesByType(selectedScheduleType.value);
+        } else {
+          throw Exception('정류장 시간표를 불러오는데 실패했습니다 (${response.statusCode})');
+        }
+      } catch (e) {
+        print('정류장 시간표를 불러오는데 실패했습니다: $e');
+        
+      } finally {
+        isLoadingSchedules.value = false;
+      }
     }
   }
   
@@ -344,28 +368,6 @@ class NearbyStopsViewModel extends GetxController {
     filteredSchedules.sort((a, b) => a.arrivalTime.compareTo(b.arrivalTime));
   }
   
-  // 현재 요일에 맞는 스케줄 타입 설정 (오늘 날짜에 맞게)
-  void setDefaultScheduleType() {
-    try {
-      final now = DateTime.now();
-      final currentDay = now.weekday; // 1-월요일, 7-일요일
-      
-      String defaultType;
-      if (currentDay == 6) {
-        defaultType = 'Saturday';
-      } else if (currentDay == 7) {
-        defaultType = 'Holiday';
-      } else {
-        defaultType = 'Weekday';
-      }
-      
-      selectedScheduleType.value = defaultType;
-    } catch (e) {
-      print('기본 스케줄 타입 설정 중 오류 발생: $e');
-      selectedScheduleType.value = 'Weekday';
-    }
-  }
-  
   // 모든 노선 정보 조회
   Future<void> fetchRoutes() async {
     isLoadingRoutes.value = true;
@@ -382,12 +384,7 @@ class NearbyStopsViewModel extends GetxController {
       }
     } catch (e) {
       print('노선 목록을 불러오는데 실패했습니다: $e');
-      
-      // 테스트 더미 데이터
-      if (routes.isEmpty) {
-        routes.add(ShuttleRoute(id: 1, routeName: '아산캠퍼스 → 천안캠퍼스', direction: 'UP'));
-        routes.add(ShuttleRoute(id: 4, routeName: '천안캠퍼스 → 아산캠퍼스', direction: 'DOWN'));
-      }
+     
     } finally {
       isLoadingRoutes.value = false;
     }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
+import 'dart:ui';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import '../../models/shuttle_models.dart';
 
@@ -505,64 +507,93 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     final brightness = Theme.of(context).brightness;
     
     if (Platform.isIOS) {
-      showCupertinoModalPopup(
+      showCupertinoModalBottomSheet(
         context: context,
-        builder: (context) => Container(
-          color: brightness == Brightness.dark ? Colors.black : Colors.white,
-          child: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '정류장 사진',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        child: Icon(CupertinoIcons.xmark),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: InteractiveViewer(
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CupertinoActivityIndicator(),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                CupertinoIcons.exclamationmark_circle,
-                                size: 50,
-                                color: Colors.red,
-                              ),
-                              SizedBox(height: 16),
-                              Text('이미지를 불러올 수 없습니다.'),
-                            ],
-                          ),
-                        );
-                      },
+        expand: true,
+        useRootNavigator: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: CupertinoColors.black.withOpacity(0.5),
+        duration: const Duration(milliseconds: 300),
+        builder: (context) => CupertinoPageScaffold(
+          backgroundColor: Colors.transparent,
+          child: Material(
+            color: brightness == Brightness.dark
+                ? CupertinoColors.systemBackground.darkColor 
+                : CupertinoColors.systemBackground.color,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  // 드래그 핸들
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey3.resolveFrom(context),
+                      borderRadius: BorderRadius.circular(2.5),
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '정류장 사진',
+                          style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: Icon(CupertinoIcons.xmark_circle_fill, 
+                            color: CupertinoColors.systemGrey.resolveFrom(context)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: InteractiveViewer(
+                      child: Center(
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CupertinoActivityIndicator(),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.exclamationmark_circle,
+                                    size: 50,
+                                    color: CupertinoColors.destructiveRed,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    '이미지를 불러올 수 없습니다.',
+                                    style: CupertinoTheme.of(context).textTheme.textStyle,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

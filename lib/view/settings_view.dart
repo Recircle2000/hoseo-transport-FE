@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../viewmodel/settings_viewmodel.dart';
 import 'auth/login_view.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsView extends StatelessWidget {
   @override
@@ -87,6 +89,66 @@ class SettingsView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            // 버전 정보
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Center(
+                    child: Text(
+                      '버전 ${snapshot.data!.version}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            const SizedBox(height: 8),
+            // 개인정보처리방침/지원 링크
+            Center(
+              child: TextButton(
+                onPressed: () async {
+                  final Uri url = Uri.parse('https://www.notion.so/1eda668f263380ff92aae3ac8b74b157?pvs=4');
+                  try {
+                    if (await canLaunchUrl(url)) {
+                      // 브라우저에서 열기 위한 옵션 추가
+                      final bool launched = await launchUrl(
+                        url,
+                        mode: LaunchMode.externalApplication,
+                        webViewConfiguration: const WebViewConfiguration(
+                          enableJavaScript: true,
+                          enableDomStorage: true,
+                        ),
+                      );
+
+                      if (!launched) {
+                        throw Exception('URL 실행 실패');
+                      }
+                    } else {
+                      throw Exception('URL을 실행할 수 없음');
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('링크를 열 수 없습니다'))
+                      );
+                    }
+                  }
+                },
+                child: Text(
+                  '개인정보처리방침 / 지원',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            )
           ],
         ),
       ),

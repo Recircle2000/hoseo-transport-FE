@@ -65,7 +65,7 @@ class _HomeViewState extends State<HomeView> {
           elevation: 0,
           scrolledUnderElevation: 0,
           title: const Text(
-            'HOSEO Transport',
+            '호통',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,

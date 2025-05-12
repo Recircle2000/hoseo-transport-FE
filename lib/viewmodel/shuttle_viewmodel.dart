@@ -116,12 +116,6 @@ class ShuttleViewModel extends GetxController {
         colorText: Colors.red,
         duration: Duration(seconds: 3),
       );
-      
-      // 테스트 더미 데이터
-      if (routes.isEmpty) {
-        routes.add(ShuttleRoute(id: 1, routeName: '테스트 노선', direction: '상행'));
-        routes.add(ShuttleRoute(id: 2, routeName: '테스트 노선', direction: '하행'));
-      }
     } finally {
       isLoadingRoutes.value = false;
     }
@@ -185,30 +179,15 @@ class ShuttleViewModel extends GetxController {
     } catch (e) {
       print('시간표를 불러오는데 실패했습니다: $e');
       
-      // 서버 응답 없음 - 더미 데이터 추가
       Get.snackbar(
-        '서버 연결 오류',
-        '서버에 연결할 수 없어 임시 데이터를 표시합니다',
+        '오류',
+        '시간표를 불러오는데 실패했습니다',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange.withOpacity(0.1),
-        colorText: Colors.orange,
+        backgroundColor: Colors.red.withOpacity(0.1),
+        colorText: Colors.red,
         duration: Duration(seconds: 3),
       );
-      
-      if (schedules.isEmpty) {
-        final now = DateTime.now();
-        // 현재 시간부터 30분 간격으로 3개의 스케줄 생성
-        for (int i = 0; i < 3; i++) {
-          schedules.add(Schedule(
-            id: i + 1,
-            routeId: routeId,
-            scheduleType: "Weekday", // 기본값
-            startTime: now.add(Duration(minutes: 30 * i)),
-            round: i + 1
-          ));
-        }
-      }
-      return true; // 더미 데이터로 대체되었으므로 성공으로 처리
+      return false;
     } finally {
       isLoadingSchedules.value = false;
     }
@@ -264,31 +243,8 @@ class ShuttleViewModel extends GetxController {
     } catch (e) {
       print('정류장 정보를 불러오는데 실패했습니다: $e');
       
-      // 서버 응답 없음 - 더미 데이터 추가
-      Get.snackbar(
-        '서버 연결 오류',
-        '서버에 연결할 수 없어 임시 데이터를 표시합니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange.withOpacity(0.1),
-        colorText: Colors.orange,
-        duration: Duration(seconds: 3),
-      );
-      
-      // 테스트를 위한 더미 데이터 추가
-      if (scheduleStops.isEmpty) {
-        // 가상 정류장 5개 생성
-        for (int i = 0; i < 5; i++) {
-          final arrivalTime = DateFormat('HH:mm').format(
-            DateTime.now().add(Duration(minutes: 5 * i))
-          );
-          scheduleStops.add(ScheduleStop(
-            stationName: '테스트 정류장 ${i + 1}',
-            arrivalTime: arrivalTime,
-            stopOrder: i + 1
-          ));
-        }
-      }
-      return true; // 더미 데이터로 대체되었으므로 성공으로 처리
+    
+      return false;
     } finally {
       isLoadingStops.value = false;
     }
