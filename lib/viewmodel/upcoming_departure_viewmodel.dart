@@ -13,12 +13,14 @@ class BusDeparture {
   final String destination;
   final DateTime departureTime;
   final int minutesLeft;
+  final int? scheduleId; // scheduleId 추가
 
   BusDeparture({
     required this.routeName,
     required this.destination,
     required this.departureTime,
     required this.minutesLeft,
+    this.scheduleId, // 옵셔널 파라미터로 추가
   });
 }
 
@@ -50,6 +52,10 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   Map<int, String>? _cachedRouteNames; // 노선 정보 캐시 추가
   int? _previousStationId;
   
+  // 셔틀 노선 상세 페이지 이동을 위한 변수들
+  final RxInt selectedScheduleId = (-1).obs; // 선택된 스케줄 ID
+  final RxString scheduleTypeName = ''.obs; // 현재 스케줄 타입 이름 (Weekday, Saturday, Holiday)
+
   void setRefreshCallback(Function callback) {
     _onRefreshCallback = callback;
   }
@@ -259,6 +265,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final String stationName = (currentCampus == '천안') ? '천안캠퍼스(출발)' : '아산캠퍼스(출발)';
       final scheduleType = await _getScheduleType();
       print('현재 스케줄 타입: $scheduleType');
+      scheduleTypeName.value = scheduleType; // 스케줄 타입 저장
 
       List<dynamic> schedulesData;
       
@@ -268,10 +275,12 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules'),
           headers: {'Accept-Charset': 'UTF-8'}
         );
+       
         
         if (response.statusCode == 200) {
           final String decodedBody = utf8.decode(response.bodyBytes);
           schedulesData = json.decode(decodedBody);
+          print(schedulesData);
           _cachedShuttleData = schedulesData; // 데이터 캐시
         } else {
           throw Exception('API 오류: ${response.statusCode}');
@@ -292,6 +301,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       // 각 스케줄에 대해 출발 시간 계산
       for (final schedule in filteredSchedules) {
         final int routeId = schedule['route_id'];
+        final int scheduleId = schedule['schedule_id']; // schedule_id 저장
         
         // 캐시된 노선 정보가 없는 경우에만 API 호출
         if (!routeNames.containsKey(routeId)) {
@@ -343,6 +353,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
             destination: routeNames[routeId] ?? '알 수 없음',
             departureTime: departureTime,
             minutesLeft: minutesLeft == 0 ? 1 : minutesLeft, // 1분 미만은 1분으로 표시
+            scheduleId: scheduleId, // scheduleId 추가
           ));
         }
       }
@@ -352,6 +363,11 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       
       // 최대 3개만 표시
       upcomingShuttles.value = upcomingShuttleList.take(3).toList();
+      
+      // 가장 빠른 셔틀의 scheduleId를 선택된 ID로 설정
+      if (upcomingShuttles.isNotEmpty && upcomingShuttles[0].scheduleId != null) {
+        selectedScheduleId.value = upcomingShuttles[0].scheduleId!;
+      }
     } catch (e) {
       print('셔틀버스 데이터 로드 중 오류: $e');
       upcomingShuttles.clear();
