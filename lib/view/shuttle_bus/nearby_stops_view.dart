@@ -54,15 +54,15 @@ class NearbyStopsView extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           width: double.infinity,
           child: Row(
-            children: [
-              Icon(
-                Icons.location_on,
-                color: Colors.green.shade700,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: Colors.green.shade700,
                 size: 20,
-              ),
-              SizedBox(width: 8),
+                  ),
+                  SizedBox(width: 8),
               Text(
-                '내 위치에서 가까운 정류장',
+                    '내 위치에서 가까운 정류장',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -74,38 +74,38 @@ class NearbyStopsView extends StatelessWidget {
                   height: 20,
                   width: 20,
                   child: Platform.isIOS
-                    ? CupertinoActivityIndicator()
+                        ? CupertinoActivityIndicator()
                     : CircularProgressIndicator(strokeWidth: 2),
                 )
               else if (!hasLocation)
                 _buildCompactLocationButton(context)
               else
-                InkWell(
-                  onTap: () => viewModel.getCurrentLocation(),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.refresh,
+                    InkWell(
+                      onTap: () => viewModel.getCurrentLocation(),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.refresh,
                         size: 14,
-                        color: Colors.green.shade700,
+                            color: Colors.green.shade700,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '위치 새로고침',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        '위치 새로고침',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green.shade700,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
             ],
-          ),
         ),
-      );
+      ),
+    );
     });
   }
 
@@ -118,7 +118,7 @@ class NearbyStopsView extends StatelessWidget {
           '위치 확인',
           style: TextStyle(
             fontSize: 12,
-            color: Colors.green.shade700,
+        color: Colors.green.shade700,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -170,13 +170,13 @@ class NearbyStopsView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: [
-              Text(
-                '정류장 선택',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+        children: [
+          Text(
+            '정류장 선택',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
               ),
               if (hasLocation)
                 Padding(

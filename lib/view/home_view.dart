@@ -265,20 +265,20 @@ class _HomeViewState extends State<HomeView> {
                         Expanded(
                           child: _buildMenuCard(
                             context,
-                            title: '시내버스',
-                            icon: Icons.directions_bus,
-                            color: Colors.blue,
-                            onTap: () => Get.to(() => BusMapView()),
+                            title: '셔틀버스',
+                            icon: Icons.airport_shuttle,
+                            color: Color(0xFFB83227),
+                            onTap: () => Get.to(() => ShuttleRouteSelectionView()),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildMenuCard(
                             context,
-                            title: '셔틀버스',
-                            icon: Icons.airport_shuttle,
-                            color: Color(0xFFB83227),
-                            onTap: () => Get.to(() => ShuttleRouteSelectionView()),
+                            title: '시내버스',
+                            icon: Icons.directions_bus,
+                            color: Colors.blue,
+                            onTap: () => Get.to(() => BusMapView()),
                           ),
                         ),
                       ],

@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:io' show Platform;
 import '../../viewmodel/upcoming_departure_viewmodel.dart';
+import '../shuttle_bus/shuttle_route_detail_view.dart';
+import '../../viewmodel/shuttle_viewmodel.dart';
 
 class UpcomingDeparturesWidget extends StatefulWidget {
   UpcomingDeparturesWidget({Key? key}) : super(key: key);
@@ -365,7 +367,6 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -375,63 +376,100 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 12,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Material(
+          color: isDarkMode ? Colors.grey[800] : Colors.white,
+          child: InkWell(
+            onTap: () {
+              // 셔틀버스 클릭 시 상세 페이지로 이동
+              HapticFeedback.mediumImpact(); // 햅틱 피드백
+              
+              // 해당 셔틀의 scheduleId가 있는 경우에만 이동
+              if (departure.scheduleId != null) {
+                // ShuttleViewModel이 없는 경우 초기화 (Get.find 오류 방지)
+                if (!Get.isRegistered<ShuttleViewModel>()) {
+                  Get.put(ShuttleViewModel());
+                }
+                
+                // 셔틀 상세 화면으로 이동
+                Get.to(() => ShuttleRouteDetailView(
+                  scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
+                  routeName: departure.destination, // 노선명 전달
+                  round: 1, // 기본값으로 1 설정
+                  startTime: '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
+                ));
+              } else {
+                // scheduleId가 없는 경우 스낵바 표시
+                Get.snackbar(
+                  '정보 없음',
+                  '해당 셔틀의 상세 정보를 불러올 수 없습니다.',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red.withOpacity(0.1),
+                  colorText: Colors.red,
+                  duration: Duration(seconds: 2),
+                );
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 자동 롤링 텍스트
-                  AutoScrollText(
-                    text: departure.destination,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 12,
                     ),
                   ),
-                  Text(
-                    '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[600],
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AutoScrollText(
+                          text: departure.destination,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${departure.minutesLeft}분',
+                      style: TextStyle(
+                        color: _getTimeColor(departure.minutesLeft),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${departure.minutesLeft}분',
-                style: TextStyle(
-                  color: _getTimeColor(departure.minutesLeft),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -449,7 +487,6 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -459,63 +496,77 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 12,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Material(
+          color: isDarkMode ? Colors.grey[800] : Colors.white,
+          child: InkWell(
+            onTap: () {
+              // 시내버스 클릭 시 햅틱 피드백만 제공 (아직 상세 기능 미구현)
+              HapticFeedback.mediumImpact();
+              
+              // 향후 시내버스 상세 정보 화면으로 이동하는 기능 구현 가능
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // 자동 롤링 텍스트
-                  AutoScrollText(
-                    text: '${departure.routeName} → ${departure.destination}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 12,
                     ),
                   ),
-                  Text(
-                    '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[600],
-                      overflow: TextOverflow.ellipsis,
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 자동 롤링 텍스트
+                        AutoScrollText(
+                          text: '${departure.routeName} → ${departure.destination}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${departure.minutesLeft}분',
+                      style: TextStyle(
+                        color: _getTimeColor(departure.minutesLeft),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${departure.minutesLeft}분',
-                style: TextStyle(
-                  color: _getTimeColor(departure.minutesLeft),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
