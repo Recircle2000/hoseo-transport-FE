@@ -354,23 +354,24 @@ class _BusMapViewState extends State<BusMapView> {
     List<String> upDestinations = [
       '호서대학교',
       '호서대',
-      '탕정면사무소',
     ];
     
     List<String> downDestinations = [
       '천안아산역',
-      '아산역',
+      '아산역', 
       '아산터미널',
+      '탕정면사무소',
+      '지중해마을',
     ];
     
-    // 상행 목적지 확인
+    // 상행 목적지 확인 (호서대학교 방향)
     for (String upDest in upDestinations) {
       if (destination.contains(upDest)) {
         return true;
       }
     }
     
-    // 하행 목적지 확인
+    // 하행 목적지 확인 (호서대학교에서 출발하는 방향)
     for (String downDest in downDestinations) {
       if (destination.contains(downDest)) {
         return false;
