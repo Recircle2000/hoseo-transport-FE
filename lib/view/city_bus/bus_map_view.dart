@@ -30,7 +30,10 @@ extension BusMapViewModelExtension on BusMapViewModel {
 }
 
 class BusMapView extends StatefulWidget {
-  const BusMapView({Key? key}) : super(key: key);
+  final String? initialRoute;
+  final String? initialDestination;
+  
+  const BusMapView({Key? key, this.initialRoute, this.initialDestination}) : super(key: key);
 
   @override
   State<BusMapView> createState() => _BusMapViewState();
@@ -78,6 +81,25 @@ class _BusMapViewState extends State<BusMapView> {
     stationScrollController.addListener(() {
       // print("스크롤 위치: ${stationScrollController.position.pixels}");
     });
+    
+    // 초기 노선이 지정된 경우 자동 선택
+    if (widget.initialRoute != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final controller = Get.find<BusMapViewModel>();
+        // 노선 매핑 확인
+        String? mappedRoute = _findMappedRoute(widget.initialRoute!, destination: widget.initialDestination);
+        if (mappedRoute != null) {
+          controller.currentPositions.clear();
+          controller.markers.clear();
+          controller.stationMarkers.clear();
+          controller.stationNames.clear();
+          controller.selectedRoute.value = mappedRoute;
+          controller.fetchRouteData();
+          controller.fetchStationData();
+          controller.resetConnection();
+        }
+      });
+    }
   }
   
   @override
@@ -145,6 +167,48 @@ class _BusMapViewState extends State<BusMapView> {
                 ),
               ],
             ),
+            
+            // 운행 중인 버스가 없을 때 표시할 정보
+            Obx(() {
+              if (controller.stationNames.isNotEmpty && 
+                  controller.hasReceivedWebSocketData.value && 
+                  controller.markers.isEmpty) {
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.orange.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.orange[700],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '현재 노선에 운행 중인 버스가 없습니다.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.orange[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+
             Expanded(
               child: StationList(
                 routeDisplayNames: routeDisplayNames,
@@ -253,6 +317,68 @@ class _BusMapViewState extends State<BusMapView> {
         ),
       ),
     );
+  }
+
+  String? _findMappedRoute(String routeName, {String? destination}) {
+    // 목적지 정보가 있는 경우 상행/하행 구분
+    if (destination != null) {
+      // 목적지를 기반으로 상행/하행 판단
+      bool isUpDirection = _isUpDirection(destination);
+      
+      // 해당 노선의 상행/하행 키 찾기
+      String targetSuffix = isUpDirection ? "_UP" : "_DOWN";
+      String targetKey = "${routeName}${targetSuffix}";
+      
+      if (routeDisplayNames.containsKey(targetKey)) {
+        return targetKey;
+      }
+    }
+    
+    // 목적지 정보가 없거나 매칭되지 않는 경우 기존 로직 사용
+    for (String key in routeDisplayNames.keys) {
+      if (key.startsWith(routeName)) {
+        return key;
+      }
+    }
+    
+    // 직접 매칭되는 키가 있는지 확인
+    if (routeDisplayNames.containsKey(routeName)) {
+      return routeName;
+    }
+    
+    return null;
+  }
+  
+  bool _isUpDirection(String destination) {
+    // 호서대학교 방향이면 상행(UP), 그 외는 하행(DOWN)
+    List<String> upDestinations = [
+      '호서대학교',
+      '호서대',
+      '탕정면사무소',
+    ];
+    
+    List<String> downDestinations = [
+      '천안아산역',
+      '아산역',
+      '아산터미널',
+    ];
+    
+    // 상행 목적지 확인
+    for (String upDest in upDestinations) {
+      if (destination.contains(upDest)) {
+        return true;
+      }
+    }
+    
+    // 하행 목적지 확인
+    for (String downDest in downDestinations) {
+      if (destination.contains(downDest)) {
+        return false;
+      }
+    }
+    
+    // 기본값은 하행
+    return false;
   }
 }
 
