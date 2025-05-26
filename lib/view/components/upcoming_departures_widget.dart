@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import '../../viewmodel/upcoming_departure_viewmodel.dart';
 import '../shuttle_bus/shuttle_route_detail_view.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
+import '../city_bus/bus_map_view.dart';
 
 class UpcomingDeparturesWidget extends StatefulWidget {
   UpcomingDeparturesWidget({Key? key}) : super(key: key);
@@ -396,7 +397,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 Get.to(() => ShuttleRouteDetailView(
                   scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
                   routeName: departure.destination, // 노선명 전달
-                  round: 1, // 기본값으로 1 설정
+                  round: 0, // 기본값으로 0 (0으로 설정시 표시되지 않음)
                   startTime: '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
                 ));
               } else {
@@ -502,10 +503,14 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
           color: isDarkMode ? Colors.grey[800] : Colors.white,
           child: InkWell(
             onTap: () {
-              // 시내버스 클릭 시 햅틱 피드백만 제공 (아직 상세 기능 미구현)
+              // 시내버스 클릭 시 햅틱 피드백 제공
               HapticFeedback.mediumImpact();
               
-              // 향후 시내버스 상세 정보 화면으로 이동하는 기능 구현 가능
+              // BusMapView로 이동 (클릭한 노선 정보와 목적지 전달)
+              Get.to(() => BusMapView(
+                initialRoute: departure.routeName,
+                initialDestination: departure.destination,
+              ));
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
