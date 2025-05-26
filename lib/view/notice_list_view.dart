@@ -27,6 +27,46 @@ class NoticeListView extends GetView<NoticeViewModel> {
           icon: Icon(Icons.arrow_back_ios, color: theme.appBarTheme.iconTheme?.color, size: 20),
           onPressed: () => Get.back(),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.filter_list, color: theme.appBarTheme.iconTheme?.color),
+            onSelected: (String value) {
+              controller.changeFilter(value);
+            },
+            itemBuilder: (BuildContext context) {
+              return controller.filterOptions.map((String option) {
+                return PopupMenuItem<String>(
+                  value: option,
+                  child: Obx(() => Row(
+                    children: [
+                      Icon(
+                        controller.selectedFilter.value == option 
+                          ? Icons.radio_button_checked 
+                          : Icons.radio_button_unchecked,
+                        color: controller.selectedFilter.value == option 
+                          ? colorScheme.primary 
+                          : colorScheme.onSurfaceVariant,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        option,
+                        style: TextStyle(
+                          color: controller.selectedFilter.value == option 
+                            ? colorScheme.primary 
+                            : colorScheme.onSurface,
+                          fontWeight: controller.selectedFilter.value == option 
+                            ? FontWeight.w600 
+                            : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  )),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -68,14 +108,14 @@ class NoticeListView extends GetView<NoticeViewModel> {
           child: ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 12),
-            itemCount: controller.allNotices.length,
+            itemCount: controller.filteredNotices.length,
             separatorBuilder: (context, index) => Divider(
               height: 1,
               thickness: 1,
               color: colorScheme.surfaceVariant,
             ),
             itemBuilder: (context, index) {
-              final notice = controller.allNotices[index];
+              final notice = controller.filteredNotices[index];
               return InkWell(
                 onTap: () => Get.to(() => NoticeDetailView(notice: notice)),
                 child: Container(
@@ -83,14 +123,36 @@ class NoticeListView extends GetView<NoticeViewModel> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        notice.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notice.title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: controller.getNoticeTypeColor(notice.noticeType),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              controller.getNoticeTypeDisplayName(notice.noticeType),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Row(
