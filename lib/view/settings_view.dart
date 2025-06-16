@@ -148,6 +148,31 @@ class SettingsView extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 4),
+            // 오픈소스 라이선스
+            Center(
+              child: TextButton(
+                onPressed: () async {
+                  final packageInfo = await PackageInfo.fromPlatform();
+                  if (context.mounted) {
+                    showLicensePage(
+                      context: context,
+                      applicationName: '호통',
+                      applicationVersion: packageInfo.version,
+                      applicationLegalese: '© 2025 호통\n\n이 앱은 다음 오픈소스 라이브러리들을 사용합니다:',
+                    );
+                  }
+                },
+                child: Text(
+                  '오픈소스 라이선스',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.blue[700],
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             )
           ],
         ),
