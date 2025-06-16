@@ -225,7 +225,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
             // 셔틀과 시내버스 데이터 모두 없는 경우
             if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
               return Container(
-                height: 200, // 데이터 없음 상태에서의 고정된 높이
+                height: 190, // 데이터 없음 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),

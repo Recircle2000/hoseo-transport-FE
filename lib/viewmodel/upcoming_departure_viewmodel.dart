@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 환경 변수 사용을 위한 패키지 추가
 import 'settings_viewmodel.dart';
+import 'notice_viewmodel.dart';
 
 class BusDeparture {
   final String routeName;
@@ -29,6 +30,15 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://default.url';
   final settingsViewModel = Get.find<SettingsViewModel>();
   
+  // NoticeViewModel 참조 (지연 초기화)
+  NoticeViewModel? get noticeViewModel {
+    try {
+      return Get.find<NoticeViewModel>();
+    } catch (e) {
+      return null; // NoticeViewModel이 아직 초기화되지 않은 경우
+    }
+  }
+  
   // 데이터 관련 변수들
   var isLoading = true.obs;
   var error = ''.obs;
@@ -48,7 +58,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   final isOnHomePage = true.obs;
 
   // 셔틀 데이터 캐시를 위한 변수들
-  List<dynamic>? _cachedShuttleData;
+  Map<String, dynamic>? _cachedShuttleData;
   Map<int, String>? _cachedRouteNames; // 노선 정보 캐시 추가
   int? _previousStationId;
   
@@ -78,6 +88,8 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       if (active && isOnHomePage.value) {
         print('앱이 활성화됨 -> 즉시 새로고침 및 타이머 시작');
         loadData();
+        // 공지사항도 함께 새로고침
+        noticeViewModel?.fetchLatestNotice();
         _startRefreshTimer();
         // UI 타이머도 초기화하기 위해 콜백 호출
         _onRefreshCallback?.call();
@@ -92,6 +104,8 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       if (onHomePage && isActive.value) {
         print('홈페이지로 돌아옴 -> 즉시 새로고침 및 타이머 시작');
         loadData();
+        // 공지사항도 함께 새로고침
+        noticeViewModel?.fetchLatestNotice();
         _startRefreshTimer();
         // UI 타이머도 초기화하기 위해 콜백 호출
         _onRefreshCallback?.call();
@@ -262,44 +276,39 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       // 노선 정보 캐시 초기화
       _cachedRouteNames ??= {};
 
-      final String stationName = (currentCampus == '천안') ? '천안캠퍼스(출발)' : '아산캠퍼스(출발)';
-      final scheduleType = await _getScheduleType();
-      print('현재 스케줄 타입: $scheduleType');
-      scheduleTypeName.value = scheduleType; // 스케줄 타입 저장
-
-      List<dynamic> schedulesData;
+      final now = DateTime.now();
+      final String dateStr = DateFormat('yyyy-MM-dd').format(now);
+      
+      Map<String, dynamic> responseData;
       
       // 캐시된 데이터가 없는 경우에만 API 호출
       if (_cachedShuttleData == null) {
         final response = await http.get(
-          Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules'),
+          Uri.parse('$baseUrl/shuttle/stations/$stationId/schedules-by-date?date=$dateStr'),
           headers: {'Accept-Charset': 'UTF-8'}
         );
        
-        
         if (response.statusCode == 200) {
           final String decodedBody = utf8.decode(response.bodyBytes);
-          schedulesData = json.decode(decodedBody);
-          print(schedulesData);
-          _cachedShuttleData = schedulesData; // 데이터 캐시
+          responseData = json.decode(decodedBody);
+          print(responseData);
+          _cachedShuttleData = responseData; // 데이터 캐시
         } else {
           throw Exception('API 오류: ${response.statusCode}');
         }
       } else {
-        schedulesData = _cachedShuttleData!;
+        responseData = _cachedShuttleData!;
       }
 
-      final now = DateTime.now();
+      // 스케줄 타입 정보 저장
+      scheduleTypeName.value = responseData['schedule_type_name'] ?? responseData['schedule_type'] ?? '';
+      
+      final List<dynamic> schedulesData = responseData['schedules'] ?? [];
       final Map<int, String> routeNames = _cachedRouteNames ?? {};
       final upcomingShuttleList = <BusDeparture>[];
-
-      // 스케줄 타입에 맞는 스케줄 필터링
-      final filteredSchedules = schedulesData.where((schedule) => 
-          schedule['schedule_type'] == scheduleType && 
-          schedule['station_name'] == stationName).toList();
       
       // 각 스케줄에 대해 출발 시간 계산
-      for (final schedule in filteredSchedules) {
+      for (final schedule in schedulesData) {
         final int routeId = schedule['route_id'];
         final int scheduleId = schedule['schedule_id']; // schedule_id 저장
         
@@ -374,53 +383,6 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     }
   }
   
-  Future<String> _getScheduleType() async {
-    final now = DateTime.now();
-    final dayOfWeek = now.weekday; // 1-월요일, 7-일요일
-    
-    // 일요일
-    if (dayOfWeek == 7) {
-      print('일요일');
-      return 'Holiday';
-    }
-    
-    // 토요일
-    if (dayOfWeek == 6) {
-      print('토요일');
-      return 'Saturday';
-    }
-    
-    // 공휴일 확인
-    try {
-      final isHoliday = await _checkIfHoliday(now);
-      if (isHoliday) {
-        print('공휴일');
-        return 'Holiday';
-      }
-    } catch (e) {
-      print('공휴일 확인 중 오류: $e');
-    }
-    
-    // 기본값은 평일
-    return 'Weekday';
-  }
-  
-  Future<bool> _checkIfHoliday(DateTime date) async {
-    try {
-      // 공휴일 JSON 파일 로드
-      final String holidayJson = await rootBundle.loadString('assets/Holiday/2025Holiday.json');
-      final List<dynamic> holidays = json.decode(holidayJson);
-      
-      // 날짜 포맷 설정 (YYYYMMDD)
-      final dateStr = DateFormat('yyyyMMdd').format(date);
-      
-      // 공휴일 목록에서 오늘 날짜 찾기
-      return holidays.any((holiday) => holiday['date'] == dateStr);
-    } catch (e) {
-      print('공휴일 확인 중 오류: $e');
-      // 파일 로드에 실패해도 기능은 계속 동작하도록 함
-      return false;
-    }
-  }
+
 } 
 
