@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import '../viewmodel/notice_viewmodel.dart';
@@ -284,7 +285,10 @@ class _HomeViewState extends State<HomeView> {
                             title: '셔틀버스',
                             icon: Icons.airport_shuttle,
                             color: Color(0xFFB83227),
-                            onTap: () => Get.to(() => ShuttleRouteSelectionView()),
+                            onTap: () {
+                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              Get.to(() => ShuttleRouteSelectionView());
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -294,7 +298,10 @@ class _HomeViewState extends State<HomeView> {
                             title: '시내버스',
                             icon: Icons.directions_bus,
                             color: Colors.blue,
-                            onTap: () => Get.to(() => BusMapView()),
+                            onTap: () {
+                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              Get.to(() => BusMapView());
+                            },
                           ),
                         ),
                       ],
