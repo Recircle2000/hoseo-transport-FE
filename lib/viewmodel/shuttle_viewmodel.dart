@@ -165,7 +165,7 @@ class ShuttleViewModel extends GetxController {
         
         // 현재 시간에 가장 가까운 스케줄 자동 선택 (옵션)
         if (useDefaultValues.value && schedules.isNotEmpty) {
-          selectNearestSchedule();
+          //selectNearestSchedule();
         }
         return true;
       } else if (response.statusCode == 404) {
