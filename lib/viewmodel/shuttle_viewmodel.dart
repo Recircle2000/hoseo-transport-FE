@@ -5,6 +5,7 @@ import '../models/shuttle_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../utils/env_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ShuttleViewModel extends GetxController {
   final RxList<ShuttleRoute> routes = <ShuttleRoute>[].obs;
@@ -102,7 +103,19 @@ class ShuttleViewModel extends GetxController {
         final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
         final List<dynamic> data = json.decode(decodedBody);
         print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
-        routes.value = data.map((item) => ShuttleRoute.fromJson(item)).toList();
+        
+        List<ShuttleRoute> routeList = data.map((item) => ShuttleRoute.fromJson(item)).toList();
+        
+        // SharedPreferences에서 캠퍼스 설정 값 불러오기
+        final prefs = await SharedPreferences.getInstance();
+        final campusSetting = prefs.getString('campus') ?? '아산'; // 기본값은 아산
+        
+        // 천안 설정인 경우 아산↔천안 노선 순서 변경
+        if (campusSetting == '천안') {
+          routeList = _reorderRoutesForCheonan(routeList);
+        }
+        
+        routes.value = routeList;
       } else {
         throw Exception('노선 목록을 불러오는데 실패했습니다 (${response.statusCode})');
       }
@@ -119,6 +132,32 @@ class ShuttleViewModel extends GetxController {
     } finally {
       isLoadingRoutes.value = false;
     }
+  }
+  
+  // 천안 설정일 때 노선 순서 조정
+  List<ShuttleRoute> _reorderRoutesForCheonan(List<ShuttleRoute> originalRoutes) {
+    List<ShuttleRoute> reorderedRoutes = List.from(originalRoutes);
+    
+    // "아산캠퍼스 → 천안캠퍼스"와 "천안캠퍼스 → 아산캠퍼스" 노선 찾기
+    int asanToCheonanIndex = -1;
+    int cheonanToAsanIndex = -1;
+    
+    for (int i = 0; i < reorderedRoutes.length; i++) {
+      if (reorderedRoutes[i].routeName.contains('아산캠퍼스 → 천안캠퍼스')) {
+        asanToCheonanIndex = i;
+      } else if (reorderedRoutes[i].routeName.contains('천안캠퍼스 → 아산캠퍼스')) {
+        cheonanToAsanIndex = i;
+      }
+    }
+    
+    // 두 노선이 모두 존재하고 천안→아산이 아산→천안보다 뒤에 있는 경우 순서 변경
+    if (asanToCheonanIndex != -1 && cheonanToAsanIndex != -1 && cheonanToAsanIndex > asanToCheonanIndex) {
+      // 천안→아산 노선을 아산→천안 노선 앞으로 이동
+      ShuttleRoute cheonanToAsanRoute = reorderedRoutes.removeAt(cheonanToAsanIndex);
+      reorderedRoutes.insert(asanToCheonanIndex, cheonanToAsanRoute);
+    }
+    
+    return reorderedRoutes;
   }
   
   // 시간표 조회
