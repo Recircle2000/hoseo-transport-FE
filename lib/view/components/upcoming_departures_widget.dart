@@ -236,7 +236,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 ),
                 child: Center(
                   child: Text(
-                    '60분 내에 출발 예정인 버스/셔틀이 없습니다',
+                    '90분 내에 출발 예정인 버스/셔틀이 없습니다',
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -332,7 +332,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       ),
       child: Center(
         child: Text(
-          '60분 내 출발 $type 없음',
+          '90분 내 출발 $type 없음',
           style: TextStyle(
             color: Colors.grey,
             fontSize: 11,
