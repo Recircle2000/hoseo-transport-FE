@@ -172,10 +172,10 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             children: [
               _buildStationHeader(),
               SizedBox(height: 16),
-              _buildStationDescription(),
-              SizedBox(height: 24),
+              // _buildStationDescription(),
+              // SizedBox(height: 24),
               _buildMapSection(),
-              SizedBox(height: 24),
+              SizedBox(height: 16),
               _buildImageButton(),
             ],
           ),
@@ -205,6 +205,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
   
   Widget _buildStationHeader() {
     final stationInfo = station.value!;
+    final description = stationInfo.description ?? '정류장 설명이 없습니다.';
     
     return Container(
       width: double.infinity,
@@ -228,37 +229,6 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildStationDescription() {
-    final stationInfo = station.value!;
-    final description = stationInfo.description ?? '정류장 설명이 없습니다.';
-    
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '정류장 설명',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
           Text(
             description,
             style: TextStyle(
@@ -271,12 +241,50 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     );
   }
   
+  // Widget _buildStationDescription() {
+  //   final stationInfo = station.value!;
+  //   final description = stationInfo.description ?? '정류장 설명이 없습니다.';
+  //
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: Theme.of(context).colorScheme.surface,
+  //       borderRadius: BorderRadius.circular(12),
+  //       border: Border.all(
+  //         color: Colors.grey.withOpacity(0.3),
+  //         width: 1,
+  //       ),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           '정류장 설명',
+  //           style: TextStyle(
+  //             fontSize: 16,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         SizedBox(height: 8),
+  //         Text(
+  //           description,
+  //           style: TextStyle(
+  //             fontSize: 15,
+  //             height: 1.5,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  
   Widget _buildMapSection() {
     final stationInfo = station.value!;
     
     return Container(
       width: double.infinity,
-      height: 300,
+      height: 400,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -295,14 +303,15 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                     stationInfo.latitude, 
                     stationInfo.longitude
                   ),
-                  zoom: 15,
+                  zoom: 16,
                 ),
                 mapType: NMapType.basic,
-                maxZoom: 17,
+                maxZoom: 18,
                 minZoom: 10,
                 contentPadding: EdgeInsets.zero,
                 rotationGesturesEnable: false, // 회전 제스처 비활성화
                 locationButtonEnable: true, // 기본 내 위치 버튼 활성화
+
             
               ),
               onMapReady: (controller) {
@@ -419,12 +428,13 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     } else {
       return ElevatedButton(
         style: ElevatedButton.styleFrom(
+          elevation: 0,
           backgroundColor: hasImage
               ? (brightness == Brightness.dark
-                  ? Colors.blue.withOpacity(0.2)
+                  ? Colors.blue.withOpacity(0.3)
                   : Colors.blue.withOpacity(0.1))
               : (brightness == Brightness.dark
-                  ? Colors.grey.withOpacity(0.2)
+                  ? Colors.grey.withOpacity(0.3)
                   : Colors.grey.withOpacity(0.1)),
           foregroundColor: hasImage
               ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)

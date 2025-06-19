@@ -237,7 +237,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
             final minutesLeft = (difference.inSeconds / 60).ceil();
             
             // 앞으로 60분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
-            if (difference.inSeconds > 0 && difference.inMinutes <= 60) {
+            if (difference.inSeconds > 0 && difference.inMinutes <= 90) {
               upcomingBuses.add(BusDeparture(
                 routeName: routeKey.split('_')[0], // 노선 이름 (예: 순환5)
                 destination: destination,

@@ -20,7 +20,7 @@ class NoticeViewModel extends GetxController {
   void onInit() {
     super.onInit();
     fetchLatestNotice();
-    fetchAllNotices();
+    //fetchAllNotices();
   }
 
   // 필터 변경
@@ -93,7 +93,7 @@ class NoticeViewModel extends GetxController {
       error.value = '';
 
       final response = await http.get(
-        Uri.parse('${_getBaseUrl()}/notices'),
+        Uri.parse('${_getBaseUrl()}/notices/'),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json; charset=UTF-8',

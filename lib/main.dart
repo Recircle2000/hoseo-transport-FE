@@ -12,6 +12,7 @@ import 'utils/platform_utils.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'viewmodel/settings_viewmodel.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:app_version_update/app_version_update.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -181,9 +182,9 @@ class _DisclaimerManagerState extends State<DisclaimerManager> {
   @override
   void initState() {
     super.initState();
-    // 위젯이 빌드된 후 팝업 표시 여부 확인
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkFirstRun();
+      _checkAppVersionUpdate();
     });
   }
 
@@ -197,6 +198,37 @@ class _DisclaimerManagerState extends State<DisclaimerManager> {
       await prefs.setBool('first_run', false);
       // 면책 사항 팝업 표시
       PlatformUtils.showPlatformDisclaimerDialog(context);
+    }
+  }
+
+  Future<void> _checkAppVersionUpdate() async {
+    final result = await AppVersionUpdate.checkForUpdates(
+      appleId: dotenv.env['APPLE_APP_ID'] ?? '',
+      playStoreId: dotenv.env['PLAY_STORE_ID'] ?? '',
+      country: 'kr',
+    );
+    if (result.canUpdate == true) {
+      await AppVersionUpdate.showAlertUpdate(
+        appVersionResult: result,
+        context: context,
+        backgroundColor: Colors.white,
+        title: '새로운 버전이 있습니다',
+        titleTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        content: '최신 버전으로 업데이트를 권장합니다.',
+        contentTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
+        updateButtonText: '업데이트',
+        updateButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.lightBlueAccent),
+        ),
+        updateTextStyle: const TextStyle(color: Colors.black),
+        cancelButtonText: '나중에',
+        cancelTextStyle: const TextStyle(color: Colors.white),
+        cancelButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.black54),
+        ),
+      );
     }
   }
 
