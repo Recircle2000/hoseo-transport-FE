@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import '../../viewmodel/busmap_viewmodel.dart';
+import '../../viewmodel/settings_viewmodel.dart';
 
 class BusMapDetailView extends StatefulWidget {
   final String routeName;
@@ -15,8 +16,7 @@ class BusMapDetailView extends StatefulWidget {
 
 class _BusMapDetailViewState extends State<BusMapDetailView> {
   final BusMapViewModel controller = Get.find<BusMapViewModel>();
-  // 기본 중심 위치 (위치 권한이 없을 경우 사용)
-  final LatLng defaultCenter = LatLng(36.769423, 127.08);
+  final SettingsViewModel settingsViewModel = Get.find<SettingsViewModel>();
   
   @override
   void initState() {
@@ -54,45 +54,53 @@ class _BusMapDetailViewState extends State<BusMapDetailView> {
       body: GetBuilder<BusMapViewModel>(
         builder: (controller) => Stack(
           children: [
-            Obx(() => FlutterMap(
-              mapController: controller.mapController,
-              options: MapOptions(
-                // 현재 위치가 있으면 현재 위치를, 없으면 기본 위치를 중심으로 설정
-                //initialCenter: controller.currentLocation.value ?? defaultCenter,
-                initialCenter: defaultCenter,
-                initialZoom: 13,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.pinchZoom | 
-                         InteractiveFlag.drag | 
-                         InteractiveFlag.flingAnimation,
-                ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.jw.hoseotransport',
-                ),
-                PolylineLayer(polylines: controller.polylines.toList()),
-                MarkerLayer(markers: controller.stationMarkers.toList()),
-                MarkerLayer(markers: controller.markers.toList()),
-                // 현재 위치 마커
-                if (controller.currentLocation.value != null)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        width: 40.0,
-                        height: 40.0,
-                        point: controller.currentLocation.value!,
-                        child: const Icon(
-                          Icons.my_location,
-                          color: Colors.red,
-                          size: 20,
-                        ),
-                      ),
-                    ],
+            Obx(() {
+              // 캠퍼스에 따라 기본 중심 좌표 결정
+              final campus = settingsViewModel.selectedCampus.value;
+              final LatLng defaultCenter =
+                  campus == "천안"
+                      ? LatLng(36.8299, 127.1814)
+                      : LatLng(36.769423, 127.08);
+              return FlutterMap(
+                mapController: controller.mapController,
+                options: MapOptions(
+                  // 현재 위치가 있으면 현재 위치를, 없으면 기본 위치를 중심으로 설정
+                  //initialCenter: controller.currentLocation.value ?? defaultCenter,
+                  initialCenter: defaultCenter,
+                  initialZoom: 13,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.pinchZoom |
+                        InteractiveFlag.drag |
+                        InteractiveFlag.flingAnimation,
                   ),
-              ],
-            )),
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.jw.hoseotransport',
+                  ),
+                  PolylineLayer(polylines: controller.polylines.toList()),
+                  MarkerLayer(markers: controller.stationMarkers.toList()),
+                  MarkerLayer(markers: controller.markers.toList()),
+                  // 현재 위치 마커
+                  if (controller.currentLocation.value != null)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          width: 40.0,
+                          height: 40.0,
+                          point: controller.currentLocation.value!,
+                          child: const Icon(
+                            Icons.my_location,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              );
+            }),
             // 현재 위치 버튼
             Positioned(
               right: 16,

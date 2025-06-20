@@ -143,7 +143,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               const SizedBox(width: 4),
               Expanded(
                 child: Obx(() => Text(
-                  '(${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '천캠' : '아캠'} 출발 기준)',
+                  '${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '기점에서 출발 기준\n(81번 : 약5분, 24번 : 약2분 소요)' : '아캠 출발 기준'} ',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,

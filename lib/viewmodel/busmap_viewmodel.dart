@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/bus_city_model.dart';
 import '../utils/env_config.dart';
+import '../viewmodel/settings_viewmodel.dart';
 
 // 버스 위치 정보를 저장하는 클래스
 class BusPosition {
@@ -16,6 +17,7 @@ class BusPosition {
   final int nearestStationIndex;
   final double progressToNext; // 다음 정류장까지의 진행률 (0.0 ~ 1.0)
   final double distanceToStation; // 가장 가까운 정류장까지의 거리(미터)
+
   
   BusPosition({
     required this.vehicleNo,
@@ -51,6 +53,24 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this); // 앱 상태 감지 추가
+    // Set selectedRoute based on campus
+    final settingsViewModel = Get.find<SettingsViewModel>();
+    final campus = settingsViewModel.selectedCampus.value;
+    if (campus == "천안") {
+      selectedRoute.value = "24_DOWN";
+    } else {
+      selectedRoute.value = "순환5_DOWN";
+    }
+    // Listen for campus changes
+    ever(settingsViewModel.selectedCampus, (String newCampus) {
+      if (newCampus == "천안") {
+        selectedRoute.value = "24_DOWN";
+      } else {
+        selectedRoute.value = "순환5_DOWN";
+      }
+      fetchRouteData();
+      fetchStationData();
+    });
     _connectWebSocket();
     fetchRouteData();  // 초기 경로 데이터 로드
     fetchStationData();  // 초기 정류장 데이터 로드
@@ -642,4 +662,5 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
 
 String _getWebSocketUrl() {
   return "wss://${EnvConfig.baseUrl.replaceAll('https://', '')}/ws/bus";
+  //return "ws://10.0.2.2:8000/ws/bus";
 } 
