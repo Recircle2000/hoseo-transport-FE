@@ -237,8 +237,8 @@ class NearbyStopsViewModel extends GetxController {
       return distanceA.compareTo(distanceB);
     });
     
-    // 캠퍼스 설정에 따라 천안아산역 정류장 순서 조정
-    await _reorderCheonanAsanStations();
+    // 캠퍼스 설정에 따라 주요 정류장(천안아산역, 롯데캐슬, 천안역) 순서 조정
+    await _reorderMajorStations();
     
     // 도착 정류장이 출발 정류장보다 앞에 있는 경우 순서 조정
     _reorderDepartureArrivalStations();
@@ -250,99 +250,120 @@ class NearbyStopsViewModel extends GetxController {
     }
   }
   
-  // 캠퍼스 설정에 따라 천안아산역 정류장 순서 조정
-  Future<void> _reorderCheonanAsanStations() async {
+  // 캠퍼스 설정에 따라 주요 정류장(천안아산역, 롯데캐슬, 천안역) 순서 조정
+  Future<void> _reorderMajorStations() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final campusSetting = prefs.getString('campus') ?? '아산'; // 기본값은 아산
-      
-      // 천안아산역 정류장들 찾기
-      int asanDirectionIndex = -1;
-      int cheonanDirectionIndex = -1;
-      
-             for (int i = 0; i < sortedStations.length; i++) {
-         final stationName = sortedStations[i].name;
-         if (stationName.contains('천안아산역')) {
-           if (stationName.contains('아캠방향') || stationName.contains('아산방향')) {
-             asanDirectionIndex = i;
-           } else if (stationName.contains('천캠방향') || stationName.contains('천안방향')) {
-             cheonanDirectionIndex = i;
-           }
-         }
-       }
-      
-      // 두 정류장이 모두 존재하는 경우 설정에 따라 순서 조정
-      if (asanDirectionIndex != -1 && cheonanDirectionIndex != -1) {
-        if (campusSetting == '천안') {
-          // 천안 설정: 천안방향이 앞에 있어야 함
-          if (asanDirectionIndex < cheonanDirectionIndex) {
-            // 아산방향이 앞에 있으면 천안방향과 위치 바꿈
-            final cheonanStation = sortedStations.removeAt(cheonanDirectionIndex);
-            sortedStations.insert(asanDirectionIndex, cheonanStation);
+
+      // 정류장별 이름 및 방향 키워드 정의
+      final List<Map<String, dynamic>> stationConfigs = [
+        {
+          'keyword': '천안아산역',
+          'asan': ['아캠방향', '아산방향'],
+          'cheonan': ['천캠방향', '천안방향'],
+        },
+        {
+          'keyword': '롯데캐슬',
+          'asan': ['아캠방향', '아산방향'],
+          'cheonan': ['천캠방향', '천안방향'],
+        },
+        {
+          'keyword': '천안터미널',
+          'asan': ['아캠방향', '아산방향'],
+          'cheonan': ['천캠방향', '천안방향'],
+        },
+        {
+          'keyword': '천안역',
+          'asan': ['아캠방향', '아산방향'],
+          'cheonan': ['천캠방향', '천안방향'],
+        },
+      ];
+
+      for (final config in stationConfigs) {
+        int asanDirectionIndex = -1;
+        int cheonanDirectionIndex = -1;
+        for (int i = 0; i < sortedStations.length; i++) {
+          final stationName = sortedStations[i].name;
+          if (stationName.contains(config['keyword'])) {
+            if (config['asan'].any((k) => stationName.contains(k))) {
+              asanDirectionIndex = i;
+            } else if (config['cheonan'].any((k) => stationName.contains(k))) {
+              cheonanDirectionIndex = i;
+            }
           }
-        } else {
-          // 아산 설정: 아산방향이 앞에 있어야 함
-          if (cheonanDirectionIndex < asanDirectionIndex) {
-            // 천안방향이 앞에 있으면 아산방향과 위치 바꿈
-            final asanStation = sortedStations.removeAt(asanDirectionIndex);
-            sortedStations.insert(cheonanDirectionIndex, asanStation);
+        }
+        // 두 정류장이 모두 존재하는 경우 설정에 따라 순서 조정
+        if (asanDirectionIndex != -1 && cheonanDirectionIndex != -1) {
+          if (campusSetting == '천안') {
+            // 천안 설정: 천안방향이 앞에 있어야 함
+            if (asanDirectionIndex < cheonanDirectionIndex) {
+              final cheonanStation = sortedStations.removeAt(cheonanDirectionIndex);
+              sortedStations.insert(asanDirectionIndex, cheonanStation);
+            }
+          } else {
+            // 아산 설정: 아산방향이 앞에 있어야 함
+            if (cheonanDirectionIndex < asanDirectionIndex) {
+              final asanStation = sortedStations.removeAt(asanDirectionIndex);
+              sortedStations.insert(cheonanDirectionIndex, asanStation);
+            }
           }
         }
       }
-         } catch (e) {
-       print('천안아산역 정류장 순서 조정 중 오류 발생: $e');
-     }
-   }
-   
-   // 도착 정류장이 출발 정류장보다 앞에 있는 경우 순서 조정
-   void _reorderDepartureArrivalStations() {
-     try {
-       // 아산캠퍼스 출발/도착 정류장 찾기
-       int asanDepartureIndex = -1;
-       int asanArrivalIndex = -1;
-       
-       // 천안캠퍼스 출발/도착 정류장 찾기
-       int cheonanDepartureIndex = -1;
-       int cheonanArrivalIndex = -1;
-       
-       for (int i = 0; i < sortedStations.length; i++) {
-         final stationName = sortedStations[i].name;
-         
-         // 아산캠퍼스 정류장 확인
-         if (stationName.contains('아산캠퍼스')) {
-           if (stationName.contains('출발')) {
-             asanDepartureIndex = i;
-           } else if (stationName.contains('도착')) {
-             asanArrivalIndex = i;
-           }
-         }
-         
-         // 천안캠퍼스 정류장 확인
-         if (stationName.contains('천안캠퍼스')) {
-           if (stationName.contains('출발')) {
-             cheonanDepartureIndex = i;
-           } else if (stationName.contains('도착')) {
-             cheonanArrivalIndex = i;
-           }
-         }
-       }
-       
-       // 아산캠퍼스: 도착이 출발보다 앞에 있으면 순서 변경
-       if (asanDepartureIndex != -1 && asanArrivalIndex != -1 && asanArrivalIndex < asanDepartureIndex) {
-         final departureStation = sortedStations.removeAt(asanDepartureIndex);
-         sortedStations.insert(asanArrivalIndex, departureStation);
-       }
-       
-       // 천안캠퍼스: 도착이 출발보다 앞에 있으면 순서 변경
-       if (cheonanDepartureIndex != -1 && cheonanArrivalIndex != -1 && cheonanArrivalIndex < cheonanDepartureIndex) {
-         final departureStation = sortedStations.removeAt(cheonanDepartureIndex);
-         sortedStations.insert(cheonanArrivalIndex, departureStation);
-       }
-       
-     } catch (e) {
-       print('출발/도착 정류장 순서 조정 중 오류 발생: $e');
-     }
-   }
+    } catch (e) {
+      print('주요 정류장 순서 조정 중 오류 발생: $e');
+    }
+  }
+  
+  // 도착 정류장이 출발 정류장보다 앞에 있는 경우 순서 조정
+  void _reorderDepartureArrivalStations() {
+    try {
+      // 아산캠퍼스 출발/도착 정류장 찾기
+      int asanDepartureIndex = -1;
+      int asanArrivalIndex = -1;
+      
+      // 천안캠퍼스 출발/도착 정류장 찾기
+      int cheonanDepartureIndex = -1;
+      int cheonanArrivalIndex = -1;
+      
+      for (int i = 0; i < sortedStations.length; i++) {
+        final stationName = sortedStations[i].name;
+        
+        // 아산캠퍼스 정류장 확인
+        if (stationName.contains('아산캠퍼스')) {
+          if (stationName.contains('출발')) {
+            asanDepartureIndex = i;
+          } else if (stationName.contains('도착')) {
+            asanArrivalIndex = i;
+          }
+        }
+        
+        // 천안캠퍼스 정류장 확인
+        if (stationName.contains('천안캠퍼스')) {
+          if (stationName.contains('출발')) {
+            cheonanDepartureIndex = i;
+          } else if (stationName.contains('도착')) {
+            cheonanArrivalIndex = i;
+          }
+        }
+      }
+      
+      // 아산캠퍼스: 도착이 출발보다 앞에 있으면 순서 변경
+      if (asanDepartureIndex != -1 && asanArrivalIndex != -1 && asanArrivalIndex < asanDepartureIndex) {
+        final departureStation = sortedStations.removeAt(asanDepartureIndex);
+        sortedStations.insert(asanArrivalIndex, departureStation);
+      }
+      
+      // 천안캠퍼스: 도착이 출발보다 앞에 있으면 순서 변경
+      if (cheonanDepartureIndex != -1 && cheonanArrivalIndex != -1 && cheonanArrivalIndex < cheonanDepartureIndex) {
+        final departureStation = sortedStations.removeAt(cheonanDepartureIndex);
+        sortedStations.insert(cheonanArrivalIndex, departureStation);
+      }
+      
+    } catch (e) {
+      print('출발/도착 정류장 순서 조정 중 오류 발생: $e');
+    }
+  }
   
   // 날짜 선택 메서드
   void selectDate(String date) {
