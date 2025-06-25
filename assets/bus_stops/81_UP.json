@@ -1,0 +1,296 @@
+{
+  "response": {
+    "header": {
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "gpslati": 36.8400851,
+            "gpslong": 127.0995985,
+            "nodeid": "CAB285001574",
+            "nodenm": "차암2통",
+            "nodeno": 1574,
+            "nodeord": 1,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.84065184,
+            "gpslong": 127.10151844,
+            "nodeid": "CAB285000293",
+            "nodenm": "스마일시티",
+            "nodeno": 293,
+            "nodeord": 2,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.84168591,
+            "gpslong": 127.10471985,
+            "nodeid": "CAB285002263",
+            "nodenm": "에드워드",
+            "nodeno": 2263,
+            "nodeord": 3,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.84378,
+            "gpslong": 127.108131,
+            "nodeid": "CAB285071390",
+            "nodenm": "코스트코",
+            "nodeno": 2328,
+            "nodeord": 4,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8453166,
+            "gpslong": 127.1091824,
+            "nodeid": "CAB285071480",
+            "nodenm": "효성아파트이편한아파트",
+            "nodeno": 71480,
+            "nodeord": 5,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8464525,
+            "gpslong": 127.11474,
+            "nodeid": "CAB285071478",
+            "nodenm": "삼성SDI후문",
+            "nodeno": 71478,
+            "nodeord": 6,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8436075,
+            "gpslong": 127.1208984,
+            "nodeid": "CAB285071645",
+            "nodenm": "성성교차로",
+            "nodeno": 71645,
+            "nodeord": 7,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8411823,
+            "gpslong": 127.1196867,
+            "nodeid": "CAB285002290",
+            "nodenm": "삼성SDI",
+            "nodeno": 2290,
+            "nodeord": 8,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83443465,
+            "gpslong": 127.11648075,
+            "nodeid": "CAB285010024",
+            "nodenm": "산업단지공단입구",
+            "nodeno": 10024,
+            "nodeord": 9,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82992526,
+            "gpslong": 127.11620153,
+            "nodeid": "CAB285002079",
+            "nodenm": "백석이수아파트입구",
+            "nodeno": 2079,
+            "nodeord": 10,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.830518,
+            "gpslong": 127.121585,
+            "nodeid": "CAB285010132",
+            "nodenm": "백석푸르지오아파트",
+            "nodeno": 2323,
+            "nodeord": 11,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83092964,
+            "gpslong": 127.12361741,
+            "nodeid": "CAB285002207",
+            "nodenm": "백석더샵아파트",
+            "nodeno": 2207,
+            "nodeord": 12,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83300961,
+            "gpslong": 127.12361741,
+            "nodeid": "CAB285002131",
+            "nodenm": "백석아이파크",
+            "nodeno": 2131,
+            "nodeord": 13,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83384512,
+            "gpslong": 127.12915873,
+            "nodeid": "CAB285001489",
+            "nodenm": "두정대우5차아파트",
+            "nodeno": 1489,
+            "nodeord": 14,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.833738,
+            "gpslong": 127.134867,
+            "nodeid": "CAB285001024",
+            "nodenm": "두정도서관",
+            "nodeno": 1024,
+            "nodeord": 15,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.833575,
+            "gpslong": 127.139626,
+            "nodeid": "CAB285001026",
+            "nodenm": "펜타폴리스 2차",
+            "nodeno": 1026,
+            "nodeord": 16,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.833283,
+            "gpslong": 127.144099,
+            "nodeid": "CAB285001029",
+            "nodenm": "두정대우1차아파트",
+            "nodeno": 1029,
+            "nodeord": 17,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83266484,
+            "gpslong": 127.14790527,
+            "nodeid": "CAB285001035",
+            "nodenm": "두정역",
+            "nodeno": 1035,
+            "nodeord": 18,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83139281,
+            "gpslong": 127.15181036,
+            "nodeid": "CAB285000979",
+            "nodenm": "두정역입구",
+            "nodeno": 979,
+            "nodeord": 19,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82884583,
+            "gpslong": 127.15221516,
+            "nodeid": "CAB285000980",
+            "nodenm": "이안아파트 코아루아파트",
+            "nodeno": 980,
+            "nodeord": 20,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82691798,
+            "gpslong": 127.15271241,
+            "nodeid": "CAB285000981",
+            "nodenm": "역말오거리 천안희망초",
+            "nodeno": 981,
+            "nodeord": 21,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82342295,
+            "gpslong": 127.15263742,
+            "nodeid": "CAB285000646",
+            "nodenm": "신부우방아파트",
+            "nodeno": 646,
+            "nodeord": 22,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82162686,
+            "gpslong": 127.15211514,
+            "nodeid": "CAB285000648",
+            "nodenm": "신부청광아파트",
+            "nodeno": 648,
+            "nodeord": 23,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8187607,
+            "gpslong": 127.1556582,
+            "nodeid": "CAB285000685",
+            "nodenm": "종합터미널",
+            "nodeno": 685,
+            "nodeord": 24,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.819457,
+            "gpslong": 127.159662,
+            "nodeid": "CAB285000706",
+            "nodenm": "나은필병원(대림한숲아파트)",
+            "nodeno": 706,
+            "nodeord": 25,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.82824318,
+            "gpslong": 127.16770155,
+            "nodeid": "CAB285000643",
+            "nodenm": "천안톨게이트",
+            "nodeno": 643,
+            "nodeord": 26,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8309613,
+            "gpslong": 127.17799908,
+            "nodeid": "CAB285001594",
+            "nodenm": "안서동보아파트",
+            "nodeno": 1594,
+            "nodeord": 27,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83039064,
+            "gpslong": 127.17972823,
+            "nodeid": "CAB285001046",
+            "nodenm": "호서대(천안)",
+            "nodeno": 1046,
+            "nodeord": 28,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.83089653,
+            "gpslong": 127.18589606,
+            "nodeid": "CAB285001043",
+            "nodenm": "신안25통",
+            "nodeno": 1043,
+            "nodeord": 29,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.8331108,
+            "gpslong": 127.1896028,
+            "nodeid": "CAB285010147",
+            "nodenm": "각원사",
+            "nodeno": 1718,
+            "nodeord": 30,
+            "routeid": "CAB285000294"
+          },
+          {
+            "gpslati": 36.833425,
+            "gpslong": 127.191408,
+            "nodeid": "CAB285071885",
+            "nodenm": "각원사회차지",
+            "nodeno": 71885,
+            "nodeord": 31,
+            "routeid": "CAB285000294"
+          }
+        ]
+      },
+      "numOfRows": 50,
+      "pageNo": 1,
+      "totalCount": 31
+    }
+  }
+}

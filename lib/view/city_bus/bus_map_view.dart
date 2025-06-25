@@ -52,6 +52,10 @@ class _BusMapViewState extends State<BusMapView> {
     "820_DOWN": "820 (호서대학교 → 아산터미널)",
     "821_UP": "821 (아산터미널 → 호서대학교)",
     "821_DOWN": "821 (호서대학교 → 아산터미널)",
+    "24_DOWN": "24 (호서대천캠 → 동우아파트)",
+    "24_UP": "24 (동우아파트 → 호서대천캠)",
+    "81_DOWN": "81 (호서대천캠 → 차암2통)",
+    "81_UP": "81 (차암2통 → 호서대천캠)",
   };
 
   final Map<String, String> routeSimpleNames = {
@@ -66,6 +70,10 @@ class _BusMapViewState extends State<BusMapView> {
     "820_DOWN": "820",
     "821_UP": "821",
     "821_DOWN": "821",
+    "24_DOWN": "24",
+    "24_UP": "24",
+    "81_DOWN": "81",
+    "81_UP": "81",
   };
   
   // 스크롤 컨트롤러 선언
@@ -362,6 +370,8 @@ class _BusMapViewState extends State<BusMapView> {
       '아산터미널',
       '탕정면사무소',
       '지중해마을',
+      '차암2통',
+      '동우아파트'
     ];
     
     // 상행 목적지 확인 (호서대학교 방향)

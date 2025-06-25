@@ -204,16 +204,8 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final upcomingBuses = <BusDeparture>[];
       
       // 캠퍼스에 따라 다른 출발지 설정
-      final String departurePlace = currentCampus == '천안' ? '호서대학교 천안캠퍼스' : '호서대학교 기점';
+      final String departurePlace = currentCampus == '천안' ? '각원사 회차지' : '호서대학교 기점';
       
-      // 천안캠퍼스인 경우는 아직 실제 데이터가 없으므로 빈 배열 반환
-      if (currentCampus == '천안') {
-        upcomingCityBuses.value = [];
-        return;
-      }
-      
-      // 아산캠퍼스인 경우 기존 로직 사용
-      // 데이터 순회하며 호서대학교 기점인 버스 찾기
       busData.forEach((routeKey, routeData) {
         if (routeData['출발지'] == departurePlace) {
           final List<dynamic> timeList = routeData['시간표'];
@@ -236,7 +228,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
             // 차이를 분으로 계산 (올림)
             final minutesLeft = (difference.inSeconds / 60).ceil();
             
-            // 앞으로 60분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
+            // 앞으로 90분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
             if (difference.inSeconds > 0 && difference.inMinutes <= 90) {
               upcomingBuses.add(BusDeparture(
                 routeName: routeKey.split('_')[0], // 노선 이름 (예: 순환5)
@@ -356,7 +348,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
         
         // 앞으로 60분 내에 출발하고, 이미 출발한 시간이 아닌 경우만 포함
         // 같은 분(예: 3시 59분 → 4시 00분)이라도 초가 남아있으면 표시
-        if (difference.inSeconds > 0 && difference.inMinutes <= 60) {
+        if (difference.inSeconds > 0 && difference.inMinutes <= 90) {
           upcomingShuttleList.add(BusDeparture(
             routeName: '셔틀',
             destination: routeNames[routeId] ?? '알 수 없음',

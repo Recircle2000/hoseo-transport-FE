@@ -198,14 +198,13 @@ class _HomeViewState extends State<HomeView> {
                                             Row(
                                               children: [
                                                 Expanded(
-                                                  child: Text(
-                                                    notice?.title ?? '공지사항이 없습니다',
+                                                  child: AutoScrollText(
+                                                    text: notice?.title ?? '공지사항이 없습니다',
                                                     style: const TextStyle(
                                                       fontSize: 14,
                                                       fontWeight: FontWeight.w500,
                                                     ),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    scrollDuration: const Duration(seconds: 5),
                                                   ),
                                                 ),
                                                 if (notice != null) 

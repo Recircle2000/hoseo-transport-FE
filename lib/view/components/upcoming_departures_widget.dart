@@ -143,7 +143,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               const SizedBox(width: 4),
               Expanded(
                 child: Obx(() => Text(
-                  '(${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '천캠' : '아캠'} 출발 기준)',
+                  '${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '기점에서 출발 기준. 천캠 도착 까지\n81번: 약 2분, 24번: 약 5분 추가 소요' : '아캠 출발 기준'} ',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
@@ -646,7 +646,7 @@ class _AutoScrollTextState extends State<AutoScrollText> {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: widget.scrollDuration,
-          curve: Curves.easeInOut,
+          curve: Curves.linear,
         ).then((_) {
           // 스크롤이 끝나면 다시 처음으로 돌아가기 전에 잠시 멈춤
           if (mounted) {
@@ -659,7 +659,7 @@ class _AutoScrollTextState extends State<AutoScrollText> {
                 // 처음으로 돌아가기
                 _scrollController.animateTo(
                   0,
-                  duration: Duration(milliseconds: 1),
+                  duration: Duration(microseconds: 1), // 0.5초
                   curve: Curves.easeInOut,
                 ).then((_) {
                   if (mounted) {
