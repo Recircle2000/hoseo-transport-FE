@@ -144,7 +144,6 @@ class SettingsView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.blue[700],
-                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),
@@ -169,7 +168,6 @@ class SettingsView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.blue[700],
-                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),
