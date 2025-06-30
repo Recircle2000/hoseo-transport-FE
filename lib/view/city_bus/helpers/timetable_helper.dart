@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:hsro/utils/bus_times_loader.dart';
 
 /// 시간표 관련 기능을 모아둔 헬퍼 클래스
 class TimetableHelper {
   /// 시간표 데이터 로드
   static Future<Map<String, dynamic>> loadTimetable() async {
-    final String jsonString =
-        await rootBundle.loadString('assets/bus_times/bus_times.json');
-    return json.decode(jsonString);
+    return await BusTimesLoader.loadBusTimes();
   }
 
   /// 시간표에서 배차 간격 계산

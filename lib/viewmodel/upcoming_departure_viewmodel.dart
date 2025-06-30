@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // 환경 변수 사용을 위한 패키지 추가
 import 'settings_viewmodel.dart';
 import 'notice_viewmodel.dart';
+import 'package:hsro/utils/bus_times_loader.dart';
 
 class BusDeparture {
   final String routeName;
@@ -194,9 +195,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final currentCampus = settingsViewModel.selectedCampus.value;
       
       // bus_times.json 파일 읽기
-      final String jsonData = await rootBundle.loadString('assets/bus_times/bus_times.json');
-      final Map<String, dynamic> busData = json.decode(jsonData);
-      
+      final Map<String, dynamic> busData = await BusTimesLoader.loadBusTimes();
       // 현재 시간 가져오기
       final now = DateTime.now();
       
@@ -207,6 +206,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final String departurePlace = currentCampus == '천안' ? '각원사 회차지' : '호서대학교 기점';
       
       busData.forEach((routeKey, routeData) {
+        if (routeKey == 'version') return; // version 필드는 무시
         if (routeData['출발지'] == departurePlace) {
           final List<dynamic> timeList = routeData['시간표'];
           final String destination = routeData['종점'];

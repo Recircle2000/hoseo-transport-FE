@@ -13,6 +13,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'viewmodel/settings_viewmodel.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:app_version_update/app_version_update.dart';
+import 'package:hsro/utils/bus_times_loader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,8 @@ void main() async {
   
   // RouteObserver 등록
   Get.put(RouteObserver<PageRoute>(), permanent: true);
+
+  await BusTimesLoader.updateBusTimesIfNeeded();
 
   runApp(MyApp());
 }
