@@ -284,7 +284,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     
     return Container(
       width: double.infinity,
-      height: 400,
+      height: 450,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -334,11 +334,18 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             // 정류장 위치 보기 버튼
             Positioned(
               right: 10,
-              top: 10,
+              bottom: 42,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
+                  color: Theme.of(context).cardColor.withOpacity(1),
+                  borderRadius: BorderRadius.circular(3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: IconButton(
                   icon: Icon(
