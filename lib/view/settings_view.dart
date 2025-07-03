@@ -5,6 +5,7 @@ import '../viewmodel/settings_viewmodel.dart';
 import 'auth/login_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hsro/utils/bus_times_loader.dart';
 
 class SettingsView extends StatelessWidget {
   @override
@@ -94,14 +95,34 @@ class SettingsView extends StatelessWidget {
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return Center(
-                    child: Text(
-                      '버전 ${snapshot.data!.version}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
+                  return Column(
+                    children: [
+                      Center(
+                        child: Text(
+                          '앱 버전: ${snapshot.data!.version}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                       ),
-                    ),
+                      FutureBuilder<Map<String, dynamic>>(
+                        future: BusTimesLoader.loadBusTimes(),
+                        builder: (context, busSnapshot) {
+                          if (busSnapshot.hasData) {
+                            final version = busSnapshot.data!["version"] ?? "-";
+                            return Text(
+                              '시내버스 시간표 버전: $version',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[500],
+                              ),
+                            );
+                          }
+                          return SizedBox.shrink();
+                        },
+                      ),
+                    ],
                   );
                 }
                 return const SizedBox.shrink();
@@ -144,7 +165,6 @@ class SettingsView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.blue[700],
-                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),
@@ -169,7 +189,6 @@ class SettingsView extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.blue[700],
-                    decoration: TextDecoration.underline,
                   ),
                 ),
               ),

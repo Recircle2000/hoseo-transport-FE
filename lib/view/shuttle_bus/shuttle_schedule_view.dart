@@ -87,7 +87,6 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
             children: [
               Icon(Icons.directions_bus, 
                 color: shuttleColor,
-                size: 20,
               ),
               SizedBox(width: 8),
               Expanded(
