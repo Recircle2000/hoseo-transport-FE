@@ -131,7 +131,7 @@ class NoticeViewModel extends GetxController {
       if (response.statusCode == 200) {
         final data = utf8.decode(response.bodyBytes);
         final jsonData = json.decode(data);
-        print(jsonData);
+        //print(jsonData);
         notice.value = Notice.fromJson(jsonData);
       } else {
         error.value = '공지사항을 불러오는데 실패했습니다';

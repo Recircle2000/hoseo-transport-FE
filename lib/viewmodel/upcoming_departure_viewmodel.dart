@@ -265,14 +265,18 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
         _previousStationId = stationId;
       }
 
-      // 노선 정보 캐시 초기화
-      _cachedRouteNames ??= {};
-
       final now = DateTime.now();
       final String dateStr = DateFormat('yyyy-MM-dd').format(now);
-      
       Map<String, dynamic> responseData;
-      
+
+      if (_cachedShuttleData != null) {
+        if (_cachedShuttleData!['date'] != dateStr) {
+          print('캐시된 데이터가 오늘 날짜가 아니므로 캐시 초기화');
+          _cachedShuttleData = null;
+        } else {
+          print('캐시된 데이터가 오늘 날짜이므로 캐시 사용');
+        }
+      }
       // 캐시된 데이터가 없는 경우에만 API 호출
       if (_cachedShuttleData == null) {
         final response = await http.get(
