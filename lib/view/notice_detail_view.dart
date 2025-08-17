@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/notice_model.dart';
 import '../viewmodel/notice_viewmodel.dart';
@@ -100,7 +100,7 @@ class NoticeDetailView extends StatelessWidget {
                 data: notice.content,
                 styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
                   p: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) - 2,
+                    fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) - 1,
                     height: 1.6,
                     letterSpacing: 0.0,
 
