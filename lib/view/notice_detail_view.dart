@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/notice_model.dart';
 import '../viewmodel/notice_viewmodel.dart';
 
+
 class NoticeDetailView extends StatelessWidget {
   final Notice notice;
 
@@ -103,7 +104,6 @@ class NoticeDetailView extends StatelessWidget {
                     fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) - 1,
                     height: 1.6,
                     letterSpacing: 0.0,
-
                   ),
                 ),
                 onTapLink: (text, href, title) async {
@@ -111,10 +111,49 @@ class NoticeDetailView extends StatelessWidget {
                     await launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
                   }
                 },
+                imageBuilder: (uri, title, alt) {
+                  return GestureDetector(
+                    onTap: () {
+                      Get.to(() => ImageFullScreenView(imageUrl: uri.toString()));
+                    },
+                    child: Image.network(uri.toString()),
+                  );
+                },
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ImageFullScreenView extends StatelessWidget {
+  final String imageUrl;
+  const ImageFullScreenView({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          InteractiveViewer(
+            boundaryMargin: EdgeInsets.zero,
+            minScale: 1.0,
+            maxScale: 5.0,
+            child: Center(
+              child: Image.network(imageUrl),
+            ),
+          ),
+          Positioned(
+            top: 40, left: 16,
+            child: IconButton(
+              icon: Icon(Icons.close, color: Colors.white, size: 32),
+              onPressed: () => Get.back(),
+            ),
+          ),
+        ],
       ),
     );
   }
