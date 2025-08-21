@@ -12,6 +12,7 @@ import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
 import '../utils/platform_utils.dart';
+import 'city_bus/grouped_bus_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -299,7 +300,7 @@ class _HomeViewState extends State<HomeView> {
                             color: Colors.blue,
                             onTap: () {
                               HapticFeedback.mediumImpact(); // 햅틱 피드백
-                              Get.to(() => BusMapView());
+                              Get.to(() => CityBusGroupedView());
                             },
                           ),
                         ),

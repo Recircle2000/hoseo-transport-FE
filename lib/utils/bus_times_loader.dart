@@ -8,9 +8,8 @@ import 'package:path_provider/path_provider.dart';
 class BusTimesLoader {
   static const String assetPath = 'assets/bus_times/bus_times.json';
   static const String fileName = 'bus_times.json';
-  static const String versionApiUrl = 'https://hotong.click/bus-timetable/version'; // 실제 API 주소로 교체
-  static const String downloadUrl = 'https://recircle2000.github.io/hotong_station_image/bus_times.json'; // 실제 파일 주소로 교체
-
+  static const String versionApiUrl = 'https://hotong.click/bus-timetable/version'; 
+  static const String downloadUrl = 'https://recircle2000.github.io/hotong_station_image/bus_times.json'; 
   // bus_times.json을 Document 디렉토리에서 우선 읽고, 없으면 assets에서 읽음
   static Future<Map<String, dynamic>> loadBusTimes() async {
     final dir = await getApplicationDocumentsDirectory();

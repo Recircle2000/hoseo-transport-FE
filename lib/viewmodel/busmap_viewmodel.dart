@@ -10,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import '../models/bus_city_model.dart';
 import '../utils/env_config.dart';
 import '../viewmodel/settings_viewmodel.dart';
+import '../utils/bus_times_loader.dart';
 
 // 버스 위치 정보를 저장하는 클래스
 class BusPosition {
@@ -48,6 +49,20 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   
   // 웹소켓 데이터 수신 상태 추가
   final hasReceivedWebSocketData = false.obs;
+
+  // 다음 출발시간 저장 (노선별)
+  final RxMap<String, String> nextDepartureTimes = <String, String>{}.obs;
+
+  // bus_times.json 캐시
+  Map<String, dynamic>? _busTimesCache;
+
+  /// bus_times.json을 한 번만 읽어서 캐싱
+  Future<Map<String, dynamic>> loadBusTimesOnce() async {
+    if (_busTimesCache != null) return _busTimesCache!;
+    final data = await BusTimesLoader.loadBusTimes();
+    _busTimesCache = data;
+    return data;
+  }
 
   @override
   void onInit() {
@@ -384,6 +399,34 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
     // 현재 위치 업데이트
     currentPositions.assignAll(busPositions);
     detailedBusPositions.assignAll(detailedPositions);
+  }
+
+  /// 노선별 다음 출발시간 계산 (특히 _DOWN 노선)
+  Future<void> updateNextDepartureTime(String routeKey) async {
+    try {
+      final busTimes = await loadBusTimesOnce();
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final timetable = busTimes[routeKey]?['시간표'] as List<dynamic>?;
+      if (timetable == null || timetable.isEmpty) {
+        nextDepartureTimes[routeKey] = '시간표 없음';
+        return;
+      }
+      // HH:mm 문자열을 DateTime으로 변환
+      final times = timetable.map((t) {
+        final parts = t.split(':');
+        return DateTime(today.year, today.month, today.day, int.parse(parts[0]), int.parse(parts[1]));
+      }).toList();
+      // 현재 시간 이후의 첫 출발 찾기
+      final next = times.firstWhereOrNull((t) => t.isAfter(now));
+      if (next != null) {
+        nextDepartureTimes[routeKey] = '출발: ${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
+      } else {
+        nextDepartureTimes[routeKey] = '운행 종료';
+      }
+    } catch (e) {
+      nextDepartureTimes[routeKey] = '시간표 오류';
+    }
   }
 
   void resetConnection() {
