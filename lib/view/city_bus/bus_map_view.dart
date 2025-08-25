@@ -407,8 +407,8 @@ class _BusMapViewState extends State<BusMapView> {
                                 width: 350,
                                 child: Obx(() => CupertinoSlidingSegmentedControl<int>(
                                   children: const {
-                                    1: Text('시간표'),
-                                    0: Text('노선 정보'),
+                                    0: Text('시간표'),
+                                    1: Text('노선 정보'),
                                   },
                                   groupValue: controller.selectedTab.value,
                                   onValueChanged: (value) {

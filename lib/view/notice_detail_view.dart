@@ -102,8 +102,8 @@ class NoticeDetailView extends StatelessWidget {
                 styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
                   p: theme.textTheme.bodyLarge?.copyWith(
                     fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) - 1,
-                    height: 1.6,
-                    letterSpacing: 0.0,
+                    height: 1.7,
+                    letterSpacing: 0.6,
                   ),
                 ),
                 onTapLink: (text, href, title) async {

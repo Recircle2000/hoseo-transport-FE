@@ -23,7 +23,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       'subtitle': '아산캠퍼스 ↔ 천안아산역',
       'subGroups': [
         {
-          'title': '아산캠퍼스 출발 (나가는 버스)',
+          'title': '아캠 출발',
           'icon': Icons.logout,
           'routes': [
             {
@@ -37,7 +37,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
           ],
         },
         {
-          'title': '아산캠퍼스 도착 (들어오는 버스)',
+          'title': '아캠 도착',
           'icon': Icons.login,
           'routes': [
             {
@@ -57,7 +57,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       'subtitle': '아산캠퍼스 ↔ 아산터미널',
       'subGroups': [
         {
-          'title': '아산캠퍼스 출발 (나가는 버스)',
+          'title': '아캠 출발',
           'icon': Icons.logout,
           'routes': [
             {
@@ -79,7 +79,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
           ],
         },
         {
-          'title': '아산캠퍼스 도착 (들어오는 버스)',
+          'title': '아캠 도착',
           'icon': Icons.login,
           'routes': [
             {
@@ -111,7 +111,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       'subtitle': '천안캠퍼스 ↔ 동우아파트',
       'subGroups': [
         {
-          'title': '천안캠퍼스 출발 (나가는 버스)',
+          'title': '천캠 출발',
           'icon': Icons.logout,
           'routes': [
             {
@@ -121,7 +121,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
           ],
         },
         {
-          'title': '천안캠퍼스 도착 (들어오는 버스)',
+          'title': '천캠 도착',
           'icon': Icons.login,
           'routes': [
             {
@@ -137,7 +137,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       'subtitle': '천안캠퍼스 ↔ 차암2통',
       'subGroups': [
         {
-          'title': '천안캠퍼스 출발 (나가는 버스)',
+          'title': '천캠 출발',
           'icon': Icons.logout,
           'routes': [
             {
@@ -147,7 +147,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
           ],
         },
         {
-          'title': '천안캠퍼스 도착 (들어오는 버스)',
+          'title': '천캠 도착',
           'icon': Icons.login,
           'routes': [
             {
@@ -217,7 +217,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       
       if (buses.isNotEmpty) {
         if (buses.length == 1) {
-          return '현재 위치: ${buses.first.stationName}';
+          return '${buses.first.stationName}';
         } else {
           return '운행중 ${buses.length}대 (${buses.first.stationName} 외)';
         }
@@ -367,7 +367,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                                             Text(
                                               nextDepartureTime,
                                               style: TextStyle(
-                                                fontSize: 12,
+                                                fontSize: 13,
                                                 color: nextDepartureTime == '운행 종료' || nextDepartureTime == '로딩...' 
                                                     ? Colors.grey 
                                                     : Colors.green,
@@ -380,15 +380,28 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                                         ),
                                         const SizedBox(height: 4),
                                         // 두 번째 줄: 현재 버스 위치
-                                        Text(
-                                          busLocationStatus,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: busLocationStatus == '현재 운행 없음' 
-                                                ? Colors.grey 
-                                                : Colors.blue,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 13,
+                                              color: busLocationStatus == '현재 운행 없음'
+                                                  ? Colors.grey
+                                                  : Colors.blue,
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              busLocationStatus,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: busLocationStatus == '현재 운행 없음'
+                                                    ? Colors.grey
+                                                    : Colors.blue,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
