@@ -14,66 +14,91 @@ class CityBusGroupedView extends StatefulWidget {
 
 class _CityBusGroupedViewState extends State<CityBusGroupedView> {
   final settingsViewModel = Get.find<SettingsViewModel>();
+  late final BusMapViewModel busMapViewModel;
 
   // 아산캠퍼스 노선 그룹핑 정보
   final List<Map<String, dynamic>> groupedRoutesAsan = [
     {
       'title': '천안아산역 · 지중해마을 방면',
       'subtitle': '아산캠퍼스 ↔ 천안아산역',
-      'routes': [
+      'subGroups': [
         {
-          'routeKey': '순환5_DOWN',
-          'label': '순환5 (천안아산역 방면)',
+          'title': '아산캠퍼스 출발 (나가는 버스)',
+          'icon': Icons.logout,
+          'routes': [
+            {
+              'routeKey': '순환5_DOWN',
+              'label': '순환5 (천안아산역 방면)',
+            },
+            {
+              'routeKey': '1000_DOWN',
+              'label': '1000 (지중해마을 방면)',
+            },
+          ],
         },
         {
-          'routeKey': '순환5_UP',
-          'label': '순환5 (아산캠퍼스 방면)',
-        },
-        {
-          'routeKey': '1000_DOWN',
-          'label': '1000 (지중해마을 방면)',
-        },
-        {
-          'routeKey': '1000_UP',
-          'label': '1000 (아산캠퍼스 방면)',
+          'title': '아산캠퍼스 도착 (들어오는 버스)',
+          'icon': Icons.login,
+          'routes': [
+            {
+              'routeKey': '순환5_UP',
+              'label': '순환5 (아산캠퍼스 방면)',
+            },
+            {
+              'routeKey': '1000_UP',
+              'label': '1000 (아산캠퍼스 방면)',
+            },
+          ],
         },
       ],
     },
     {
       'title': '아산터미널 방면',
       'subtitle': '아산캠퍼스 ↔ 아산터미널',
-      'routes': [
+      'subGroups': [
         {
-          'routeKey': '810_DOWN',
-          'label': '810 (아산터미널 방면)',
+          'title': '아산캠퍼스 출발 (나가는 버스)',
+          'icon': Icons.logout,
+          'routes': [
+            {
+              'routeKey': '810_DOWN',
+              'label': '810 (아산터미널 방면)',
+            },
+            {
+              'routeKey': '820_DOWN',
+              'label': '820 (아산터미널 방면)',
+            },
+            {
+              'routeKey': '821_DOWN',
+              'label': '821 (아산터미널 방면)',
+            },
+            {
+              'routeKey': '822_DOWN',
+              'label': '822 (아산터미널 방면)',
+            },
+          ],
         },
         {
-          'routeKey': '810_UP',
-          'label': '810 (아산캠퍼스 방면)',
-        },
-        {
-          'routeKey': '820_DOWN',
-          'label': '820 (아산터미널 방면)',
-        },
-        {
-          'routeKey': '820_UP',
-          'label': '820 (아산캠퍼스 방면)',
-        },
-        {
-          'routeKey': '821_DOWN',
-          'label': '821 (아산터미널 방면)',
-        },
-        {
-          'routeKey': '821_UP',
-          'label': '821 (아산캠퍼스 방면)',
-        },
-        {
-          'routeKey': '822_DOWN',
-          'label': '822 (아산터미널 방면)',
-        },
-        {
-          'routeKey': '822_UP',
-          'label': '822 (아산캠퍼스 방면)',
+          'title': '아산캠퍼스 도착 (들어오는 버스)',
+          'icon': Icons.login,
+          'routes': [
+            {
+              'routeKey': '810_UP',
+              'label': '810 (아산캠퍼스 방면)',
+            },
+            {
+              'routeKey': '820_UP',
+              'label': '820 (아산캠퍼스 방면)',
+            },
+            {
+              'routeKey': '821_UP',
+              'label': '821 (아산캠퍼스 방면)',
+            },
+            {
+              'routeKey': '822_UP',
+              'label': '822 (아산캠퍼스 방면)',
+            },
+          ],
         },
       ],
     },
@@ -84,34 +109,56 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
     {
       'title': '동우아파트 방면',
       'subtitle': '천안캠퍼스 ↔ 동우아파트',
-      'routes': [
+      'subGroups': [
         {
-          'routeKey': '24_DOWN',
-          'label': '24 (동우아파트 방면)',
+          'title': '천안캠퍼스 출발 (나가는 버스)',
+          'icon': Icons.logout,
+          'routes': [
+            {
+              'routeKey': '24_DOWN',
+              'label': '24 (동우아파트 방면)',
+            },
+          ],
         },
         {
-          'routeKey': '24_UP',
-          'label': '24 (천안캠퍼스 방면)',
+          'title': '천안캠퍼스 도착 (들어오는 버스)',
+          'icon': Icons.login,
+          'routes': [
+            {
+              'routeKey': '24_UP',
+              'label': '24 (천안캠퍼스 방면)',
+            },
+          ],
         },
       ],
     },
     {
       'title': '차암2통 방면',
       'subtitle': '천안캠퍼스 ↔ 차암2통',
-      'routes': [
+      'subGroups': [
         {
-          'routeKey': '81_DOWN',
-          'label': '81 (차암2통 방면)',
+          'title': '천안캠퍼스 출발 (나가는 버스)',
+          'icon': Icons.logout,
+          'routes': [
+            {
+              'routeKey': '81_DOWN',
+              'label': '81 (차암2통 방면)',
+            },
+          ],
         },
         {
-          'routeKey': '81_UP',
-          'label': '81 (천안캠퍼스 방면)',
+          'title': '천안캠퍼스 도착 (들어오는 버스)',
+          'icon': Icons.login,
+          'routes': [
+            {
+              'routeKey': '81_UP',
+              'label': '81 (천안캠퍼스 방면)',
+            },
+          ],
         },
       ],
     },
   ];
-
-  final Map<String, BusMapViewModel> _viewModels = {};
 
   // 모든 노선의 다음 출발시간을 한 번에 관리
   final RxMap<String, String> allNextDepartureTimes = <String, String>{}.obs;
@@ -124,22 +171,24 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
     final busTimes = await BusTimesLoader.loadBusTimes();
     // 모든 노선에 대해 계산
     for (final group in [...groupedRoutesAsan, ...groupedRoutesCheonan]) {
-      for (final route in group['routes']) {
-        final routeKey = route['routeKey'];
-        final timetable = busTimes[routeKey]?['시간표'] as List<dynamic>?;
-        if (timetable == null || timetable.isEmpty) {
-          allNextDepartureTimes[routeKey] = '시간표 없음';
-          continue;
-        }
-        final times = timetable.map((t) {
-          final parts = t.split(':');
-          return DateTime(today.year, today.month, today.day, int.parse(parts[0]), int.parse(parts[1]));
-        }).toList();
-        final next = times.firstWhereOrNull((t) => t.isAfter(now));
-        if (next != null) {
-          allNextDepartureTimes[routeKey] = '출발: ${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
-        } else {
-          allNextDepartureTimes[routeKey] = '운행 종료';
+      for (final subGroup in group['subGroups']) {
+        for (final route in subGroup['routes']) {
+          final routeKey = route['routeKey'];
+          final timetable = busTimes[routeKey]?['시간표'] as List<dynamic>?;
+          if (timetable == null || timetable.isEmpty) {
+            allNextDepartureTimes[routeKey] = '시간표 없음';
+            continue;
+          }
+          final times = timetable.map((t) {
+            final parts = t.split(':');
+            return DateTime(today.year, today.month, today.day, int.parse(parts[0]), int.parse(parts[1]));
+          }).toList();
+          final next = times.firstWhereOrNull((t) => t.isAfter(now));
+          if (next != null) {
+            allNextDepartureTimes[routeKey] = '출발: ${next.hour.toString().padLeft(2, '0')}:${next.minute.toString().padLeft(2, '0')}';
+          } else {
+            allNextDepartureTimes[routeKey] = '운행 종료';
+          }
         }
       }
     }
@@ -149,25 +198,39 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
   @override
   void initState() {
     super.initState();
+    // BusMapViewModel 인스턴스 생성 및 초기화
+    busMapViewModel = Get.put(BusMapViewModel(), tag: 'grouped_view');
     _loadAllNextDepartureTimes();
   }
 
   @override
   void dispose() {
-    for (final vm in _viewModels.values) {
-      vm.dispose();
-    }
+    Get.delete<BusMapViewModel>(tag: 'grouped_view');
     super.dispose();
   }
 
-  BusMapViewModel _getViewModel(String routeKey) {
-    if (_viewModels.containsKey(routeKey)) return _viewModels[routeKey]!;
-    final vm = BusMapViewModel();
-    vm.selectedRoute.value = routeKey;
-    vm.fetchRouteData();
-    vm.fetchStationData();
-    _viewModels[routeKey] = vm;
-    return vm;
+  /// 특정 노선의 현재 버스 위치 정보를 가져오는 함수
+  String _getBusLocationStatus(String routeKey) {
+    // ViewModel에서 해당 노선의 버스 데이터 확인
+    if (busMapViewModel.allRoutesBusData.containsKey(routeKey)) {
+      final buses = busMapViewModel.allRoutesBusData[routeKey]!;
+      
+      if (buses.isNotEmpty) {
+        if (buses.length == 1) {
+          return '현재 위치: ${buses.first.stationName}';
+        } else {
+          return '운행중 ${buses.length}대 (${buses.first.stationName} 외)';
+        }
+      }
+    }
+    
+    return '현재 운행 없음';
+  }
+
+  /// 특정 노선의 다음 출발시간 정보를 가져오는 함수
+  String _getNextDepartureTime(String routeKey) {
+    // 모든 노선에 대해 출발시간 표시 (UP, DOWN 구분 없이)
+    return allNextDepartureTimes[routeKey] ?? '로딩...';
   }
 
   @override
@@ -185,10 +248,10 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       body: Obx(() {
         final campus = settingsViewModel.selectedCampus.value;
         final groupedRoutes = campus == '천안' ? groupedRoutesCheonan : groupedRoutesAsan;
-        return ListView.separated(
-          padding: const EdgeInsets.all(20),
-          itemCount: groupedRoutes.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+                 return ListView.separated(
+           padding: const EdgeInsets.all(12),
+           itemCount: groupedRoutes.length,
+           separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, groupIdx) {
             final group = groupedRoutes[groupIdx];
             return Card(
@@ -198,14 +261,15 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 메인 그룹 타이틀
                     Row(
                       children: [
                         const Icon(Icons.directions_bus, color: Colors.blue),
-                        const SizedBox(width: 5),
+                        const SizedBox(width: 6),
                         Text(
                           group['subtitle'] ?? group['title'],
                           style: TextStyle(
@@ -216,58 +280,127 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 5),
-                    ...List.generate(group['routes'].length, (routeIdx) {
-                      final route = group['routes'][routeIdx];
-                      final routeKey = route['routeKey'];
-                      final label = route['label'];
-                      final vm = _getViewModel(routeKey);
-                      final isDownRoute = routeKey.endsWith('_DOWN');
-                      return Obx(() {
-                        String status = '현재 운행 없음';
-                        if (vm.detailedBusPositions.isNotEmpty && vm.stationNames.isNotEmpty) {
-                          final bus = vm.detailedBusPositions.first;
-                          final idx = bus.nearestStationIndex;
-                          if (idx >= 0 && idx < vm.stationNames.length) {
-                            status = '현재 위치: 0{vm.stationNames[idx]}';
-                          }
-                        } else if (isDownRoute) {
-                          // 실시간 버스 없고 _DOWN 노선이면 다음 출발시간 표시
-                          status = allNextDepartureTimes[routeKey] ?? '로딩...';
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              Get.to(() => BusMapView(initialRoute: routeKey));
-                            },
+                    const SizedBox(height: 12),
+                    // 서브 그룹들
+                    ...List.generate(group['subGroups'].length, (subGroupIdx) {
+                      final subGroup = group['subGroups'][subGroupIdx];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 서브 그룹 타이틀
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.blue.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
                             child: Row(
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    label,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: textColor,
-                                    ),
-                                  ),
+                                Icon(
+                                  subGroup['icon'],
+                                  size: 16,
+                                  color: Colors.blue,
                                 ),
+                                const SizedBox(width: 4),
                                 Text(
-                                  status,
+                                  subGroup['title'],
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: status == '현재 운행 없음' || status == '운행 종료' ? Colors.grey : Colors.blue,
                                     fontWeight: FontWeight.w600,
+                                    color: Colors.blue,
                                   ),
                                 ),
-                                Icon(Icons.chevron_right, color: Colors.grey),
                               ],
                             ),
                           ),
-                        );
-                      });
+                          const SizedBox(height: 6),
+                          // 서브 그룹의 노선들
+                          ...List.generate(subGroup['routes'].length, (routeIdx) {
+                            final route = subGroup['routes'][routeIdx];
+                            final routeKey = route['routeKey'];
+                            final label = route['label'];
+                            return Obx(() {
+                              final busLocationStatus = _getBusLocationStatus(routeKey);
+                              final nextDepartureTime = _getNextDepartureTime(routeKey);
+                              
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 12, top: 3, bottom: 3),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () {
+                                    Get.to(() => BusMapView(initialRoute: routeKey));
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: isDarkMode 
+                                          ? Colors.grey[800]?.withOpacity(0.3)
+                                          : Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isDarkMode 
+                                            ? Colors.grey[700]!.withOpacity(0.5)
+                                            : Colors.grey[300]!.withOpacity(0.5),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // 첫 번째 줄: 노선명 + 다음 출발시간
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                label,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: textColor,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              nextDepartureTime,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: nextDepartureTime == '운행 종료' || nextDepartureTime == '로딩...' 
+                                                    ? Colors.grey 
+                                                    : Colors.green,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        // 두 번째 줄: 현재 버스 위치
+                                        Text(
+                                          busLocationStatus,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: busLocationStatus == '현재 운행 없음' 
+                                                ? Colors.grey 
+                                                : Colors.blue,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            });
+                          }),
+                          if (subGroupIdx < group['subGroups'].length - 1)
+                            const SizedBox(height: 12), // 서브 그룹 간 간격
+                        ],
+                      );
                     }),
                   ],
                 ),

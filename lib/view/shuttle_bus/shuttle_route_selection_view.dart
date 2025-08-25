@@ -28,7 +28,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               children: [
                 _buildSelectionArea(context),
                 
-                SizedBox(height: 40),
+                SizedBox(height: 32),
                 
                 // 검색 버튼
                 Center(
@@ -104,7 +104,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                   ),
                 ),
                 
-                SizedBox(height: 30),
+                SizedBox(height: 24),
                 
                 // 구분선 추가
                 Divider(
@@ -112,22 +112,34 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                   thickness: 1.5,
                 ),
                 
-                SizedBox(height: 30),
+                SizedBox(height: 24),
                 
                 // 가까운 정류장 찾기 버튼
                 Center(
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.location_on),
-                    label: Text('가까운 정류장 찾기'),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      backgroundColor: Colors.green.shade700,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () {
-                      Get.to(() => NearbyStopsView());
-                    },
+                  child: Column(
+                    children: [
+                      ElevatedButton.icon(
+                        icon: Icon(Icons.location_on),
+                        label: Text('주변 정류장 찾기'),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Get.to(() => NearbyStopsView());
+                        },
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        '(정류장별 도착 시간표)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).hintColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -154,16 +166,13 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 화면 상단에 충분한 공간 추가
-        SizedBox(height: 20),
-        
         // 현재 운행 상태 정보 카드 추가
         _buildCurrentTimeInfo(context),
         
-        SizedBox(height: 30),
+        SizedBox(height: 24),
         
         Text('셔틀버스 노선 선택', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        SizedBox(height: 16), // 간격 증가
+        SizedBox(height: 12),
         
         // 로딩 인디케이터를 플랫폼별로 표시
         Obx(() => viewModel.isLoadingRoutes.value
@@ -173,7 +182,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               : _buildRouteSelector(context),
         ),
         
-        SizedBox(height: 16), // 간격 증가
+        SizedBox(height: 20),
         _buildScheduleTypeSelector(context),
       ],
     );
@@ -426,7 +435,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 12),
         GestureDetector(
           onTap: () => _showIOSDatePicker(context),
           child: Container(
@@ -533,7 +542,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 12),
         Container(
           height: 50,
           decoration: BoxDecoration(
