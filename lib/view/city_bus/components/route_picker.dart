@@ -27,7 +27,7 @@ class RoutePicker extends StatelessWidget {
       final campus = settingsViewModel.selectedCampus.value;
       final List<String> routes = campus == "천안"
           ? ["24_DOWN", "24_UP", "81_DOWN", "81_UP"]
-          : ["순환5_UP", "순환5_DOWN", "1000_UP", "1000_DOWN", "810_UP", "810_DOWN", "820_UP", "820_DOWN", "821_UP", "821_DOWN"];
+          : ["순환5_UP", "순환5_DOWN", "1000_UP", "1000_DOWN", "810_UP", "810_DOWN", "820_UP", "820_DOWN", "821_UP", "821_DOWN","822_UP", "822_DOWN"];
       if (Platform.isIOS) {
         return _buildIOSPicker(context, controller, routes);
       } else {

@@ -181,13 +181,13 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
             ],
           ),
 
-          const SizedBox(height: 8),
+          //const SizedBox(height: 8),
 
           // 로딩 상태에 따른 표시
           Obx(() {
             if (viewModel.isLoading.value) {
               return Container(
-                //height: 200, // 로딩 상태에서의 고정된 높이
+                height: 210, // 로딩 상태에서의 고정된 높이
                 decoration: BoxDecoration(
                   color: Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
@@ -206,7 +206,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
 
             if (viewModel.error.isNotEmpty) {
               return Container(
-                //height: 210, // 에러 상태에서의 고정된 높이
+                height: 200, // 에러 상태에서의 고정된 높이
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
@@ -222,34 +222,44 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               );
             }
 
-            // 셔틀과 시내버스 데이터 모두 없는 경우
-            if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
-              return Container(
-                height: 190, // 데이터 없음 상태에서의 고정된 높이
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.grey.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '90분 내에 출발 예정인 버스/셔틀이 없습니다',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              );
-            }
+            // // 셔틀과 시내버스 데이터 모두 없는 경우
+            // if (viewModel.upcomingShuttles.isEmpty && viewModel.upcomingCityBuses.isEmpty) {
+            //   String message;
+            //   if (viewModel.isShuttleServiceEnded.value && viewModel.isCityBusServiceEnded.value) {
+            //     message = '오늘 모든 셔틀버스/시내버스 운행 종료';
+            //   } else if (viewModel.isShuttleServiceEnded.value) {
+            //     message = '오늘 운행 종료';
+            //   } else if (viewModel.isCityBusServiceEnded.value) {
+            //     message = '오늘 운행 종료';
+            //   } else {
+            //     message = '90분 내에 출발 예정인 버스/셔틀이 없습니다';
+            //   }
+            //   return Container(
+            //     height: 200, // 데이터 없음 상태에서의 고정된 높이
+            //     decoration: BoxDecoration(
+            //       color: Theme.of(context).cardColor,
+            //       borderRadius: BorderRadius.circular(12),
+            //       border: Border.all(
+            //         color: Colors.grey.withOpacity(0.2),
+            //         width: 1,
+            //       ),
+            //     ),
+            //     child: Center(
+            //       child: Text(
+            //         message,
+            //         style: TextStyle(
+            //           color: Colors.grey,
+            //           fontSize: 12,
+            //         ),
+            //         textAlign: TextAlign.center,
+            //       ),
+            //     ),
+            //   );
+            // }
 
             // 기본 데이터가 있는 경우는 고정된 컨테이너로 감싸기
             return Container(
-              //height: 210, // 데이터 표시 상태에서의 고정된 높이
+              height: 210, // 데이터 표시 상태에서의 고정된 높이
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
@@ -298,7 +308,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                             ? _buildEmptyMessage(context, '버스')
                             : Column(
                                 children: viewModel.upcomingCityBuses
-                                  .take(3) // 최대 2개만 표시
+                                  .take(3) // 최대 3개만 표시
                                   .map((cityBus) => _buildCompactBusItem(
                                     context,
                                     cityBus,
@@ -320,8 +330,19 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   }
 
   Widget _buildEmptyMessage(BuildContext context, String type) {
+    String message;
+    String? firstTimeText;
+    if (type == '셔틀' && viewModel.isShuttleServiceNotOperated.value) {
+      message = '모든 셔틀버스 운행 없음';
+    } else if (type == '셔틀' && viewModel.isShuttleServiceEnded.value) {
+      message = '모든 셔틀버스 운행 종료';
+    } else if (type == '버스' && viewModel.isCityBusServiceEnded.value) {
+      message = '모든 시내버스 운행 종료';
+    } else {
+      message = '90분 내 출발 $type 없음';
+    }
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: EdgeInsets.symmetric(vertical: 15.5, horizontal: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(8),
@@ -331,14 +352,28 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
         ),
       ),
       child: Center(
-        child: Text(
-          '90분 내 출발 $type 없음',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 11,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+            if (firstTimeText != null) ...[
+              SizedBox(height: 4),
+              Text(
+                firstTimeText,
+                style: TextStyle(
+                  color: Colors.grey[600],
         ),
       ),
+    ],
+    ],
+    ),
+    ),
     );
   }
 

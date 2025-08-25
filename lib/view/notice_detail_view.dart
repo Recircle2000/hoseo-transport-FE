@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/notice_model.dart';
 import '../viewmodel/notice_viewmodel.dart';
+
 
 class NoticeDetailView extends StatelessWidget {
   final Notice notice;
@@ -94,16 +97,63 @@ class NoticeDetailView extends StatelessWidget {
                 color: colorScheme.surfaceVariant,
               ),
               const SizedBox(height: 24),
-              Text(
-                notice.content,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  height: 1.8,
-                  letterSpacing: 0.2,
+              MarkdownBody(
+                data: notice.content,
+                styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+                  p: theme.textTheme.bodyLarge?.copyWith(
+                    fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) - 1,
+                    height: 1.7,
+                    letterSpacing: 0.6,
+                  ),
                 ),
+                onTapLink: (text, href, title) async {
+                  if (href != null && await canLaunchUrl(Uri.parse(href))) {
+                    await launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
+                  }
+                },
+                imageBuilder: (uri, title, alt) {
+                  return GestureDetector(
+                    onTap: () {
+                      Get.to(() => ImageFullScreenView(imageUrl: uri.toString()));
+                    },
+                    child: Image.network(uri.toString()),
+                  );
+                },
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ImageFullScreenView extends StatelessWidget {
+  final String imageUrl;
+  const ImageFullScreenView({super.key, required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          InteractiveViewer(
+            boundaryMargin: EdgeInsets.zero,
+            minScale: 1.0,
+            maxScale: 5.0,
+            child: Center(
+              child: Image.network(imageUrl),
+            ),
+          ),
+          Positioned(
+            top: 40, left: 16,
+            child: IconButton(
+              icon: Icon(Icons.close, color: Colors.white, size: 32),
+              onPressed: () => Get.back(),
+            ),
+          ),
+        ],
       ),
     );
   }

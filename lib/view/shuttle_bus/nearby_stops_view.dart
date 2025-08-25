@@ -17,7 +17,7 @@ class NearbyStopsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('가까운 정류장 찾기'),
+        title: Text('내 주변 정류장 찾기'),
       ),
       body: SafeArea(
         child: Padding(
