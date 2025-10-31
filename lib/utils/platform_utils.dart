@@ -10,9 +10,8 @@ class PlatformUtils {
   static const String fullDisclaimer = 
     '이 앱은 호서대학교 비공식 앱입니다.\n'
     '시내버스 정보는 공공데이터 포털 API를 활용합니다.\n'
-    '셔틀버스 정보는 호서대 공지사항 시간표를 기반으로 제공됩니다.\n'
-    '실제 시간표와 차이가 있을 수 있으니 공식 정보를 함께 확인해 주세요.\n'
-    '현재 시내버스 정보는 아산캠퍼스를 기준으로 제공됩니다.';
+    '셔틀버스 정보는 호서대학교 홈페이지 시간표를 기반으로 제공됩니다.\n'
+    '실시간 알림 수신을 위해 공식 HOSEO BUS앱과 같이 이용하시는걸 추천합니다.\n';
 
   // 안드로이드 면책 다이얼로그
   static Future<void> showAndroidDisclaimerDialog(BuildContext context) async {
