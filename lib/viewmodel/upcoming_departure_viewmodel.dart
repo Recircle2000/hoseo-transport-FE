@@ -16,6 +16,7 @@ class BusDeparture {
   final DateTime departureTime;
   final int minutesLeft;
   final int? scheduleId; // scheduleId 추가
+  final bool isLastBus; // (막차/막셔틀) 통합
 
   BusDeparture({
     required this.routeName,
@@ -23,6 +24,7 @@ class BusDeparture {
     required this.departureTime,
     required this.minutesLeft,
     this.scheduleId, // 옵셔널 파라미터로 추가
+    this.isLastBus = false, // 기본값 false
   });
 }
 
@@ -209,6 +211,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final today = DateTime(now.year, now.month, now.day);
       // 곧 출발하는 버스 리스트
       final upcomingBuses = <BusDeparture>[];
+      final Map<String, DateTime> lastBusTimePerRoute = {}; // 각 노선별 마지막 출발시간
       // 캠퍼스에 따라 다른 출발지 설정
       final String departurePlace = currentCampus == '천안'
           ? '각원사 회차지'
@@ -236,12 +239,19 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
               final difference = departureTime.difference(now);
               final minutesLeft = (difference.inSeconds / 60).ceil();
               if (difference.inSeconds > 0 && difference.inMinutes <= 90) {
-                upcomingBuses.add(BusDeparture(
+                final busDep = BusDeparture(
                   routeName: routeKey.split('_')[0],
                   destination: destination,
                   departureTime: departureTime,
                   minutesLeft: minutesLeft == 0 ? 1 : minutesLeft,
-                ));
+                );
+                upcomingBuses.add(busDep);
+
+                // 각 노선 마지막 시간 갱신
+                if (!lastBusTimePerRoute.containsKey(busDep.routeName) ||
+                    lastBusTimePerRoute[busDep.routeName]!.isBefore(departureTime)) {
+                  lastBusTimePerRoute[busDep.routeName] = departureTime;
+                }
                 lastBusDeparted = false;
               }
               // 오늘 날짜의 버스 중 아직 출발하지 않은 게 있으면 lastBusDeparted = false
@@ -254,6 +264,22 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       });
       // 출발시간 기준으로 정렬
       upcomingBuses.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
+
+      // 막차 여부 처리: 노선별 마지막 출발시간을 가진 값만 true 세팅
+      for (int i = 0; i < upcomingBuses.length; i++) {
+        final bus = upcomingBuses[i];
+        bool isLast = lastBusTimePerRoute[bus.routeName] == bus.departureTime;
+        if (isLast) {
+          upcomingBuses[i] = BusDeparture(
+            routeName: bus.routeName,
+            destination: bus.destination,
+            departureTime: bus.departureTime,
+            minutesLeft: bus.minutesLeft,
+            scheduleId: bus.scheduleId,
+            isLastBus: true,
+          );
+        }
+      }
       // 최대 3개만 표시
       upcomingCityBuses.value = upcomingBuses.take(3).toList();
       // 운행 종료 플래그 업데이트
@@ -299,7 +325,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           print(responseData);
           _cachedShuttleData = responseData;
         } else {
-          throw Exception('API 오류: [200m${response.statusCode}[0m');
+          throw Exception('API 오류:  [200m${response.statusCode} [0m');
         }
       } else {
         responseData = _cachedShuttleData!;
@@ -311,6 +337,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final Map<int, String> routeNames = _cachedRouteNames ?? {};
       final upcomingShuttleList = <BusDeparture>[];
       bool lastShuttleDeparted = true;
+      Map<int, DateTime> lastShuttleTimePerRoute = {}; // 노선별 막차 시간
       // schedules가 아예 비어있으면 오늘 운행 없음 플래그 true
       if (schedulesData.isEmpty) {
         isShuttleServiceEnded.value = true;
@@ -320,7 +347,9 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       } else {
         isShuttleServiceNotOperated.value = false;
       }
-      for (final schedule in schedulesData) {
+      int lastIdx = schedulesData.length - 1; // 마지막 인덱스 저장
+      for (int i = 0; i < schedulesData.length; i++) {
+        final schedule = schedulesData[i];
         final int routeId = schedule['route_id'];
         final int scheduleId = schedule['schedule_id'];
         if (!routeNames.containsKey(routeId)) {
@@ -359,19 +388,41 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           final difference = departureTime.difference(now);
           final minutesLeft = (difference.inSeconds / 60).ceil();
           if (difference.inSeconds > 0 && difference.inMinutes <= 90) {
+            // 노선별 출발시간 최신화
+            if (!lastShuttleTimePerRoute.containsKey(routeId) || lastShuttleTimePerRoute[routeId]!.isBefore(departureTime)) {
+              lastShuttleTimePerRoute[routeId] = departureTime;
+            }
             upcomingShuttleList.add(BusDeparture(
               routeName: '셔틀',
               destination: routeNames[routeId] ?? '알 수 없음',
               departureTime: departureTime,
               minutesLeft: minutesLeft == 0 ? 1 : minutesLeft,
               scheduleId: scheduleId,
+              isLastBus: false, // 우선 false로 넣고 아래에서 판별
             ));
             lastShuttleDeparted = false;
           }
-          // 오늘 날짜의 셔틀 중 아직 출발하지 않은 게 있으면 lastShuttleDeparted = false
           if (difference.inSeconds > 0) {
             lastShuttleDeparted = false;
           }
+        }
+      }
+      // per-route(노선)별 이번 90분내 마지막 버스만 막차로 표시
+      for (int i = 0; i < upcomingShuttleList.length; i++) {
+        final s = upcomingShuttleList[i];
+        final routeId = schedulesData.firstWhere((e) {
+          // schedule_id와 같으면 해당 객체의 routeId 반환
+          return e['schedule_id'] == s.scheduleId;
+        }, orElse: () => null)?['route_id'];
+        if (routeId != null && lastShuttleTimePerRoute[routeId] == s.departureTime) {
+          upcomingShuttleList[i] = BusDeparture(
+            routeName: s.routeName,
+            destination: s.destination,
+            departureTime: s.departureTime,
+            minutesLeft: s.minutesLeft,
+            scheduleId: s.scheduleId,
+            isLastBus: true,
+          );
         }
       }
       upcomingShuttleList.sort((a, b) =>
