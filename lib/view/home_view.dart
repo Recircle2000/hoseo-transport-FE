@@ -88,6 +88,7 @@ class _HomeViewState extends State<HomeView> {
                     controller.selectedCampus.value == '천안',
                   ],
                   onPressed: (index) {
+                    HapticFeedback.lightImpact();
                     if (index == 0) controller.setCampus('아산');
                     if (index == 1) controller.setCampus('천안');
                   },
