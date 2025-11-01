@@ -82,7 +82,7 @@ class _HomeViewState extends State<HomeView> {
                 padding: const EdgeInsets.only(right: 20, top: 10, bottom: 8),
                 child: ToggleButtons(
                   borderRadius: BorderRadius.circular(8),
-                  constraints: const BoxConstraints(minHeight: 26, minWidth: 44),
+                  constraints: const BoxConstraints(minHeight: 26, minWidth: 40),
                   isSelected: [
                     controller.selectedCampus.value == '아산',
                     controller.selectedCampus.value == '천안',
@@ -94,7 +94,7 @@ class _HomeViewState extends State<HomeView> {
                   },
                   color: Colors.grey,
                   selectedColor: Theme.of(context).colorScheme.primary,
-                  fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.30),
+                  fillColor: Colors.redAccent.withOpacity(0.8),
                   children: const [
                     Text('아캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     Text('천캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
