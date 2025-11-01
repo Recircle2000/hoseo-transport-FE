@@ -143,9 +143,9 @@ class ShuttleViewModel extends GetxController {
     int cheonanToAsanIndex = -1;
     
     for (int i = 0; i < reorderedRoutes.length; i++) {
-      if (reorderedRoutes[i].routeName.contains('아산캠퍼스 → 천안캠퍼스')) {
+      if (reorderedRoutes[i].routeName.contains('아캠 → 천캠')) {
         asanToCheonanIndex = i;
-      } else if (reorderedRoutes[i].routeName.contains('천안캠퍼스 → 아산캠퍼스')) {
+      } else if (reorderedRoutes[i].routeName.contains('천캠 → 아캠')) {
         cheonanToAsanIndex = i;
       }
     }
