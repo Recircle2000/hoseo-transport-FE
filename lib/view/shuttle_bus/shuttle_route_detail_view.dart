@@ -141,7 +141,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: shuttleColor,
+                    color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -188,7 +188,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: shuttleColor,
+                      color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

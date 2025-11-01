@@ -95,7 +95,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: shuttleColor,
+                    color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -114,7 +114,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: shuttleColor,
+                  color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                 ),
               ),
             ],
@@ -135,7 +135,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: shuttleColor,
+                          color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                         ),
                       ),
                     ],
@@ -167,7 +167,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: shuttleColor,
+                      color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                     ),
                   ),
                 ),
@@ -234,7 +234,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                         ),
                         Expanded(
                           flex: 1,
-                          child: Text('상세정보', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('상세정보', style: TextStyle(fontWeight: FontWeight.bold,)),
                         ),
                       ],
                     ),
@@ -295,11 +295,11 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
           children: [
             Expanded(
               flex: 1,
-              child: Text('${schedule.round}회차'),
+              child: Text('${schedule.round}'),
             ),
             Expanded(
               flex: 2,
-              child: Text(DateFormat('HH:mm').format(schedule.startTime)),
+              child: Text(DateFormat('HH:mm').format(schedule.startTime), style: TextStyle(fontWeight: FontWeight.bold),),
             ),
             Expanded(
               flex: 1,

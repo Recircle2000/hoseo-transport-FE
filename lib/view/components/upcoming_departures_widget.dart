@@ -476,13 +476,29 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
-                          '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[600],
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (departure.isLastBus) // 막차 표시
+                              Padding(
+                                padding: const EdgeInsets.only(left: 5),
+                                child: Text(
+                                  '막차',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ],
                     ),
@@ -577,13 +593,29 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
-                          '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[600],
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[600],
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (departure.isLastBus)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 5),
+                                child: Text(
+                                  '막차',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ],
                     ),

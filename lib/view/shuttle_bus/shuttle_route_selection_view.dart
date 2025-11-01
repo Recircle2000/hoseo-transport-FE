@@ -231,7 +231,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: shuttleColor,
+                  color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                 ),
               ),
             ],
@@ -242,11 +242,11 @@ class ShuttleRouteSelectionView extends StatelessWidget {
               Icon(Icons.calendar_today, color: shuttleColor),
               SizedBox(width: 8),
               Text(
-                '오늘: ${DateFormat('yyyy년 MM월 dd일').format(now)} ($dayOfWeek)',
+                '오늘:  ${DateFormat('yyyy년 MM월 dd일').format(now)} ($dayOfWeek)',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: shuttleColor,
+                  color: brightness == Brightness.dark ? Colors.redAccent : shuttleColor,
                 ),
               ),
             ],

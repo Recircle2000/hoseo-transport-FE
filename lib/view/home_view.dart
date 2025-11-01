@@ -71,11 +71,37 @@ class _HomeViewState extends State<HomeView> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.settings, size: 24),
+            onPressed: () => Get.to(() => SettingsView()),
+          ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.settings, size: 24),
-              onPressed: () => Get.to(() => SettingsView()),
-            ),
+            Obx(() {
+              final controller = Get.find<SettingsViewModel>();
+              return Padding(
+                padding: const EdgeInsets.only(right: 20, top: 10, bottom: 8),
+                child: ToggleButtons(
+                  borderRadius: BorderRadius.circular(8),
+                  constraints: const BoxConstraints(minHeight: 26, minWidth: 40),
+                  isSelected: [
+                    controller.selectedCampus.value == '아산',
+                    controller.selectedCampus.value == '천안',
+                  ],
+                  onPressed: (index) {
+                    HapticFeedback.lightImpact();
+                    if (index == 0) controller.setCampus('아산');
+                    if (index == 1) controller.setCampus('천안');
+                  },
+                  color: Colors.grey,
+                  selectedColor: Theme.of(context).colorScheme.primary,
+                  fillColor: Colors.redAccent.withOpacity(0.8),
+                  children: const [
+                    Text('아캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text('천캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
         body: SingleChildScrollView(
