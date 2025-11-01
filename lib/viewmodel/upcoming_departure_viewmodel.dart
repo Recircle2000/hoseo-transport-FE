@@ -10,21 +10,23 @@ import 'settings_viewmodel.dart';
 import 'notice_viewmodel.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
 
+// BusDeparture에 routeKey 추가 (노선+방향 포함 식별자, 예: '1000_DOWN')
 class BusDeparture {
   final String routeName;
   final String destination;
   final DateTime departureTime;
   final int minutesLeft;
-  final int? scheduleId; // scheduleId 추가
-  final bool isLastBus; // (막차/막셔틀) 통합
-
+  final int? scheduleId;
+  final bool isLastBus;
+  final String routeKey; // 추가 (실제 json의 key 그대로)
   BusDeparture({
     required this.routeName,
     required this.destination,
     required this.departureTime,
     required this.minutesLeft,
-    this.scheduleId, // 옵셔널 파라미터로 추가
-    this.isLastBus = false, // 기본값 false
+    this.scheduleId,
+    this.isLastBus = false,
+    required this.routeKey, // 추가
   });
 }
 
@@ -206,12 +208,12 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final currentCampus = settingsViewModel.selectedCampus.value;
       // bus_times.json 파일 읽기
       final Map<String, dynamic> busData = await BusTimesLoader.loadBusTimes();
+      final Map<String, DateTime> realLastBusTimePerRoute = {}; // 한 번만 선언, 모든 곳에서 이 변수 이용
       // 현재 시간 및 오늘 날짜
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       // 곧 출발하는 버스 리스트
       final upcomingBuses = <BusDeparture>[];
-      final Map<String, DateTime> lastBusTimePerRoute = {}; // 각 노선별 마지막 출발시간
       // 캠퍼스에 따라 다른 출발지 설정
       final String departurePlace = currentCampus == '천안'
           ? '각원사 회차지'
@@ -220,6 +222,19 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       bool lastBusDeparted = true;
       busData.forEach((routeKey, routeData) {
         if (routeKey == 'version') return; // version 필드는 무시
+        final List<dynamic> timeList = routeData['시간표'];
+        if (timeList.isEmpty) return;
+        final lastTimeStr = timeList.last;
+        final parts = lastTimeStr.split(':');
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        final lastDt = DateTime(now.year, now.month, now.day, hour, minute, 0);
+        // routeKey(노선+방향)로 저장!
+        realLastBusTimePerRoute[routeKey] = lastDt;
+      });
+      // 곧 출발하는 버스 리스트
+      busData.forEach((routeKey, routeData) {
+        if (routeKey == 'version') return;
         if (routeData['출발지'] == departurePlace) {
           final List<dynamic> timeList = routeData['시간표'];
           final String destination = routeData['종점'];
@@ -227,12 +242,8 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
             final parts = timeStr.split(':');
             final hour = int.parse(parts[0]);
             final minute = int.parse(parts[1]);
-            final second = 0; // 시내버스는 초 정보가 없으므로 0으로 설정
-            // 오늘 날짜에 시간 더해서 출발 시간 생성
-            final departureTime = DateTime(
-                now.year, now.month, now.day, hour, minute, second
-            );
-            // 오늘 날짜의 버스만 체크
+            final second = 0;
+            final departureTime = DateTime(now.year, now.month, now.day, hour, minute, second);
             if (departureTime.year == today.year &&
                 departureTime.month == today.month &&
                 departureTime.day == today.day) {
@@ -244,41 +255,31 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
                   destination: destination,
                   departureTime: departureTime,
                   minutesLeft: minutesLeft == 0 ? 1 : minutesLeft,
+                  routeKey: routeKey, // 실제 키 전달
                 );
                 upcomingBuses.add(busDep);
-
-                // 각 노선 마지막 시간 갱신
-                if (!lastBusTimePerRoute.containsKey(busDep.routeName) ||
-                    lastBusTimePerRoute[busDep.routeName]!.isBefore(departureTime)) {
-                  lastBusTimePerRoute[busDep.routeName] = departureTime;
-                }
-                lastBusDeparted = false;
-              }
-              // 오늘 날짜의 버스 중 아직 출발하지 않은 게 있으면 lastBusDeparted = false
-              if (difference.inSeconds > 0) {
-                lastBusDeparted = false;
               }
             }
           }
         }
       });
-      // 출발시간 기준으로 정렬
+      // 출발시간 기준 정렬
       upcomingBuses.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
-
-      // 막차 여부 처리: 노선별 마지막 출발시간을 가진 값만 true 세팅
+      // 막차 표기 (routeKey와 출발시각 모두 해당 노선+방향 실제 막차와 일치할 때만 true)
       for (int i = 0; i < upcomingBuses.length; i++) {
         final bus = upcomingBuses[i];
-        bool isLast = lastBusTimePerRoute[bus.routeName] == bus.departureTime;
-        if (isLast) {
-          upcomingBuses[i] = BusDeparture(
-            routeName: bus.routeName,
-            destination: bus.destination,
-            departureTime: bus.departureTime,
-            minutesLeft: bus.minutesLeft,
-            scheduleId: bus.scheduleId,
-            isLastBus: true,
-          );
-        }
+        final realLastDt = realLastBusTimePerRoute[bus.routeKey];
+        //print('[막차 디버깅] 노선(routeKey): ${bus.routeKey}, 출발: ${bus.departureTime}, 실막차: $realLastDt, isLastBus: ${(realLastDt != null) && (bus.departureTime == realLastDt)}');
+        final isLast = (realLastDt != null) && (bus.departureTime == realLastDt);
+        upcomingBuses[i] = BusDeparture(
+          routeName: bus.routeName,
+          destination: bus.destination,
+          departureTime: bus.departureTime,
+          minutesLeft: bus.minutesLeft,
+          scheduleId: bus.scheduleId,
+          isLastBus: isLast,
+          routeKey: bus.routeKey,
+        );
       }
       // 최대 3개만 표시
       upcomingCityBuses.value = upcomingBuses.take(3).toList();
@@ -337,7 +338,21 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       final Map<int, String> routeNames = _cachedRouteNames ?? {};
       final upcomingShuttleList = <BusDeparture>[];
       bool lastShuttleDeparted = true;
-      Map<int, DateTime> lastShuttleTimePerRoute = {}; // 노선별 막차 시간
+      Map<int, DateTime> lastShuttleTimePerRoute = {}; // 노선별 막차 시간(전체 기준)
+      // 1차: 전체 시간표에서 각 노선별 진짜 막차 시간 구하기
+      for (final schedule in schedulesData) {
+        final int routeId = schedule['route_id'];
+        final arrivalTimeStr = schedule['arrival_time'];
+        final timeParts = arrivalTimeStr.split(':');
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        final second = timeParts.length > 2 ? int.parse(timeParts[2]) : 0;
+        final dt = DateTime(now.year, now.month, now.day, hour, minute, second);
+        // 오늘 날짜 체크 생략(이미 서버서 주는 날짜만 오므로)
+        if (!lastShuttleTimePerRoute.containsKey(routeId) || lastShuttleTimePerRoute[routeId]!.isBefore(dt)) {
+          lastShuttleTimePerRoute[routeId] = dt;
+        }
+      }
       // schedules가 아예 비어있으면 오늘 운행 없음 플래그 true
       if (schedulesData.isEmpty) {
         isShuttleServiceEnded.value = true;
@@ -398,7 +413,8 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
               departureTime: departureTime,
               minutesLeft: minutesLeft == 0 ? 1 : minutesLeft,
               scheduleId: scheduleId,
-              isLastBus: false, // 우선 false로 넣고 아래에서 판별
+              isLastBus: false,
+              routeKey: 'shuttle_route_ $routeId', // 고유 셔틀노선 식별자로!
             ));
             lastShuttleDeparted = false;
           }
@@ -407,13 +423,10 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           }
         }
       }
-      // per-route(노선)별 이번 90분내 마지막 버스만 막차로 표시
+      // 2차: upcomingShuttleList(90분 내)에 대입 (아래 for문 내 중복 생성 방지, 기존 for문 교체)
       for (int i = 0; i < upcomingShuttleList.length; i++) {
         final s = upcomingShuttleList[i];
-        final routeId = schedulesData.firstWhere((e) {
-          // schedule_id와 같으면 해당 객체의 routeId 반환
-          return e['schedule_id'] == s.scheduleId;
-        }, orElse: () => null)?['route_id'];
+        final routeId = schedulesData.firstWhere((e) => e['schedule_id'] == s.scheduleId, orElse: () => null)?['route_id'];
         if (routeId != null && lastShuttleTimePerRoute[routeId] == s.departureTime) {
           upcomingShuttleList[i] = BusDeparture(
             routeName: s.routeName,
@@ -422,6 +435,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
             minutesLeft: s.minutesLeft,
             scheduleId: s.scheduleId,
             isLastBus: true,
+            routeKey: s.routeKey, // BusDeparture내 값 계승
           );
         }
       }
