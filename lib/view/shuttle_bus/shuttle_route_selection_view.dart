@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import '../../viewmodel/shuttle_viewmodel.dart';
@@ -40,6 +41,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () {
+                      HapticFeedback.lightImpact();
                       // 노선과 운행일자가 모두 선택되었는지 확인
                       if (viewModel.selectedRouteId.value == -1) {
                         Get.snackbar(
@@ -128,6 +130,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () {
+                          HapticFeedback.lightImpact();
                           Get.to(() => NearbyStopsView());
                         },
                       ),

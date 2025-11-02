@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../city_bus/bus_map_view.dart';
 import '../../viewmodel/busmap_viewmodel.dart';
@@ -332,6 +333,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(8),
                                   onTap: () {
+                                    HapticFeedback.lightImpact();
                                     Get.to(() => BusMapView(initialRoute: routeKey));
                                   },
                                   child: Container(

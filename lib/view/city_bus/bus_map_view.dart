@@ -254,10 +254,12 @@ class _BusMapViewState extends State<BusMapView> {
                           // 지도 보기 버튼
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () => Get.to(() => BusMapDetailView(
-                                  routeName:
-                                      routeDisplayNames[controller.selectedRoute.value] ??
-                                          controller.selectedRoute.value)),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                Get.to(() => BusMapDetailView(
+                                    routeName: routeDisplayNames[controller.selectedRoute.value] ??
+                                        controller.selectedRoute.value));
+                              },
                               icon: const Icon(Icons.map, size: 20),
                               label: const Text('운행 지도'),
                               style: ElevatedButton.styleFrom(
@@ -274,9 +276,12 @@ class _BusMapViewState extends State<BusMapView> {
                           // 가까운 정류장 찾기 버튼
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () => LocationHelper.findNearestStationAndScroll(
-                                context, stationScrollController
-                              ),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                LocationHelper.findNearestStationAndScroll(
+                                  context, stationScrollController
+                                );
+                              },
                               icon: const Icon(Icons.near_me, size: 20),
                               label: const Text('주변 정류장'),
                               style: ElevatedButton.styleFrom(
@@ -293,7 +298,10 @@ class _BusMapViewState extends State<BusMapView> {
                           // 노선 정보 버튼
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () => _showRouteInfo(context, controller),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                _showRouteInfo(context, controller);
+                                },
                               icon: const Icon(Icons.info_outline, size: 20),
                               label: const Text('시간표'),
                               style: ElevatedButton.styleFrom(

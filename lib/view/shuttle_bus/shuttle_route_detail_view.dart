@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import 'dart:io' show Platform;
@@ -332,6 +333,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
             flex: 2,
             child: InkWell(
               onTap: () {
+                HapticFeedback.lightImpact();
                 if (stop.stationId != null) { 
                   Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
                 } else {
@@ -351,6 +353,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
           SizedBox(width: 8),
           InkWell(
             onTap: () {
+              HapticFeedback.lightImpact();
               if (stop.stationId != null) { 
                 Get.to(() => NaverMapStationDetailView(stationId: stop.stationId!));
               } else {

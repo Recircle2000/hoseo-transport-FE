@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:io' show Platform;
@@ -273,6 +274,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
     final schedule = viewModel.schedules[index];
     return InkWell(
       onTap: () {
+        HapticFeedback.lightImpact();
         // 상세 화면으로 이동
         Get.to(() => ShuttleRouteDetailView(
           scheduleId: schedule.id,
