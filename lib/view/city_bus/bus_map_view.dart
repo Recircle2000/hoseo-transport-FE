@@ -507,7 +507,7 @@ class _BusMapViewState extends State<BusMapView> {
     // 호서대학교 방향이면 상행(UP), 그 외는 하행(DOWN)
     List<String> upDestinations = [
       '호서대학교',
-      '호서대',
+
     ];
     
     List<String> downDestinations = [
@@ -517,7 +517,8 @@ class _BusMapViewState extends State<BusMapView> {
       '탕정면사무소',
       '지중해마을',
       '차암2통',
-      '동우아파트'
+      '동우아파트',
+      '호서대(천안)',
     ];
     
     // 상행 목적지 확인 (호서대학교 방향)
