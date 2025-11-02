@@ -367,6 +367,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     TextButton(
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         PlatformUtils.showPlatformDisclaimerDialog(context);
                       },
                       style: TextButton.styleFrom(
