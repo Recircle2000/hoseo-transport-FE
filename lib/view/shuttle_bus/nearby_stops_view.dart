@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import 'package:intl/intl.dart';
@@ -497,6 +498,7 @@ class NearbyStopsView extends StatelessWidget {
           if (stationName.isNotEmpty)
             InkWell(
               onTap: () {
+                HapticFeedback.lightImpact();
                 Get.to(() => NaverMapStationDetailView(stationId: selectedId));
               },
               child: Row(
@@ -575,6 +577,7 @@ class NearbyStopsView extends StatelessWidget {
               SizedBox(height: 8),
               TextButton(
                 onPressed: () {
+                  HapticFeedback.lightImpact();
                   // 다른 날짜 선택 다이얼로그 열기
                   if (Platform.isIOS) {
                     _showIOSDatePicker(context);
@@ -646,6 +649,7 @@ class NearbyStopsView extends StatelessWidget {
         
         return InkWell(
           onTap: () {
+            HapticFeedback.lightImpact();
             // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
             Get.to(() => ShuttleRouteDetailView(
               scheduleId: schedule.scheduleId,
@@ -711,6 +715,7 @@ class NearbyStopsView extends StatelessWidget {
           
           return InkWell(
             onTap: () {
+              HapticFeedback.lightImpact();
               // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
               Get.to(() => ShuttleRouteDetailView(
                 scheduleId: schedule.scheduleId,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import 'dart:ui';
@@ -430,7 +431,15 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             ],
           ),
         ),
-        onPressed: hasImage ? () => _showImageViewer(stationInfo.imageUrl!) : _showNoImageAlert,
+        onPressed: hasImage
+            ? () {
+                HapticFeedback.lightImpact();
+                _showImageViewer(stationInfo.imageUrl!);
+              }
+            : () {
+                HapticFeedback.lightImpact();
+                _showNoImageAlert();
+              },
       );
     } else {
       return ElevatedButton(

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // rootBundle 사용
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -14,7 +14,7 @@ import 'package:hsro/utils/bus_times_loader.dart';
 class BusDeparture {
   final String routeName;
   final String destination;
-  final DateTime departureTime;
+  final dynamic departureTime; // DateTime 또는 String
   final int minutesLeft;
   final int? scheduleId;
   final bool isLastBus;
@@ -22,12 +22,15 @@ class BusDeparture {
   BusDeparture({
     required this.routeName,
     required this.destination,
-    required this.departureTime,
+    required this.departureTime, // DateTime 또는 String
     required this.minutesLeft,
     this.scheduleId,
     this.isLastBus = false,
     required this.routeKey, // 추가
   });
+
+  bool get isRealtimeBus =>
+      destination == '호서대천캠' && (routeKey == '24_DOWN' || routeKey == '81_DOWN') && departureTime is String;
 }
 
 class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObserver {
@@ -47,6 +50,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   // 데이터 관련 변수들
   var isLoading = true.obs;
   var error = ''.obs;
+  var _isInitialLoad = true.obs; // 첫 로딩 여부 추적
 
   // 곧 출발 데이터
   final upcomingCityBuses = <BusDeparture>[].obs;
@@ -80,6 +84,18 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   // 오늘 셔틀버스 운행 없음 플래그 (schedules가 아예 비어있을 때)
   final isShuttleServiceNotOperated = false.obs;
 
+  // 추가: 천안 24_DOWN, 81_DOWN 노선 호서대(천안) 인근정류장 순서(회차지 제외)
+  List<String> _ce24DownStops = [];
+  List<String> _ce81DownStops = [];
+
+  // 각 노선별 실시간 위치에서, 호서대(천안)까지 남은 정류장 수 계산용 버스 표시 목록
+  final RxList<BusDeparture> ceRealtimeBuses = <BusDeparture>[].obs;
+  
+  // 천안 캠퍼스용 임시 시내버스 데이터 저장 (깜박임 방지)
+  List<BusDeparture>? _tempCityBuses;
+  bool? _tempCityBusServiceEnded;
+  List<BusDeparture>? _tempRealtimeBuses;
+
   void setRefreshCallback(Function callback) {
     _onRefreshCallback = callback;
   }
@@ -94,8 +110,15 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     isActive.value = true;
     isOnHomePage.value = true;
 
-    // 캠퍼스 설정이 변경되면 데이터 다시 로드
-    ever(settingsViewModel.selectedCampus, (_) => loadData());
+    // 캠퍼스 설정이 변경되면 데이터 다시 로드 및 타이머 재시작
+    ever(settingsViewModel.selectedCampus, (_) {
+      _isInitialLoad.value = true; // 캠퍼스 변경 시 첫 로딩으로 처리
+      loadData();
+      // 타이머도 새로운 간격으로 재시작
+      if (isActive.value && isOnHomePage.value) {
+        _startRefreshTimer();
+      }
+    });
 
     // 활성 상태 변경 리스너 (앱 포그라운드/백그라운드)
     ever(isActive, (active) {
@@ -167,10 +190,14 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     // 기존 타이머 취소
     _stopRefreshTimer();
 
-    // 30초마다 자동 업데이트
-    _refreshTimer = Timer.periodic(Duration(seconds: 30), (_) {
+    // 천안 캠퍼스는 5초, 나머지는 30초마다 자동 업데이트
+    final refreshInterval = settingsViewModel.selectedCampus.value == '천안' 
+        ? Duration(seconds: 5) 
+        : Duration(seconds: 30);
+    
+    _refreshTimer = Timer.periodic(refreshInterval, (_) {
       print('자동 새로고침');
-      loadData();
+      loadData(silent: true); // 자동 새로고침은 조용히 수행
       // 콜백 호출로 UI의 카운트다운도 초기화
       _onRefreshCallback?.call();
     });
@@ -181,28 +208,63 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     _refreshTimer = null;
   }
 
-  Future<void> loadData() async {
-    print('데이터 로드 시작');
-    isLoading.value = true;
+  Future<void> loadData({bool silent = false}) async {
+    print('데이터 로드 시작 (silent: $silent)');
+    // silent가 false이면 항상 로딩 인디케이터 표시 (수동 새로고침 또는 첫 로딩)
+    if (!silent) {
+      isLoading.value = true;
+    }
     error.value = '';
 
     try {
-      // 시내버스 데이터 로드
-      await loadCityBusData();
-
-      // 셔틀버스 데이터 로드
-      await loadShuttleData();
+      final isCean = settingsViewModel.selectedCampus.value == '천안';
+      
+      // 천안 캠퍼스인 경우: 모든 데이터를 준비한 후 한 번에 업데이트 (깜박임 방지)
+      if (isCean) {
+        // 정류장 시퀀스가 비어있으면 먼저 로드
+        if (_ce24DownStops.isEmpty || _ce81DownStops.isEmpty) {
+          await loadCeanStopSequences();
+          print('[DEBUG] 정류장 시퀀스 로드 완료 - 24_DOWN: ${_ce24DownStops.length}개, 81_DOWN: ${_ce81DownStops.length}개');
+        }
+        
+        // 모든 데이터를 먼저 준비 (UI 업데이트 없이)
+        await loadCityBusData(updateUI: false);
+        await loadShuttleData();
+        await fetchCeanRealtimeBuses(updateUI: false);
+        
+        // 모든 데이터가 준비된 후 한 번에 UI 업데이트 (실시간 버스 먼저, 시간표 버스 나중에)
+        if (_tempRealtimeBuses != null) {
+          ceRealtimeBuses.clear();
+          ceRealtimeBuses.assignAll(_tempRealtimeBuses!);
+          _tempRealtimeBuses = null;
+        }
+        if (_tempCityBuses != null) {
+          upcomingCityBuses.value = _tempCityBuses!.take(3).toList();
+          if (_tempCityBusServiceEnded != null) {
+            isCityBusServiceEnded.value = _tempCityBusServiceEnded!;
+          }
+          _tempCityBuses = null;
+          _tempCityBusServiceEnded = null;
+        }
+      } else {
+        // 아산 캠퍼스인 경우: 기존대로 순차적으로 업데이트
+        await loadCityBusData();
+        await loadShuttleData();
+      }
 
       print('데이터 로드 완료');
+      _isInitialLoad.value = false; // 첫 로딩 완료 표시
     } catch (e) {
       print('데이터 로드 중 오류: $e');
       error.value = '데이터 로드 중 오류가 발생했습니다: $e';
+      // 에러 발생 시에도 첫 로딩 완료 처리 (무한 로딩 방지)
+      _isInitialLoad.value = false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> loadCityBusData() async {
+  Future<void> loadCityBusData({bool updateUI = true}) async {
     try {
       // 현재 캠퍼스 확인
       final currentCampus = settingsViewModel.selectedCampus.value;
@@ -281,14 +343,23 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
           routeKey: bus.routeKey,
         );
       }
-      // 최대 3개만 표시
-      upcomingCityBuses.value = upcomingBuses.take(3).toList();
-      // 운행 종료 플래그 업데이트
-      isCityBusServiceEnded.value = lastBusDeparted;
+      // updateUI가 true일 때만 UI 업데이트 (천안 캠퍼스에서 깜박임 방지)
+      if (updateUI) {
+        // 최대 3개만 표시
+        upcomingCityBuses.value = upcomingBuses.take(3).toList();
+        // 운행 종료 플래그 업데이트
+        isCityBusServiceEnded.value = lastBusDeparted;
+      } else {
+        // updateUI가 false면 임시 변수에 저장 (천안 캠퍼스 전용)
+        _tempCityBuses = upcomingBuses;
+        _tempCityBusServiceEnded = lastBusDeparted;
+      }
     } catch (e) {
       print('시내버스 데이터 로드 중 오류: $e');
-      upcomingCityBuses.clear();
-      isCityBusServiceEnded.value = false; // 오류 시 false로 초기화
+      if (updateUI) {
+        upcomingCityBuses.clear();
+        isCityBusServiceEnded.value = false; // 오류 시 false로 초기화
+      }
     }
   }
 
@@ -453,4 +524,92 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       isShuttleServiceEnded.value = false;
     }
   }
+
+  Future<void> loadCeanStopSequences() async {
+    // 24_DOWN
+    final stopFile24 = await rootBundle.loadString('assets/bus_stops/24_DOWN.json');
+    final stops24 = (json.decode(stopFile24)['response']['body']['items']['item'] as List)
+      .map<String>((e) => e['nodeord'].toString())
+      .toList();
+    // 81_DOWN
+    final stopFile81 = await rootBundle.loadString('assets/bus_stops/81_DOWN.json');
+    final stops81 = (json.decode(stopFile81)['response']['body']['items']['item'] as List)
+      .map<String>((e) => e['nodeord'].toString())
+      .toList();
+    // '각원사회차지'(회차지) 제외, '각원사'~'호서대(천안)' 범위만!
+    var idx24Start = stops24.indexOf('2');
+    var idx24End = stops24.indexOf('7');
+    _ce24DownStops = stops24.sublist(idx24Start, idx24End+1);
+    var idx81Start = stops81.indexOf('2');
+    var idx81End = stops81.indexOf('4');
+    _ce81DownStops = stops81.sublist(idx81Start, idx81End+1);
+  }
+
+  Future<void> fetchCeanRealtimeBuses({bool updateUI = true}) async {
+    // 실시간 위치 불러오기
+    final resp = await http.get(Uri.parse('https://hotong.click/buses'));
+     //final resp = await http.get(Uri.parse('http://10.0.2.2:8000/buses'));
+    if (resp.statusCode != 200) {
+      if (updateUI) {
+        ceRealtimeBuses.clear();
+      } else {
+        _tempRealtimeBuses = [];
+      }
+      return;
+    }
+    final data = json.decode(utf8.decode(resp.bodyBytes));
+    var list = <BusDeparture>[];
+    // 24_DOWN
+    if (data['buses']['24_DOWN'] is List) {
+      for (var bus in data['buses']['24_DOWN']) {
+        final cur = bus['nodeord'].toString();
+        final idx = _ce24DownStops.indexOf(cur);
+        if (idx == -1) {
+          continue; // 각원사~호서대(천안) 범위 밖
+        }
+        if (idx < _ce24DownStops.length-1) {
+          int left = _ce24DownStops.length-1-idx;
+          list.add(BusDeparture(
+            routeName: '24',
+            destination: '호서대천캠',
+            departureTime: bus['nodenm'],
+            minutesLeft: left,
+            routeKey: '24_DOWN',
+            isLastBus: false,
+          ));
+        }
+      }
+    }
+    // 81_DOWN
+    if (data['buses']['81_DOWN'] is List) {
+      for (var bus in data['buses']['81_DOWN']) {
+        final cur = bus['nodeord'].toString();
+        final idx = _ce81DownStops.indexOf(cur);
+        if (idx == -1) {
+          continue; // 각원사~호서대(천안) 범위 밖
+        }
+        if (idx < _ce81DownStops.length-1) {
+          int left = _ce81DownStops.length-1-idx;
+          list.add(BusDeparture(
+            routeName: '81',
+            destination: '호서대천캠',
+            departureTime: bus['nodenm'],
+            minutesLeft: left,
+            routeKey: '81_DOWN',
+            isLastBus: false,
+          ));
+        }
+      }
+    }
+    // updateUI에 따라 즉시 업데이트 또는 임시 저장
+    // 정류장 위치가 '전', '전전', 'n전'일수록 더 위에 오도록 정렬 (남은 정거장 수 오름차순)
+    list.sort((a, b) => a.minutesLeft.compareTo(b.minutesLeft));
+    if (updateUI) {
+      ceRealtimeBuses.clear();
+      ceRealtimeBuses.assignAll(list);
+    } else {
+      _tempRealtimeBuses = list;
+    }
+  }
 }
+

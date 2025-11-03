@@ -73,7 +73,10 @@ class _HomeViewState extends State<HomeView> {
           centerTitle: true,
           leading: IconButton(
             icon: const Icon(Icons.settings, size: 24),
-            onPressed: () => Get.to(() => SettingsView()),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Get.to(() => SettingsView());},
+
           ),
           actions: [
             Obx(() {
@@ -140,6 +143,7 @@ class _HomeViewState extends State<HomeView> {
                               ),
                               TextButton(
                                 onPressed: () {
+                                  HapticFeedback.lightImpact();
                                   noticeViewModel.fetchAllNotices();
                                   Get.to(() => const NoticeListView());
                                 },
@@ -175,6 +179,7 @@ class _HomeViewState extends State<HomeView> {
                         InkWell(
                           borderRadius: BorderRadius.circular(16),
                           onTap: () {
+                            HapticFeedback.lightImpact();
                             final notice = noticeViewModel.notice.value;
                             if (notice != null) {
                               Get.to(() => NoticeDetailView(notice: notice));
@@ -362,6 +367,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     TextButton(
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         PlatformUtils.showPlatformDisclaimerDialog(context);
                       },
                       style: TextButton.styleFrom(
