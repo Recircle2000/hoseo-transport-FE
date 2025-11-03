@@ -529,19 +529,19 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     // 24_DOWN
     final stopFile24 = await rootBundle.loadString('assets/bus_stops/24_DOWN.json');
     final stops24 = (json.decode(stopFile24)['response']['body']['items']['item'] as List)
-      .map<String>((e) => e['nodenm'].toString())
+      .map<String>((e) => e['nodeord'].toString())
       .toList();
     // 81_DOWN
     final stopFile81 = await rootBundle.loadString('assets/bus_stops/81_DOWN.json');
     final stops81 = (json.decode(stopFile81)['response']['body']['items']['item'] as List)
-      .map<String>((e) => e['nodenm'].toString())
+      .map<String>((e) => e['nodeord'].toString())
       .toList();
     // '각원사회차지'(회차지) 제외, '각원사'~'호서대(천안)' 범위만!
-    var idx24Start = stops24.indexOf('각원사');
-    var idx24End = stops24.indexOf('호서대(천안)');
+    var idx24Start = stops24.indexOf('2');
+    var idx24End = stops24.indexOf('7');
     _ce24DownStops = stops24.sublist(idx24Start, idx24End+1);
-    var idx81Start = stops81.indexOf('각원사');
-    var idx81End = stops81.indexOf('호서대(천안)');
+    var idx81Start = stops81.indexOf('2');
+    var idx81End = stops81.indexOf('4');
     _ce81DownStops = stops81.sublist(idx81Start, idx81End+1);
   }
 
@@ -562,7 +562,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     // 24_DOWN
     if (data['buses']['24_DOWN'] is List) {
       for (var bus in data['buses']['24_DOWN']) {
-        final cur = bus['nodenm'];
+        final cur = bus['nodeord'].toString();
         final idx = _ce24DownStops.indexOf(cur);
         if (idx == -1) {
           continue; // 각원사~호서대(천안) 범위 밖
@@ -583,7 +583,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     // 81_DOWN
     if (data['buses']['81_DOWN'] is List) {
       for (var bus in data['buses']['81_DOWN']) {
-        final cur = bus['nodenm'];
+        final cur = bus['nodeord'].toString();
         final idx = _ce81DownStops.indexOf(cur);
         if (idx == -1) {
           continue; // 각원사~호서대(천안) 범위 밖
