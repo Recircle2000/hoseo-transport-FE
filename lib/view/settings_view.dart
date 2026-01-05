@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../viewmodel/settings_viewmodel.dart';
 import 'auth/login_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'subway/subway_view.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
 
@@ -80,6 +82,65 @@ class SettingsView extends StatelessWidget {
                         value: '천안',
                         groupValue: controller.selectedCampus.value,
                         onChanged: (value) => controller.setCampus(value!),
+                        activeColor: colorScheme.primary,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                      )),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '기준 지하철역 선택',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: colorScheme.surfaceVariant),
+              ),
+              child: Column(
+                children: [
+                  Obx(() => RadioListTile<String>(
+                        title: Text(
+                          '천안역',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: controller.selectedSubwayStation.value == '천안'
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        value: '천안',
+                        groupValue: controller.selectedSubwayStation.value,
+                        onChanged: (value) => controller.setSubwayStation(value!),
+                        activeColor: colorScheme.primary,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                      )),
+                  Divider(height: 1, color: colorScheme.surfaceVariant),
+                  Obx(() => RadioListTile<String>(
+                        title: Text(
+                          '아산역',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: controller.selectedSubwayStation.value == '아산'
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        value: '아산',
+                        groupValue: controller.selectedSubwayStation.value,
+                        onChanged: (value) => controller.setSubwayStation(value!),
                         activeColor: colorScheme.primary,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
