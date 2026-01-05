@@ -72,9 +72,9 @@ class MyApp extends StatelessWidget {
       // lib/main.dart의 theme 부분 수정
       theme: ThemeData(
         primaryColor: Colors.white,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xFFF8F9FA),
           foregroundColor: Colors.black,
           elevation: 0,
           scrolledUnderElevation: 0,
