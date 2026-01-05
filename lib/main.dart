@@ -143,10 +143,10 @@ class MyApp extends StatelessWidget {
           ),
         ),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.grey[900]!, // 기본 색상
+          seedColor: Colors.grey[850]!, // 기본 색상
           background: Colors.grey[900]!,
-          surface: Colors.grey[900]!,
-          surfaceVariant: Colors.grey[850]!,
+          surface: Colors.grey[850]!,
+          surfaceVariant: Colors.grey[800]!,
           onSurfaceVariant: Colors.grey[300]!,
           primary: Colors.grey[300]!, // 주요 액센트 색상
           onPrimary: Colors.grey[900]!,
