@@ -4,12 +4,20 @@ import '../../models/subway_schedule_model.dart';
 import '../../viewmodel/subway_schedule_viewmodel.dart';
 
 class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
-  const SubwayScheduleView({Key? key}) : super(key: key);
+  final String? initialStationName;
+
+  const SubwayScheduleView({Key? key, this.initialStationName}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     if (!Get.isRegistered<SubwayScheduleViewModel>()) {
-      Get.put(SubwayScheduleViewModel());
+      Get.put(SubwayScheduleViewModel(initialStation: initialStationName));
+    }
+
+    if (initialStationName != null && controller.selectedStation.value != initialStationName) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.changeStation(initialStationName!);
+      });
     }
 
     return Scaffold(
@@ -31,7 +39,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 }
                 if (controller.error.value.isNotEmpty) {
                   return Center(child: Text(controller.error.value));
@@ -89,19 +97,38 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
     required List<SubwayScheduleItem> items,
     required VoidCallback onTap,
   }) {
+    final header = _buildSectionHeader(context, title, subtitle, icon, isExpanded, onTap);
+
+    if (!isExpanded) {
+      return header;
+    }
+
     return Expanded(
-      flex: isExpanded ? 1 : 0,
+      flex: 1,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildSectionHeader(context, title, subtitle, icon, isExpanded, onTap),
-          if (isExpanded)
-            Expanded(
+          header,
+          Expanded(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 20 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: _buildTimeTableGrid(context, items),
               ),
             ),
+          ),
         ],
       ),
     );

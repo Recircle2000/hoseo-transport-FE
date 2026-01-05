@@ -5,6 +5,12 @@ import '../repository/subway_repository.dart';
 class SubwayScheduleViewModel extends GetxController {
   final SubwayRepository _repository = SubwayRepository();
 
+  SubwayScheduleViewModel({String? initialStation}) {
+    if (initialStation != null) {
+      selectedStation.value = initialStation;
+    }
+  }
+
   // Observables
   final RxString selectedStation = '천안'.obs;
   final RxString selectedDayType = '평일'.obs;
@@ -37,20 +43,31 @@ class SubwayScheduleViewModel extends GetxController {
   }
 
   Future<void> fetchSchedule() async {
+    final targetStation = selectedStation.value;
+    final targetDayType = selectedDayType.value;
+    
     isLoading.value = true;
     error.value = '';
     
     try {
       final schedule = await _repository.fetchSchedule(
-        selectedStation.value,
-        selectedDayType.value,
+        targetStation,
+        targetDayType,
       );
-      scheduleData.value = schedule;
+      
+      // Prevent race condition: only update if the request still matches current selection
+      if (selectedStation.value == targetStation && selectedDayType.value == targetDayType) {
+        scheduleData.value = schedule;
+      }
     } catch (e) {
       print('Error fetching schedule: $e');
-      error.value = '시간표를 불러오는데 실패했습니다.';
+      if (selectedStation.value == targetStation && selectedDayType.value == targetDayType) {
+        error.value = '시간표를 불러오는데 실패했습니다.';
+      }
     } finally {
-      isLoading.value = false;
+      if (selectedStation.value == targetStation && selectedDayType.value == targetDayType) {
+        isLoading.value = false;
+      }
     }
   }
 }

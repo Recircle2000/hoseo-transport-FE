@@ -33,7 +33,7 @@ class SubwayView extends GetView<SubwayViewModel> {
                     children: [
                        _buildStationSelector(selectedStation, context),
                       const SizedBox(height: 16),
-                       _buildStatusBar(context),
+                       _buildStatusBar(context, selectedStation),
                       const SizedBox(height: 24),
                       Obx(() => _buildArrivalContent(context, selectedStation.value)),
                        _buildFooter(context),
@@ -161,7 +161,7 @@ class SubwayView extends GetView<SubwayViewModel> {
     );
   }
 
-  Widget _buildStatusBar(BuildContext context) {
+  Widget _buildStatusBar(BuildContext context, RxString selectedStation) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -179,7 +179,7 @@ class SubwayView extends GetView<SubwayViewModel> {
           ],
         ),
         GestureDetector(
-          onTap: () => Get.to(() => const SubwayScheduleView()),
+          onTap: () => Get.to(() => SubwayScheduleView(initialStationName: selectedStation.value)),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -199,7 +199,7 @@ class SubwayView extends GetView<SubwayViewModel> {
                 Icon(Icons.calendar_today_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 4),
                 Text(
-                  '시간표 확인',
+                  '시간표 보기',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -221,7 +221,7 @@ class SubwayView extends GetView<SubwayViewModel> {
             child: Center(
               child: Column(
                 children: [
-                  const CircularProgressIndicator(),
+                  const CircularProgressIndicator.adaptive(),
                   const SizedBox(height: 16),
                   Text('연결 중...', style: TextStyle(color: Theme.of(context).hintColor)),
                 ],
