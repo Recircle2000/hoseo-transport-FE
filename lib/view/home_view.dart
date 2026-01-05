@@ -85,7 +85,7 @@ class _HomeViewState extends State<HomeView> {
               return Padding(
                 padding: const EdgeInsets.only(right: 20, top: 10, bottom: 8),
                 child: ToggleButtons(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                   constraints: const BoxConstraints(minHeight: 26, minWidth: 40),
                   isSelected: [
                     controller.selectedCampus.value == '아산',
@@ -115,191 +115,84 @@ class _HomeViewState extends State<HomeView> {
               // 공지사항
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
                   ),
                   child: Material(
                     color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Column(
-                      children: [
-                        // 공지사항 제목과 전체보기 버튼이 있는 헤더
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Text(
-                                    '공지사항',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
+                    child: InkWell(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        final notice = noticeViewModel.notice.value;
+                        if (notice != null) {
+                          Get.to(() => NoticeDetailView(notice: notice));
+                        } else {
+                          noticeViewModel.fetchLatestNotice();
+                          Get.to(() => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(25),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent.withOpacity(0.1),
+                                shape: BoxShape.circle,
                               ),
-                              TextButton(
-                                onPressed: () {
-                                  HapticFeedback.lightImpact();
-                                  noticeViewModel.fetchAllNotices();
-                                  Get.to(() => const NoticeListView());
-                                },
-                                style: TextButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  '전체보기',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey,
-                                  ),
-                                ),
+                              child: const Icon(
+                                Icons.campaign,
+                                color: Colors.redAccent,
+                                size: 20,
                               ),
-                            ],
-                          ),
-                        ),
-                        // 구분선 추가
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 4),
-                          child: Divider(
-                            height: 1,
-                            thickness: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: Colors.grey.withOpacity(0.2),
-                          ),
-                        ),
-                        // 공지사항 내용
-                        InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            final notice = noticeViewModel.notice.value;
-                            if (notice != null) {
-                              Get.to(() => NoticeDetailView(notice: notice));
-                            } else {
-                              noticeViewModel.fetchLatestNotice();
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.campaign_outlined,
-                                    color: Colors.blue,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Obx(() {
-                                        if (noticeViewModel.isLoading.value) {
-                                          return const Text(
-                                            '로딩중...',
-                                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                                          );
-                                        }
-
-                                        if (noticeViewModel.error.isNotEmpty) {
-                                          return Text(
-                                            noticeViewModel.error.value,
-                                            style: const TextStyle(fontSize: 14, color: Colors.red),
-                                          );
-                                        }
-
-                                        final notice = noticeViewModel.notice.value;
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: AutoScrollText(
-                                                    text: notice?.title ?? '공지사항이 없습니다',
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                    scrollDuration: const Duration(seconds: 5),
-                                                  ),
-                                                ),
-                                                if (notice != null) 
-                                                  const SizedBox(width: 6),
-                                                if (notice != null) ...[
-                                                  _buildNoticeBadge(notice.createdAt),
-                                                ],
-                                              ],
-                                            ),
-                                            if (notice != null)
-                                              Padding(
-                                                padding: const EdgeInsets.only(top: 4),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.access_time,
-                                                      size: 10,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      _getTimeAgo(notice.createdAt),
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.grey[600],
-                                                      ),
-                                                    ),
-                                                    const Spacer(),
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: noticeViewModel.getNoticeTypeColor(notice.noticeType),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      child: Text(
-                                                        noticeViewModel.getNoticeTypeDisplayName(notice.noticeType),
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 9,
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                          ],
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Obx(() {
+                                if (noticeViewModel.isLoading.value) {
+                                  return const Text(
+                                    '로딩중...',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  );
+                                }
+
+                                final notice = noticeViewModel.notice.value;
+                                return AutoScrollText(
+                                  text: notice?.title ?? '새로운 공지사항이 없습니다',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    //fontWeight: FontWeight.w600,
+                                  ),
+                                  scrollDuration: const Duration(seconds: 5),
+                                );
+                              }),
+                            ),
+                            const SizedBox(width: 5),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                            //const SizedBox(width: 15),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               // 곧 출발 섹션
               UpcomingDeparturesWidget(),
               
@@ -342,7 +235,7 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               
               // 지하철 메뉴
               Padding(
@@ -357,12 +250,12 @@ class _HomeViewState extends State<HomeView> {
                     final settingsViewModel = Get.find<SettingsViewModel>();
                     Get.to(() => SubwayView(stationName: settingsViewModel.selectedSubwayStation.value));
                   },
-                  height: 100, // 높이를 줄여서 표시
+                  height: 80, // 높이를 줄여서 표시
                   isHorizontal: true, // 가로 배치 모드
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               
               // 면책 문구
               Padding(
@@ -427,21 +320,27 @@ class _HomeViewState extends State<HomeView> {
     final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     
-    return Card(
-      elevation: 2,
-      color: cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      height: height ?? 180,
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(25),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(25),
           child: Container(
             padding: const EdgeInsets.all(16),
-            height: height ?? 200,
             child: isHorizontal
                 ? Row(
                     children: [
@@ -535,7 +434,7 @@ class _HomeViewState extends State<HomeView> {
             BoxShadow(
               color: Colors.red.withOpacity(0.3),
               blurRadius: 4,
-              offset: Offset(0, 1),
+              offset: Offset(0, 0),
             ),
           ],
         ),
