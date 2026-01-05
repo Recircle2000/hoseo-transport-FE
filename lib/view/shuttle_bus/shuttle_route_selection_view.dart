@@ -201,11 +201,9 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   // 플랫폼별 로딩 인디케이터
   Widget _buildPlatformLoadingIndicator() {
-    if (Platform.isIOS) {
-      return CupertinoActivityIndicator(radius: 15.0);
-    } else {
-      return CircularProgressIndicator(color: shuttleColor);
-    }
+    return CircularProgressIndicator.adaptive(
+      valueColor: AlwaysStoppedAnimation<Color>(shuttleColor),
+    );
   }
 
   // 현재 시간 정보 및 도움말 카드

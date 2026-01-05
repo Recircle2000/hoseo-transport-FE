@@ -141,9 +141,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
       body: Obx(() {
         if (isLoading.value) {
           return Center(
-            child: Platform.isIOS
-                ? CupertinoActivityIndicator()
-                : CircularProgressIndicator(),
+            child: CircularProgressIndicator.adaptive(),
           );
         }
         
@@ -662,7 +660,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                       return Container(
                         height: 300,
                         child: Center(
-                          child: CircularProgressIndicator(
+                          child: CircularProgressIndicator.adaptive(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                                 : null,

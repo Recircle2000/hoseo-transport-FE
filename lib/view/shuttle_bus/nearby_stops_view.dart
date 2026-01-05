@@ -84,9 +84,7 @@ class NearbyStopsView extends StatelessWidget {
                 Container(
                   height: 20,
                   width: 20,
-                  child: Platform.isIOS
-                        ? CupertinoActivityIndicator()
-                    : CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                 )
               else if (!hasLocation)
                 _buildCompactLocationButton(context)
@@ -165,9 +163,7 @@ class NearbyStopsView extends StatelessWidget {
       
       if (isLoading) {
         return Center(
-          child: Platform.isIOS
-            ? CupertinoActivityIndicator()
-            : CircularProgressIndicator(),
+          child: CircularProgressIndicator.adaptive(),
         );
       }
       
@@ -573,9 +569,7 @@ class NearbyStopsView extends StatelessWidget {
     return Obx(() {
       if (viewModel.isLoadingSchedules.value) {
         return Center(
-          child: Platform.isIOS
-            ? CupertinoActivityIndicator()
-            : CircularProgressIndicator(),
+            child: CircularProgressIndicator.adaptive(),
         );
       }
       

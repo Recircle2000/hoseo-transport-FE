@@ -28,7 +28,7 @@ class StationList extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
+              const CircularProgressIndicator.adaptive(),
               const SizedBox(height: 16),
               Text(
                 '${routeDisplayNames[controller.selectedRoute.value] ?? controller.selectedRoute.value}\n정류장 정보를 불러오는 중입니다...',

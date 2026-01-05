@@ -137,7 +137,7 @@ class LoginView extends StatelessWidget {
                   height: 56,
                   child: Obx(() {
                     if (_loginViewModel.isLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator.adaptive());
                     }
                     return ElevatedButton(
                       onPressed: _loginViewModel.login,

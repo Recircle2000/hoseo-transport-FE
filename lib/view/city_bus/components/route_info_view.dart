@@ -22,7 +22,7 @@ class RouteInfoView extends StatelessWidget {
       future: TimetableHelper.loadTimetable(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
 
         if (snapshot.hasError) {

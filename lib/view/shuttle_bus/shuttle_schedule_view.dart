@@ -198,9 +198,7 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
     
     return Obx(() => viewModel.isLoadingSchedules.value
       ? Center(
-          child: isIOS
-            ? CupertinoActivityIndicator() // iOS 기본 인디케이터
-            : CircularProgressIndicator() // Android 기본 인디케이터
+          child: CircularProgressIndicator.adaptive()
         )
       : viewModel.schedules.isEmpty
           ? Center(child: Text('선택한 노선과 일자에 해당하는 운행 정보가 없습니다'))

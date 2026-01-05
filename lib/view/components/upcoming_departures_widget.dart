@@ -198,13 +198,9 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Platform.isIOS
-                    ? CupertinoActivityIndicator(
-                        radius: 12,
-                      )
-                    : CircularProgressIndicator(
-                        strokeWidth: 2,
-                      ),
+                  child: CircularProgressIndicator.adaptive(
+                    strokeWidth: 2,
+                  ),
                 ),
               );
             }

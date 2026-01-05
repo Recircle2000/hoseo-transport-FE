@@ -210,9 +210,7 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
     
     return Obx(() => viewModel.isLoadingStops.value
       ? Center(
-          child: isIOS
-            ? CupertinoActivityIndicator() // iOS 기본 인디케이터
-            : CircularProgressIndicator() // Android 기본 인디케이터
+          child: CircularProgressIndicator.adaptive()
         )
       : viewModel.scheduleStops.isEmpty
           ? Center(child: Text('정류장 정보를 불러올 수 없습니다'))
