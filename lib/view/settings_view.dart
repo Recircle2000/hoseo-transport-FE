@@ -13,14 +13,15 @@ class SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+    final cardColor = theme.cardColor;
     
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           '설정',
-          style: theme.appBarTheme.titleTextStyle,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
@@ -32,229 +33,297 @@ class SettingsView extends StatelessWidget {
         builder: (controller) => ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
-            const SizedBox(height: 8),
-            Text(
-              '기준 캠퍼스 선택',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
+            // 캠퍼스 설정 섹션
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              child: Text(
+                '기준 캠퍼스',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
+            Container(
+              decoration: BoxDecoration(
+                color: cardColor,
                 borderRadius: BorderRadius.circular(25),
-                side: BorderSide(color: colorScheme.surfaceVariant),
-              ),
-              child: Column(
-                children: [
-                  Obx(() => RadioListTile<String>(
-                        title: Text(
-                          '아산캠퍼스',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: controller.selectedCampus.value == '아산'
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        value: '아산',
-                        groupValue: controller.selectedCampus.value,
-                        onChanged: (value) => controller.setCampus(value!),
-                        activeColor: colorScheme.primary,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                      )),
-                  Divider(height: 1, color: colorScheme.surfaceVariant),
-                  Obx(() => RadioListTile<String>(
-                        title: Text(
-                          '천안캠퍼스',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: controller.selectedCampus.value == '천안'
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        value: '천안',
-                        groupValue: controller.selectedCampus.value,
-                        onChanged: (value) => controller.setCampus(value!),
-                        activeColor: colorScheme.primary,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                      )),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '기준 지하철역 선택',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
-                side: BorderSide(color: colorScheme.surfaceVariant),
-              ),
-              child: Column(
+              child: Obx(() => Column(
                 children: [
-                  Obx(() => RadioListTile<String>(
-                        title: Text(
-                          '천안역',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: controller.selectedSubwayStation.value == '천안'
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        value: '천안',
-                        groupValue: controller.selectedSubwayStation.value,
-                        onChanged: (value) => controller.setSubwayStation(value!),
-                        activeColor: colorScheme.primary,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                      )),
-                  Divider(height: 1, color: colorScheme.surfaceVariant),
-                  Obx(() => RadioListTile<String>(
-                        title: Text(
-                          '아산역',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: controller.selectedSubwayStation.value == '아산'
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        value: '아산',
-                        groupValue: controller.selectedSubwayStation.value,
-                        onChanged: (value) => controller.setSubwayStation(value!),
-                        activeColor: colorScheme.primary,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                      )),
+                  _buildRadioItem(
+                    context,
+                    title: '아산캠퍼스',
+                    value: '아산',
+                    groupValue: controller.selectedCampus.value,
+                    onChanged: (val) => controller.setCampus(val!),
+                    isFirst: true,
+                  ),
+                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  _buildRadioItem(
+                    context,
+                    title: '천안캠퍼스',
+                    value: '천안',
+                    groupValue: controller.selectedCampus.value,
+                    onChanged: (val) => controller.setCampus(val!),
+                    isLast: true,
+                  ),
+                ],
+              )),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            // 지하철역 설정 섹션
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              child: Text(
+                '기준 지하철역',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
                 ],
               ),
+              child: Obx(() => Column(
+                children: [
+                  _buildRadioItem(
+                    context,
+                    title: '천안역',
+                  
+                    value: '천안',
+                    groupValue: controller.selectedSubwayStation.value,
+                    onChanged: (val) => controller.setSubwayStation(val!),
+                    isFirst: true,
+                  ),
+                  Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+                  _buildRadioItem(
+                    context,
+                    title: '아산역',
+                  
+                    value: '아산',
+                    groupValue: controller.selectedSubwayStation.value,
+                    onChanged: (val) => controller.setSubwayStation(val!),
+                    isLast: true,
+                  ),
+                ],
+              )),
             ),
-            const SizedBox(height: 24),
-            // 버전 정보
-            FutureBuilder<PackageInfo>(
-              future: PackageInfo.fromPlatform(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return Column(
-                    children: [
-                      Center(
-                        child: Text(
-                          '앱 버전: ${snapshot.data!.version}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
+            
+            const SizedBox(height: 40),
+            
+            // 정보 섹션
+            _buildInfoSection(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRadioItem(
+    BuildContext context, {
+    required String title,
+    String? subtitle,
+    required String value,
+    required String groupValue,
+    required ValueChanged<String?> onChanged,
+    bool isFirst = false,
+    bool isLast = false,
+  }) {
+    final isSelected = value == groupValue;
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onChanged(value),
+        borderRadius: BorderRadius.vertical(
+          top: isFirst ? const Radius.circular(25) : Radius.zero,
+          bottom: isLast ? const Radius.circular(25) : Radius.zero,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
-                      FutureBuilder<Map<String, dynamic>>(
-                        future: BusTimesLoader.loadBusTimes(),
-                        builder: (context, busSnapshot) {
-                          if (busSnapshot.hasData) {
-                            final version = busSnapshot.data!["version"] ?? "-";
-                            return Text(
-                              '시내버스 시간표 버전: $version',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                              ),
-                            );
-                          }
-                          return SizedBox.shrink();
-                        },
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-            const SizedBox(height: 8),
-            // 개인정보처리방침/지원 링크
-            Center(
-              child: TextButton(
-                onPressed: () async {
-                  final Uri url = Uri.parse('https://www.notion.so/1eda668f263380ff92aae3ac8b74b157?pvs=4');
-                  try {
-                    if (await canLaunchUrl(url)) {
-                      // 브라우저에서 열기 위한 옵션 추가
-                      final bool launched = await launchUrl(
-                        url,
-                        mode: LaunchMode.externalApplication,
-                        webViewConfiguration: const WebViewConfiguration(
-                          enableJavaScript: true,
-                          enableDomStorage: true,
-                        ),
-                      );
-
-                      if (!launched) {
-                        throw Exception('URL 실행 실패');
-                      }
-                    } else {
-                      throw Exception('URL을 실행할 수 없음');
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('링크를 열 수 없습니다'))
-                      );
-                    }
-                  }
-                },
-                child: Text(
-                  '개인정보처리방침 / 지원',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.blue[700],
-                  ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            // 오픈소스 라이선스
-            Center(
-              child: TextButton(
-                onPressed: () async {
-                  final packageInfo = await PackageInfo.fromPlatform();
-                  if (context.mounted) {
-                    showLicensePage(
-                      context: context,
-                      applicationName: '호통',
-                      applicationVersion: packageInfo.version,
-                      applicationLegalese: '© 2025 호통\n\n이 앱은 다음 오픈소스 라이브러리들을 사용합니다:',
+              if (isSelected)
+                Icon(
+                  Icons.check_circle,
+                  color: colorScheme.primary,
+                  size: 24,
+                )
+              else
+                Icon(
+                  Icons.radio_button_unchecked,
+                  color: Colors.grey[400],
+                  size: 24,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(BuildContext context) {
+    return Column(
+      children: [
+        // 앱 정보
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            children: [
+              FutureBuilder<PackageInfo>(
+                future: PackageInfo.fromPlatform(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return Column(
+                      children: [
+                        Text(
+                          '현재 버전 ${snapshot.data!.version}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        FutureBuilder<Map<String, dynamic>>(
+                          future: BusTimesLoader.loadBusTimes(),
+                          builder: (context, busSnapshot) {
+                            if (busSnapshot.hasData) {
+                              final version = busSnapshot.data!["version"] ?? "-";
+                              return Text(
+                                '시내버스 시간표 버전: $version',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ],
                     );
                   }
+                  return const SizedBox.shrink();
                 },
-                child: Text(
-                  '오픈소스 라이선스',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.blue[700],
-                  ),
-                ),
               ),
-            )
-          ],
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildTextButton(
+                    context,
+                    '개인정보처리방침 / 지원',
+                    () async {
+                      final Uri url = Uri.parse('https://www.notion.so/1eda668f263380ff92aae3ac8b74b157?pvs=4');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      }
+                    },
+                  ),
+                  Container(
+                    height: 12,
+                    width: 1,
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    color: Colors.grey[300],
+                  ),
+                  _buildTextButton(
+                    context,
+                    '오픈소스 라이선스',
+                    () async {
+                      final packageInfo = await PackageInfo.fromPlatform();
+                      if (context.mounted) {
+                        showLicensePage(
+                          context: context,
+                          applicationName: '호통',
+                          applicationVersion: packageInfo.version,
+                          applicationLegalese: '© 2025 호통\n\n이 앱은 다음 오픈소스 라이브러리들을 사용합니다:',
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          '© 2025 Hoseo Transport. All rights reserved.',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.grey[400],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextButton(BuildContext context, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.blue[700],
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

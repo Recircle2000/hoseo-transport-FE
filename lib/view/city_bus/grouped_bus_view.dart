@@ -243,8 +243,9 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
       appBar: AppBar(
         title: const Text('시내버스 노선 정보'),
         centerTitle: true,
-        backgroundColor: cardColor,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: Obx(() {
         final campus = settingsViewModel.selectedCampus.value;
@@ -255,11 +256,17 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
            separatorBuilder: (_, __) => const SizedBox(height: 8),
           itemBuilder: (context, groupIdx) {
             final group = groupedRoutes[groupIdx];
-            return Card(
-              color: cardColor,
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            return Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -420,7 +427,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                   ],
                 ),
               ),
-            );
+              );
           },
         );
       }),

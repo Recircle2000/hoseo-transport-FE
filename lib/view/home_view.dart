@@ -82,27 +82,37 @@ class _HomeViewState extends State<HomeView> {
           actions: [
             Obx(() {
               final controller = Get.find<SettingsViewModel>();
+              final isAsan = controller.selectedCampus.value == '아산';
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+
               return Padding(
-                padding: const EdgeInsets.only(right: 20, top: 10, bottom: 8),
-                child: ToggleButtons(
-                  borderRadius: BorderRadius.circular(10),
-                  constraints: const BoxConstraints(minHeight: 26, minWidth: 40),
-                  isSelected: [
-                    controller.selectedCampus.value == '아산',
-                    controller.selectedCampus.value == '천안',
-                  ],
-                  onPressed: (index) {
-                    HapticFeedback.lightImpact();
-                    if (index == 0) controller.setCampus('아산');
-                    if (index == 1) controller.setCampus('천안');
-                  },
-                  color: Colors.grey,
-                  selectedColor: Theme.of(context).colorScheme.primary,
-                  fillColor: Colors.redAccent.withOpacity(0.8),
-                  children: const [
-                    Text('아캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text('천캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
+                padding: const EdgeInsets.only(right: 20),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildToggleButton(context, '아캠', isAsan, () {
+                          HapticFeedback.lightImpact();
+                          controller.setCampus('아산');
+                        }),
+                        // const SizedBox(width: 2), // 공간 없이 붙여서 자연스럽게
+                        _buildToggleButton(context, '천캠', !isAsan, () {
+                          HapticFeedback.lightImpact();
+                          controller.setCampus('천안');
+                        }),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }),
@@ -499,5 +509,40 @@ class _HomeViewState extends State<HomeView> {
     } else {
       return '${(difference.inDays / 365).floor()}년 전';
     }
+  }
+
+  Widget _buildToggleButton(
+    BuildContext context,
+    String text,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final primaryColor = colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected
+                ? Colors.white
+                : (isDark ? Colors.grey[400] : Colors.grey[600]),
+          ),
+        ),
+      ),
+    );
   }
 }

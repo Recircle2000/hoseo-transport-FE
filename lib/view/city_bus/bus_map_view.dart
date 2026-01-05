@@ -215,10 +215,11 @@ class _BusMapViewState extends State<BusMapView> {
             Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
+                    blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
                 ],
@@ -392,7 +393,7 @@ class _BusMapViewState extends State<BusMapView> {
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                    const BorderRadius.vertical(top: Radius.circular(25)),
               ),
               child: Column(
                 children: [
