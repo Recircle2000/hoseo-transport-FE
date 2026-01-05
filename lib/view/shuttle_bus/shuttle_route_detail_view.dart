@@ -120,11 +120,14 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 10,
+        //     offset: const Offset(0, 0),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,11 +218,19 @@ class _ShuttleRouteDetailViewState extends State<ShuttleRouteDetailView> {
           ? Center(child: Text('정류장 정보를 불러올 수 없습니다'))
           : Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey.withOpacity(0.3),
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
+                // border: Border.all(
+                //   color: Colors.grey.withOpacity(0.3),
+                //   width: 1,
+                // ),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -39,6 +39,10 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       backgroundColor: shuttleColor,
                       foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 5,
                     ),
                     onPressed: () {
                       HapticFeedback.lightImpact();
@@ -128,6 +132,10 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                           textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           backgroundColor: Colors.green.shade700,
                           foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 5,
                         ),
                         onPressed: () {
                           HapticFeedback.lightImpact();
@@ -216,11 +224,14 @@ class ShuttleRouteSelectionView extends StatelessWidget {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 0,
+        //     offset: const Offset(0, 0),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,8 +295,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.circular(8),
+          // border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -392,8 +411,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(Get.context!).dividerColor),
-        borderRadius: BorderRadius.circular(8),
+        // border: Border.all(color: Theme.of(Get.context!).dividerColor),
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Obx(() {
@@ -444,8 +471,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
           child: Container(
             height: 50,
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
+              // border: Border.all(color: Theme.of(context).dividerColor),
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -549,8 +584,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(8),
+            // border: Border.all(color: Theme.of(context).dividerColor),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: InkWell(

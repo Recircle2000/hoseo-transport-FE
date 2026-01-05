@@ -167,10 +167,10 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               const SizedBox(width: 4),
               Material(
                 color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(15),
                 child: InkWell(
                   onTap: _manualRefresh,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(15),
                   splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                   highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   child: Padding(
@@ -438,17 +438,17 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 3,
-            offset: Offset(0, 1),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
         child: Material(
           color: isDarkMode ? Colors.grey[800] : Colors.white,
           child: InkWell(
@@ -542,7 +542,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     child: Text(
                       '${departure.minutesLeft}분',
@@ -574,17 +574,17 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 3,
-            offset: Offset(0, 1),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
         child: Material(
           color: isDarkMode ? Colors.grey[800] : Colors.white,
           child: InkWell(
@@ -731,7 +731,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: badgeColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: Text(
                           displayText,
