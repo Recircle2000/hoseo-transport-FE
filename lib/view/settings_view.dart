@@ -44,7 +44,7 @@ class SettingsView extends StatelessWidget {
             Card(
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(25),
                 side: BorderSide(color: colorScheme.surfaceVariant),
               ),
               child: Column(
@@ -103,7 +103,7 @@ class SettingsView extends StatelessWidget {
             Card(
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(25),
                 side: BorderSide(color: colorScheme.surfaceVariant),
               ),
               child: Column(
