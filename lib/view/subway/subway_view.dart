@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../viewmodel/subway_viewmodel.dart';
 import '../../models/subway_arrival_model.dart';
+import 'subway_schedule_view.dart';
 
 class SubwayView extends GetView<SubwayViewModel> {
   final String stationName;
@@ -18,9 +19,7 @@ class SubwayView extends GetView<SubwayViewModel> {
     final RxString selectedStation = (stationName == '아산' ? '아산' : '천안').obs;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF121212)
-          : const Color(0xFFF8F9FA),
+      // backgroundColor matches theme (0xFFFAFAFA)
       body: SafeArea(
         child: Column(
           children: [
@@ -179,7 +178,38 @@ class SubwayView extends GetView<SubwayViewModel> {
             ),
           ],
         ),
-        
+        GestureDetector(
+          onTap: () => Get.to(() => const SubwayScheduleView()),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+               boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 4),
+                Text(
+                  '시간표 확인',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
