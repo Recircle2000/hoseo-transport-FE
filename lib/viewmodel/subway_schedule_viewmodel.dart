@@ -18,7 +18,7 @@ class SubwayScheduleViewModel extends GetxController {
   final RxBool isLoading = true.obs;
   final RxString error = ''.obs;
 
-  final RxBool isUpExpanded = false.obs;
+  final RxBool isUpExpanded = true.obs;
   final RxBool isDownExpanded = false.obs;
 
   @override

@@ -380,7 +380,8 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
       try {
           final parts = item.departureTime.split(':');
           if (parts.length >= 2) {
-              final hour = int.parse(parts[0]);
+              int hour = int.parse(parts[0]);
+              if (hour == 0) hour = 25;
               grouped.putIfAbsent(hour, () => []).add(item);
           }
       } catch (e) {
@@ -440,7 +441,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
                                  SizedBox(
                                      width: 40, 
                                      child: Text(
-                                         hour.toString().padLeft(2, '0'), 
+                                         (hour == 25 ? '00' : hour).toString().padLeft(2, '0'),  
                                          textAlign: TextAlign.center,
                                          style: const TextStyle(
                                              color: Color(0xFF0052A4),
