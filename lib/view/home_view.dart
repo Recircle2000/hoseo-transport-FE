@@ -114,6 +114,36 @@ class _HomeViewState extends State<HomeView> {
             children: [
               // 공지사항
               Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '공지사항',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        noticeViewModel.fetchAllNotices();
+                        Get.to(() => const NoticeListView());
+                      },
+                      child: Text(
+                        '전체보기',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
                   decoration: BoxDecoration(
@@ -317,7 +347,7 @@ class _HomeViewState extends State<HomeView> {
     bool isHorizontal = false,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
+    final cardColor = Theme.of(context).cardColor;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     
     return Container(
@@ -345,7 +375,7 @@ class _HomeViewState extends State<HomeView> {
                 ? Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(isHorizontal ? 8 : 16),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
                           shape: BoxShape.circle,
@@ -371,7 +401,7 @@ class _HomeViewState extends State<HomeView> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '실시간 도착 정보',
+                            '실시간 도착 정보 / 시간표',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
