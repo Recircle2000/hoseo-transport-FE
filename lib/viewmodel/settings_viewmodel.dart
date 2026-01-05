@@ -8,6 +8,7 @@ class SettingsViewModel extends GetxController {
   var email = ''.obs;
   var isLoggedIn = false.obs;
   var selectedCampus = '아산'.obs;
+  var selectedSubwayStation = '천안'.obs;
 
   @override
   void onInit() {
@@ -20,12 +21,19 @@ class SettingsViewModel extends GetxController {
     email.value = prefs.getString('email') ?? '알 수 없음';
     isLoggedIn.value = prefs.getBool('isLoggedIn') ?? false;
     selectedCampus.value = prefs.getString('campus') ?? '아산';
+    selectedSubwayStation.value = prefs.getString('subwayStation') ?? '천안';
   }
 
   Future<void> setCampus(String campus) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('campus', campus);
     selectedCampus.value = campus;
+  }
+
+  Future<void> setSubwayStation(String station) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('subwayStation', station);
+    selectedSubwayStation.value = station;
   }
 
   Future<void> logout() async {

@@ -13,6 +13,7 @@ import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
+import 'subway/subway_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -343,6 +344,26 @@ class _HomeViewState extends State<HomeView> {
               
               const SizedBox(height: 24),
               
+              // 지하철 메뉴
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildMenuCard(
+                  context,
+                  title: '지하철',
+                  icon: Icons.subway_outlined,
+                  color: const Color(0xFF0052A4), // 1호선 색상
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    final settingsViewModel = Get.find<SettingsViewModel>();
+                    Get.to(() => SubwayView(stationName: settingsViewModel.selectedSubwayStation.value));
+                  },
+                  height: 100, // 높이를 줄여서 표시
+                  isHorizontal: true, // 가로 배치 모드
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              
               // 면책 문구
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
@@ -399,6 +420,8 @@ class _HomeViewState extends State<HomeView> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    double? height,
+    bool isHorizontal = false,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
@@ -418,33 +441,79 @@ class _HomeViewState extends State<HomeView> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: const EdgeInsets.all(16),
-            height: 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    shape: BoxShape.circle,
+            height: height ?? 200,
+            child: isHorizontal
+                ? Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 32,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '실시간 도착 정보',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey[400],
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 48,
+                          color: color,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    icon,
-                    size: 48,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
