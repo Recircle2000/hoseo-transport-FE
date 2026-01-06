@@ -288,27 +288,34 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Express & Destination Legend
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[800]
-                : Colors.grey[100],
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.2)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLegendItem(context, '급행', Colors.red),
-              const SizedBox(width: 8),
-              _buildLegendItem(context, '병점행', Colors.green),
-              const SizedBox(width: 8),
-              _buildLegendItem(context, '천안행', Colors.orange),
-            ],
-          ),
-        ),
+        Obx(() {
+          final isCheonanStation = controller.selectedStation.value == '천안';
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[800]
+                  : Colors.grey[100],
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLegendItem(context, '급행', Colors.red),
+                const SizedBox(width: 6),
+                _buildLegendItem(context, '구로행', Colors.blue),
+                const SizedBox(width: 6),
+                _buildLegendItem(context, '병점행', Colors.green),
+                if (!isCheonanStation) ...[
+                  const SizedBox(width: 6),
+                  _buildLegendItem(context, '천안행', Colors.orange),
+                ],
+              ],
+            ),
+          );
+        }),
 
         // Day Type Selectors
         Obx(() {
@@ -513,7 +520,9 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
                             
                             // Determine color based on destination (priority) or express status
                             Color itemColor;
-                            if (item.arrivalStation == '병점') {
+                            if (item.arrivalStation == '구로') {
+                              itemColor = Colors.blue;
+                            } else if (item.arrivalStation == '병점') {
                               itemColor = Colors.green;
                             } else if (item.arrivalStation == '천안') {
                               itemColor = Colors.orange;
