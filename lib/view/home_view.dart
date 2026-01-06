@@ -31,8 +31,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     // 다크모드 감지
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? Colors.grey[900] : const Color(0xFFFAFAFA);
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
 
     return WillPopScope(
       // 뒤로가기 처리
