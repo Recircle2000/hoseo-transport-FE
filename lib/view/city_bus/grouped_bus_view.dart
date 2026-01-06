@@ -237,8 +237,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? Colors.black : const Color(0xFFFAFAFA);
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: backgroundColor,
