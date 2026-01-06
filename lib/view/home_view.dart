@@ -11,6 +11,7 @@ import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
+import 'components/auto_scroll_text.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
 import 'subway/subway_view.dart';
