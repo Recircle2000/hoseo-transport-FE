@@ -56,7 +56,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
                     _buildSectionContainer(
                       context,
                       title: '상행',
-                      subtitle: '(서울/청량리)',
+                      subtitle: '(서울/병점/천안)',
                       icon: Icons.arrow_circle_up,
                       isExpanded: controller.isUpExpanded.value,
                       items: schedule.timetable['상행'] ?? [],
@@ -287,105 +287,135 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Express Legend
+        // Express & Destination Legend
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-           decoration: BoxDecoration(
-             color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[100],
-             borderRadius: BorderRadius.circular(4),
-             border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)),
-           ),
-           child: Row(
-             mainAxisSize: MainAxisSize.min,
-             children: [
-               const CircleAvatar(backgroundColor: Colors.red, radius: 4),
-               const SizedBox(width: 6),
-               Text('급행', style: TextStyle(
-                 fontSize: 12, 
-                 color: Theme.of(context).colorScheme.onSurfaceVariant,
-                 fontWeight: FontWeight.w500
-               )),
-             ]
-           ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[800]
+                : Colors.grey[100],
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildLegendItem(context, '급행', Colors.red),
+              const SizedBox(width: 8),
+              _buildLegendItem(context, '병점행', Colors.green),
+              const SizedBox(width: 8),
+              _buildLegendItem(context, '천안행', Colors.orange),
+            ],
+          ),
         ),
 
         // Day Type Selectors
         Obx(() {
-            final isWeekday = controller.selectedDayType.value == '평일';
-            return Container(
-               decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ?  const Color(0xFF1E1E1E) : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-               ),
-               padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  _buildDayTypeButton(context, '평일', isWeekday, () => controller.changeDayType('평일')),
-                  _buildDayTypeButton(context, '주말', !isWeekday, () => controller.changeDayType('주말')),
-                ],
-              ),
-            );
+          final isWeekday = controller.selectedDayType.value == '평일';
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            ),
+            padding: const EdgeInsets.all(4),
+            child: Row(
+              children: [
+                _buildDayTypeButton(context, '평일', isWeekday,
+                    () => controller.changeDayType('평일')),
+                _buildDayTypeButton(context, '주말', !isWeekday,
+                    () => controller.changeDayType('주말')),
+              ],
+            ),
+          );
         }),
       ],
     );
   }
 
-  Widget _buildDayTypeButton(BuildContext context, String text, bool isSelected, VoidCallback onTap) {
-      return GestureDetector(
-          onTap: onTap,
-          child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                  color: isSelected ? Theme.of(context).cardColor : Colors.transparent,
-                   borderRadius: BorderRadius.circular(6),
-                   boxShadow: isSelected ? [
-                       BoxShadow(
-                           color: Colors.black.withOpacity(0.05),
-                           blurRadius: 2,
-                           offset: const Offset(0, 1),
-                       )
-                   ] : null
-              ),
-              child: Text(
-                  text,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: isSelected ? Theme.of(context).colorScheme.onSurface : Theme.of(context).hintColor,
-                  ),
-              ),
+  Widget _buildLegendItem(BuildContext context, String label, Color color) {
+    return Row(
+      children: [
+        CircleAvatar(backgroundColor: color, radius: 4),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
           ),
-      );
+        ),
+      ],
+    );
   }
 
-  Widget _buildTimeTableGrid(BuildContext context, List<SubwayScheduleItem> items) {
+  Widget _buildDayTypeButton(
+      BuildContext context, String text, bool isSelected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+            color:
+                isSelected ? Theme.of(context).cardColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    )
+                  ]
+                : null),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: isSelected
+                ? Theme.of(context).colorScheme.onSurface
+                : Theme.of(context).hintColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeTableGrid(
+      BuildContext context, List<SubwayScheduleItem> items) {
     if (items.isEmpty) {
-        return Container(
-            padding: const EdgeInsets.all(24),
-            width: double.infinity,
-             decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-             ),
-            child: Center(
-                child: Text('운행 정보가 없습니다.', style: TextStyle(color: Theme.of(context).hintColor))
-            ),
-        );
+      return Container(
+        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: Theme.of(context).dividerColor.withOpacity(0.1)),
+        ),
+        child: Center(
+            child: Text('운행 정보가 없습니다.',
+                style: TextStyle(color: Theme.of(context).hintColor))),
+      );
     }
-  
+
     final Map<int, List<SubwayScheduleItem>> grouped = {};
     for (var item in items) {
       try {
-          final parts = item.departureTime.split(':');
-          if (parts.length >= 2) {
-              int hour = int.parse(parts[0]);
-              if (hour == 0) hour = 25;
-              grouped.putIfAbsent(hour, () => []).add(item);
-          }
+        final parts = item.departureTime.split(':');
+        if (parts.length >= 2) {
+          int hour = int.parse(parts[0]);
+          if (hour == 0) hour = 25;
+          grouped.putIfAbsent(hour, () => []).add(item);
+        }
       } catch (e) {
-          // ignore parsing error
+        // ignore parsing error
       }
     }
 
@@ -395,85 +425,125 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+        border:
+            Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
         boxShadow: [
-             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
         children: [
-            Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[50],
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1))),
-                ),
-                child: Row(
-                    children: [
-                        SizedBox(width: 40, child: Text('시', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).hintColor))),
-                        const SizedBox(width: 16),
-                        Text('분', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Theme.of(context).hintColor)),
-                    ],
-                ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[800]!.withOpacity(0.5)
+                  : Colors.grey[50],
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
+              border: Border(
+                  bottom: BorderSide(
+                      color: Theme.of(context).dividerColor.withOpacity(0.1))),
             ),
-            Expanded(
-              child: ListView.builder(
-                 physics: const BouncingScrollPhysics(),
-                 itemCount: sortedHours.length,
-                 itemBuilder: (context, index) {
-                     final hour = sortedHours[index];
-                     final hourItems = grouped[hour]!;
-                     hourItems.sort((a, b) => a.departureTime.compareTo(b.departureTime));
+            child: Row(
+              children: [
+                SizedBox(
+                    width: 40,
+                    child: Text('시',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).hintColor))),
+                const SizedBox(width: 16),
+                Text('분',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).hintColor)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: sortedHours.length,
+              itemBuilder: (context, index) {
+                final hour = sortedHours[index];
+                final hourItems = grouped[hour]!;
+                hourItems
+                    .sort((a, b) => a.departureTime.compareTo(b.departureTime));
 
-                     return Container(
-                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                         decoration: BoxDecoration(
-                              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.05))),
-                         ),
-                         child: Row(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                                 SizedBox(
-                                     width: 40, 
-                                     child: Text(
-                                         (hour == 25 ? '00' : hour).toString().padLeft(2, '0'),  
-                                         textAlign: TextAlign.center,
-                                         style: const TextStyle(
-                                             color: Color(0xFF0052A4),
-                                             fontSize: 14,
-                                             fontWeight: FontWeight.bold,
-                                         )
-                                     )
-                                 ),
-                                 const SizedBox(width: 16),
-                                 Expanded(
-                                     child: Wrap(
-                                         spacing: 12,
-                                         runSpacing: 8,
-                                         children: hourItems.map((item) {
-                                             final minute = item.departureTime.split(':')[1];
-                                             return Text(
-                                                 minute,
-                                                 style: TextStyle(
-                                                     fontSize: 14,
-                                                     fontWeight: item.isExpress ? FontWeight.bold : FontWeight.w500,
-                                                     color: item.isExpress ? Colors.red : Theme.of(context).colorScheme.onSurface,
-                                                 )
-                                             );
-                                         }).toList(),
-                                     ),
-                                 )
-                             ],
-                         ),
-                     );
-                 },
-              ),
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                        bottom: BorderSide(
+                            color: Theme.of(context)
+                                .dividerColor
+                                .withOpacity(0.05))),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                          width: 40,
+                          child: Text(
+                              (hour == 25 ? '00' : hour)
+                                  .toString()
+                                  .padLeft(2, '0'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFF0052A4),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ))),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          children: hourItems.map((item) {
+                            final minute = item.departureTime.split(':')[1];
+                            
+                            // Determine color based on destination (priority) or express status
+                            Color itemColor;
+                            if (item.arrivalStation == '병점') {
+                              itemColor = Colors.green;
+                            } else if (item.arrivalStation == '천안') {
+                              itemColor = Colors.orange;
+                            } else if (item.isExpress) {
+                              itemColor = Colors.red;
+                            } else {
+                              itemColor = Theme.of(context)
+                                  .colorScheme
+                                  .onSurface;
+                            }
+
+                            return Text(
+                              minute,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: item.isExpress
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: itemColor,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      )
+                    ],
+                  ),
+                );
+              },
             ),
+          ),
         ],
       ),
     );
