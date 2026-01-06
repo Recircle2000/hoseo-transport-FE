@@ -260,8 +260,11 @@ class SettingsView extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 0,
+                runSpacing: 8,
                 children: [
                   _buildTextButton(
                     context,
@@ -273,11 +276,13 @@ class SettingsView extends StatelessWidget {
                       }
                     },
                   ),
-                  Container(
-                    height: 12,
-                    width: 1,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    color: Colors.grey[300],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Container(
+                      height: 12,
+                      width: 1,
+                      color: Colors.grey[300],
+                    ),
                   ),
                   _buildTextButton(
                     context,
@@ -297,14 +302,6 @@ class SettingsView extends StatelessWidget {
                 ],
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          '© 2025 Hoseo Transport. All rights reserved.',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey[400],
           ),
         ),
       ],
