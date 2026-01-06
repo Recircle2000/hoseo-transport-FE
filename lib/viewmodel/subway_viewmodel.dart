@@ -1,10 +1,11 @@
+import 'package:flutter/widgets.dart'; // Change to widgets.dart or material.dart for WidgetsBindingObserver
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../models/subway_arrival_model.dart';
 import '../utils/env_config.dart';
 
-class SubwayViewModel extends GetxController {
+class SubwayViewModel extends GetxController with WidgetsBindingObserver {
   WebSocketChannel? _channel;
   final RxMap<String, List<SubwayArrival>> arrivalInfo = <String, List<SubwayArrival>>{}.obs;
   final RxBool isConnected = false.obs;
@@ -13,16 +14,39 @@ class SubwayViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     connectWebSocket();
   }
 
   @override
   void onClose() {
-    _channel?.sink.close();
+    WidgetsBinding.instance.removeObserver(this);
+    disconnectWebSocket();
     super.onClose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print('AppLifecycleState changed to: $state');
+    if (state == AppLifecycleState.paused) {
+      disconnectWebSocket();
+    } else if (state == AppLifecycleState.resumed) {
+      connectWebSocket();
+    }
+  }
+
+  void disconnectWebSocket() {
+    if (_channel != null) {
+      print('Disconnecting from Subway WebSocket');
+      _channel!.sink.close();
+      _channel = null;
+    }
+    isConnected.value = false;
+  }
+
   void connectWebSocket() {
+    if (isConnected.value) return; // Avoid multiple connections
+
     try {
       final baseUrl = EnvConfig.baseUrl; // e.g. https://hotong.click
       // Replace https:// or http:// with wss:// or ws://
@@ -59,9 +83,10 @@ class SubwayViewModel extends GetxController {
           print('WebSocket Error: $e');
         },
         onDone: () {
-          isConnected.value = false;
+          // Only update status if we didn't intentionally close it (checked via _channel null check or similar logic if needed,
+          // but here we just mark as disconnected. If it was intentional, isConnected is likely already false)
+          isConnected.value = false; 
           print('WebSocket Connection Closed');
-          // Reconnect logic could be added here
         },
       );
     } catch (e) {
