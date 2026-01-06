@@ -89,12 +89,12 @@ class _HomeViewState extends State<HomeView> {
                 padding: const EdgeInsets.only(right: 20),
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
                         width: 1,
                       ),
                     ),
@@ -538,7 +538,7 @@ class _HomeViewState extends State<HomeView> {
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             color: isSelected
-                ? Colors.white
+                ? colorScheme.onPrimary
                 : (isDark ? Colors.grey[400] : Colors.grey[600]),
           ),
         ),
