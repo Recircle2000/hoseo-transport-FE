@@ -126,7 +126,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                     children: [
                       ElevatedButton.icon(
                         icon: Icon(Icons.location_on),
-                        label: Text('주변 정류장 찾기'),
+                        label: Text('정류장별 도착 시간표'),
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                           textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -144,7 +144,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        '(정류장별 도착 시간표)',
+                        '(주변 정류장 검색)',
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).hintColor,
