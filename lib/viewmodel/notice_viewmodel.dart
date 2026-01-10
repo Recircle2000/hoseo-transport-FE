@@ -137,7 +137,7 @@ class NoticeViewModel extends GetxController {
         error.value = '공지사항을 불러오는데 실패했습니다';
       }
     } catch (e) {
-      error.value = '네트워크 오류가 발생했습니다';
+      error.value = '오류: $e';
     } finally {
       isLoading.value = false;
     }
