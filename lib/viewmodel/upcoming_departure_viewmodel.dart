@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart'; // 환경 변수 사용을 
 import 'settings_viewmodel.dart';
 import 'notice_viewmodel.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
+import '../utils/env_config.dart';
 
 // BusDeparture에 routeKey 추가 (노선+방향 포함 식별자, 예: '1000_DOWN')
 class BusDeparture {
@@ -35,7 +36,7 @@ class BusDeparture {
 
 class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObserver {
   // 환경 변수에서 BASE_URL 가져오기
-  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://default.url';
+  final String baseUrl = EnvConfig.baseUrl; // 환경 변수에서 가져옴
   final settingsViewModel = Get.find<SettingsViewModel>();
 
   // NoticeViewModel 참조 (지연 초기화)
@@ -547,7 +548,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
 
   Future<void> fetchCeanRealtimeBuses({bool updateUI = true}) async {
     // 실시간 위치 불러오기
-    final resp = await http.get(Uri.parse('https://hotong.click/buses'));
+    final resp = await http.get(Uri.parse('$baseUrl/buses'));
      //final resp = await http.get(Uri.parse('http://10.0.2.2:8000/buses'));
     if (resp.statusCode != 200) {
       if (updateUI) {
