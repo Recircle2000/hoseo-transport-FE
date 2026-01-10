@@ -200,14 +200,14 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
   @override
   void initState() {
     super.initState();
-    // BusMapViewModel 인스턴스 생성 및 초기화
-    busMapViewModel = Get.put(BusMapViewModel(), tag: 'grouped_view');
+    // BusMapViewModel 인스턴스 생성 및 초기화 (Shared Instance)
+    busMapViewModel = Get.put(BusMapViewModel());
     _loadAllNextDepartureTimes();
   }
 
   @override
   void dispose() {
-    Get.delete<BusMapViewModel>(tag: 'grouped_view');
+    Get.delete<BusMapViewModel>();
     super.dispose();
   }
 
