@@ -159,7 +159,7 @@ class _HomeViewState extends State<HomeView> {
                 child: Container(
                   child: ScaleButton(
                     onTap: () {
-                      HapticFeedback.lightImpact();
+                      //HapticFeedback.lightImpact();
                       final notice = noticeViewModel.notice.value;
                       if (notice != null) {
                         Get.to(() => NoticeDetailView(notice: notice));
@@ -248,7 +248,7 @@ class _HomeViewState extends State<HomeView> {
                             icon: Icons.airport_shuttle,
                             color: Color(0xFFB83227),
                             onTap: () {
-                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
                               Get.to(() => ShuttleRouteSelectionView());
                             },
                           ),
@@ -261,7 +261,7 @@ class _HomeViewState extends State<HomeView> {
                             icon: Icons.directions_bus,
                             color: Colors.blue,
                             onTap: () {
-                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
                               Get.to(() => CityBusGroupedView());
                             },
                           ),
@@ -283,7 +283,7 @@ class _HomeViewState extends State<HomeView> {
                   icon: Icons.subway_outlined,
                   color: const Color(0xFF0052A4), // 1호선 색상
                   onTap: () {
-                    HapticFeedback.mediumImpact();
+                    //HapticFeedback.mediumImpact();
                     final settingsViewModel = Get.find<SettingsViewModel>();
                     Get.to(() => SubwayView(stationName: settingsViewModel.selectedSubwayStation.value));
                   },
