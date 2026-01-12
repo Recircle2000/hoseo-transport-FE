@@ -15,6 +15,7 @@ import 'components/auto_scroll_text.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
 import 'subway/subway_view.dart';
+import 'components/scale_button.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -156,77 +157,73 @@ class _HomeViewState extends State<HomeView> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(25),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 0),
+                  child: ScaleButton(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      final notice = noticeViewModel.notice.value;
+                      if (notice != null) {
+                        Get.to(() => NoticeDetailView(notice: notice));
+                      } else {
+                        noticeViewModel.fetchLatestNotice();
+                        Get.to(() => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        final notice = noticeViewModel.notice.value;
-                        if (notice != null) {
-                          Get.to(() => NoticeDetailView(notice: notice));
-                        } else {
-                          noticeViewModel.fetchLatestNotice();
-                          Get.to(() => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
-                        }
-                      },
-                      borderRadius: BorderRadius.circular(25),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: Colors.redAccent.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.campaign,
-                                color: Colors.redAccent,
-                                size: 20,
-                              ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withOpacity(0.1),
+                              shape: BoxShape.circle,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Obx(() {
-                                if (noticeViewModel.isLoading.value) {
-                                  return const Text(
-                                    '로딩중...',
-                                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                                  );
-                                }
-
-                                final notice = noticeViewModel.notice.value;
-                                return AutoScrollText(
-                                  text: notice?.title ?? '새로운 공지사항이 없습니다',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    //fontWeight: FontWeight.w600,
-                                  ),
-                                  scrollDuration: const Duration(seconds: 5),
+                            child: const Icon(
+                              Icons.campaign,
+                              color: Colors.redAccent,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Obx(() {
+                              if (noticeViewModel.isLoading.value) {
+                                return const Text(
+                                  '로딩중...',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey),
                                 );
-                              }),
-                            ),
-                            const SizedBox(width: 5),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 14,
-                              color: Colors.grey,
-                            ),
-                            //const SizedBox(width: 15),
-                          ],
-                        ),
+                              }
+
+                              final notice = noticeViewModel.notice.value;
+                              return AutoScrollText(
+                                text: notice?.title ?? '새로운 공지사항이 없습니다',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  //fontWeight: FontWeight.w600,
+                                ),
+                                scrollDuration: const Duration(seconds: 5),
+                              );
+                            }),
+                          ),
+                          const SizedBox(width: 5),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                          //const SizedBox(width: 15),
+                        ],
                       ),
                     ),
                   ),
@@ -360,100 +357,95 @@ class _HomeViewState extends State<HomeView> {
     final cardColor = Theme.of(context).cardColor;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     
-    return Container(
-      height: height ?? 180,
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(25),
-        child: InkWell(
-          onTap: onTap,
+    return ScaleButton(
+      onTap: onTap,
+      child: Container(
+        height: height ?? 180,
+        decoration: BoxDecoration(
+          color: cardColor,
           borderRadius: BorderRadius.circular(25),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            child: isHorizontal
-                ? Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(isHorizontal ? 8 : 16),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          icon,
-                          size: 32,
-                          color: color,
-                        ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
+            ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: isHorizontal
+              ? Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(isHorizontal ? 8 : 16),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 20),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
+                      child: Icon(
+                        icon,
+                        size: 32,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '실시간 도착 정보 / 시간표',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '실시간 도착 정보 / 시간표',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
                           ),
-                        ],
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.grey[400],
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          icon,
-                          size: 48,
-                          color: color,
-                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
+                      child: Icon(
+                        icon,
+                        size: 48,
+                        color: color,
                       ),
-                    ],
-                  ),
-          ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
