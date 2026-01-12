@@ -9,6 +9,8 @@ import '../shuttle_bus/shuttle_route_detail_view.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import '../city_bus/bus_map_view.dart';
 import 'auto_scroll_text.dart';
+import 'scale_button.dart';
+import '../../viewmodel/busmap_viewmodel.dart';
 
 class UpcomingDeparturesWidget extends StatefulWidget {
   UpcomingDeparturesWidget({Key? key}) : super(key: key);
@@ -111,8 +113,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
 
   // 수동 새로고침 시 카운트다운도 리셋
   void _manualRefresh() {
-    // 햅틱 피드백 추가
-    HapticFeedback.lightImpact();
+
     viewModel.loadData();
     _startRefreshCountdown();
   }
@@ -158,29 +159,31 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 )),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${_remainingSeconds}초',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[600],
-                ),
-              ),
+              Obx(() => viewModel.isRefreshing.value
+                  ? SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: CircularProgressIndicator.adaptive(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      ),
+                    )
+                  : Text(
+                      '${_remainingSeconds}초',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                      ),
+                    )),
               const SizedBox(width: 4),
-              Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(15),
-                child: InkWell(
-                  onTap: _manualRefresh,
-                  borderRadius: BorderRadius.circular(15),
-                  splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  highlightColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6.0),
-                    child: Icon(
-                      Icons.refresh,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
+              ScaleButton(
+                onTap: _manualRefresh,
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Icon(
+                    Icons.refresh,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -432,126 +435,122 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: ScaleButton(
+        onTap: () {
+          // 셔틀버스 클릭 시 상세 페이지로 이동
+          
+          // 해당 셔틀의 scheduleId가 있는 경우에만 이동
+          if (departure.scheduleId != null) {
+            // ShuttleViewModel이 없는 경우 초기화 (Get.find 오류 방지)
+            if (!Get.isRegistered<ShuttleViewModel>()) {
+              Get.put(ShuttleViewModel());
+            }
+            
+            // 셔틀 상세 화면으로 이동
+            Get.to(() => ShuttleRouteDetailView(
+              scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
+              routeName: departure.destination, // 노선명 전달
+              round: 0, // 기본값으로 0 (0으로 설정시 표시되지 않음)
+              startTime: '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
+            ));
+          } else {
+            // scheduleId가 없는 경우 스낵바 표시
+            Get.snackbar(
+              '정보 없음',
+              '해당 셔틀의 상세 정보를 불러올 수 없습니다.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red.withOpacity(0.1),
+              colorText: Colors.red,
+              duration: Duration(seconds: 2),
+            );
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[800] : Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: Material(
-          color: isDarkMode ? Colors.grey[800] : Colors.white,
-          child: InkWell(
-            onTap: () {
-              // 셔틀버스 클릭 시 상세 페이지로 이동
-              HapticFeedback.mediumImpact(); // 햅틱 피드백
-              
-              // 해당 셔틀의 scheduleId가 있는 경우에만 이동
-              if (departure.scheduleId != null) {
-                // ShuttleViewModel이 없는 경우 초기화 (Get.find 오류 방지)
-                if (!Get.isRegistered<ShuttleViewModel>()) {
-                  Get.put(ShuttleViewModel());
-                }
-                
-                // 셔틀 상세 화면으로 이동
-                Get.to(() => ShuttleRouteDetailView(
-                  scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
-                  routeName: departure.destination, // 노선명 전달
-                  round: 0, // 기본값으로 0 (0으로 설정시 표시되지 않음)
-                  startTime: '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
-                ));
-              } else {
-                // scheduleId가 없는 경우 스낵바 표시
-                Get.snackbar(
-                  '정보 없음',
-                  '해당 셔틀의 상세 정보를 불러올 수 없습니다.',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.red.withOpacity(0.1),
-                  colorText: Colors.red,
-                  duration: Duration(seconds: 2),
-                );
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 12,
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AutoScrollText(
-                          text: departure.destination,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 12,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AutoScrollText(
+                        text: departure.destination,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey[600],
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey[600],
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            if (departure.isLastBus) // 막차 표시
-                              Padding(
-                                padding: const EdgeInsets.only(left: 5),
-                                child: Text(
-                                  '막차',
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          ),
+                          if (departure.isLastBus) // 막차 표시
+                            Padding(
+                              padding: const EdgeInsets.only(left: 5),
+                              child: Text(
+                                '막차',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      '${departure.minutesLeft}분',
-                      style: TextStyle(
-                        color: _getTimeColor(departure.minutesLeft),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                            ),
+                        ],
                       ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    '${departure.minutesLeft}분',
+                    style: TextStyle(
+                      color: _getTimeColor(departure.minutesLeft),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -568,110 +567,89 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: ScaleButton(
+        onTap: () {
+          // 시내버스 클릭 시 햅틱 피드백 제공
+          
+          // BusMapView로 이동 (클릭한 노선 정보와 목적지 전달)
+          Get.to(
+            () => BusMapView(
+              initialRoute: departure.routeName,
+              initialDestination: departure.destination,
+            ),
+            // 페이지가 닫힐 때 컨트롤러 제거를 위한 바인딩 (웹소켓 연결 해제)
+            binding: BindingsBuilder(() {
+              if (!Get.isRegistered<BusMapViewModel>()) {
+                Get.put(BusMapViewModel());
+              }
+            }),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[800] : Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: Material(
-          color: isDarkMode ? Colors.grey[800] : Colors.white,
-          child: InkWell(
-            onTap: () {
-              // 시내버스 클릭 시 햅틱 피드백 제공
-              HapticFeedback.mediumImpact();
-              
-              // BusMapView로 이동 (클릭한 노선 정보와 목적지 전달)
-              Get.to(() => BusMapView(
-                initialRoute: departure.routeName,
-                initialDestination: departure.destination,
-              ));
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 12,
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 자동 롤링 텍스트
-                        AutoScrollText(
-                          text: '${departure.routeName} → ${departure.destination}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 12,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 자동 롤링 텍스트
+                      AutoScrollText(
+                        text: '${departure.routeName} → ${departure.destination}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Builder(
-                          builder: (context) {
-                            // 실시간 버스인지 확인
-                            final isRealtime = departure.destination == '호서대천캠' &&
-                                (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
-                            
-                            // 실시간 버스가 아닐 때만 출발 시간 표시
-                            if (isRealtime) {
-                              // 실시간 버스는 문자열 그대로 출력, Row를 Expanded로 감싸 overflow 방지
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      '위치 : ' + departure.departureTime.toString(),
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey[600],
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      softWrap: false,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  if (departure.isLastBus)
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 5),
-                                      child: Text(
-                                        '막차',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              );
-                            }
-
+                      ),
+                      Builder(
+                        builder: (context) {
+                          // 실시간 버스인지 확인
+                          final isRealtime = departure.destination == '호서대천캠' &&
+                              (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
+                          
+                          // 실시간 버스가 아닐 때만 출발 시간 표시
+                          if (isRealtime) {
+                            // 실시간 버스는 문자열 그대로 출력, Row를 Expanded로 감싸 overflow 방지
                             return Row(
                               children: [
-                                Text(
-                                  '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey[600],
-                                    overflow: TextOverflow.ellipsis,
+                                Expanded(
+                                  child: Text(
+                                    '위치 : ' + departure.departureTime.toString(),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    softWrap: false,
+                                    maxLines: 1,
                                   ),
                                 ),
                                 if (departure.isLastBus)
@@ -688,61 +666,86 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                                   ),
                               ],
                             );
-                          },
-                        ),
-                      ],
-                    ),
+                          }
+
+                          return Row(
+                            children: [
+                              Text(
+                                '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')} 출발',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[600],
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (departure.isLastBus)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5),
+                                  child: Text(
+                                    '막차',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  Builder(
-                    builder: (context) {
-                      // 실시간 버스인지 확인 (destination이 "호서대(천안)"이고 routeKey가 24_DOWN 또는 81_DOWN)
-                      final isRealtime = departure.destination == '호서대천캠' &&
-                          (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
-                      
-                      String displayText;
-                      Color badgeColor;
-                      
-                      if (isRealtime) {
-                        // 실시간 버스: 남은 정거장 표시
-                        final left = departure.minutesLeft;
-                        if (left == 1) {
-                          displayText = '전';
-                          badgeColor = Colors.red;
-                        } else if (left == 2) {
-                          displayText = '전전';
-                          badgeColor = Colors.orange;
-                        } else if (left >= 3) {
-                          displayText = '${left}전';
-                          badgeColor = Colors.green;
-                        } else {
-                          displayText = '';
-                          badgeColor = Colors.blue;
-                        }
+                ),
+                Builder(
+                  builder: (context) {
+                    // 실시간 버스인지 확인 (destination이 "호서대(천안)"이고 routeKey가 24_DOWN 또는 81_DOWN)
+                    final isRealtime = departure.destination == '호서대천캠' &&
+                        (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
+                    
+                    String displayText;
+                    Color badgeColor;
+                    
+                    if (isRealtime) {
+                      // 실시간 버스: 남은 정거장 표시
+                      final left = departure.minutesLeft;
+                      if (left == 1) {
+                        displayText = '전';
+                        badgeColor = Colors.red;
+                      } else if (left == 2) {
+                        displayText = '전전';
+                        badgeColor = Colors.orange;
+                      } else if (left >= 3) {
+                        displayText = '${left}전';
+                        badgeColor = Colors.green;
                       } else {
-                        // 기존 시내버스: 분 표시
-                        displayText = '${departure.minutesLeft}분';
-                        badgeColor = _getTimeColor(departure.minutesLeft);
+                        displayText = '';
+                        badgeColor = Colors.blue;
                       }
-                      
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: badgeColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(15),
+                    } else {
+                      // 기존 시내버스: 분 표시
+                      displayText = '${departure.minutesLeft}분';
+                      badgeColor = _getTimeColor(departure.minutesLeft);
+                    }
+                    
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        displayText,
+                        style: TextStyle(
+                          color: badgeColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
                         ),
-                        child: Text(
-                          displayText,
-                          style: TextStyle(
-                            color: badgeColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ),

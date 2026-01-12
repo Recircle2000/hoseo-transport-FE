@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import '../../models/shuttle_models.dart';
+import '../components/scale_button.dart';
 
 class NaverMapStationDetailView extends StatefulWidget {
   final int stationId;
@@ -387,9 +388,17 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     final brightness = Theme.of(context).brightness;
     
     if (Platform.isIOS) {
-      return CupertinoButton(
-        padding: EdgeInsets.zero,
-        child: Container(
+      return ScaleButton(
+        onTap: hasImage
+            ? () {
+
+                _showImageViewer(stationInfo.imageUrl!);
+              }
+            : () {
+
+                _showNoImageAlert();
+              },
+        child: Container( 
           width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
@@ -432,62 +441,46 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             ],
           ),
         ),
-        onPressed: hasImage
-            ? () {
-                HapticFeedback.lightImpact();
-                _showImageViewer(stationInfo.imageUrl!);
-              }
-            : () {
-                HapticFeedback.lightImpact();
-                _showNoImageAlert();
-              },
       );
     } else {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: hasImage
-              ? (brightness == Brightness.dark
-                  ? Colors.blue.withOpacity(0.3)
-                  : Colors.blue.withOpacity(0.1))
-              : (brightness == Brightness.dark
-                  ? Colors.grey.withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.1)),
-          foregroundColor: hasImage
-              ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
-              : Colors.grey,
+      return ScaleButton(
+        onTap: hasImage ? () => _showImageViewer(stationInfo.imageUrl!) : _showNoImageAlert,
+        child: Container(
+          width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
+          decoration: BoxDecoration(
+            color: hasImage
+                ? (brightness == Brightness.dark
+                    ? Colors.blue.withOpacity(0.3)
+                    : Colors.blue.withOpacity(0.1))
+                : (brightness == Brightness.dark
+                    ? Colors.grey.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.1)),
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: Colors.transparent, // Remove border to match shadow style or keep if necessary, but shadows usually replace borders in this design.
-              width: 0,
-            ),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              hasImage ? Icons.photo : Icons.photo_library_outlined,
-              color: hasImage
-                  ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
-                  : Colors.grey,
-            ),
-            SizedBox(width: 8),
-            Text(
-              '정류장 사진 보기',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                hasImage ? Icons.photo : Icons.photo_library_outlined,
                 color: hasImage
                     ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
                     : Colors.grey,
               ),
-            ),
-          ],
+              SizedBox(width: 8),
+              Text(
+                '정류장 사진 보기',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: hasImage
+                      ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
+                      : Colors.grey,
+                ),
+              ),
+            ],
+          ),
         ),
-        onPressed: hasImage ? () => _showImageViewer(stationInfo.imageUrl!) : _showNoImageAlert,
       );
     }
   }
