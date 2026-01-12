@@ -303,6 +303,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
         child: Stack(
           children: [
             NaverMap(
+              key: ValueKey(Theme.of(context).brightness),
               options: NaverMapViewOptions(
                 initialCameraPosition: NCameraPosition(
                   target: NLatLng(
@@ -312,6 +313,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                   zoom: 16,
                 ),
                 mapType: NMapType.basic,
+                nightModeEnable: Theme.of(context).brightness == Brightness.dark,
                 maxZoom: 18,
                 minZoom: 10,
                 contentPadding: EdgeInsets.zero,
