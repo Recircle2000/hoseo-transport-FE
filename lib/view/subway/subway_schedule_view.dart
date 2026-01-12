@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/subway_schedule_model.dart';
 import '../../viewmodel/subway_schedule_viewmodel.dart';
+import 'dart:io' show Platform;
 
 class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
   final String? initialStationName;
@@ -181,7 +182,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
         children: [
           IconButton(
             onPressed: () => Get.back(),
-            icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onBackground),
+            icon: Icon(Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back, color: Theme.of(context).colorScheme.onBackground),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(

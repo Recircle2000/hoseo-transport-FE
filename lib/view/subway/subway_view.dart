@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../viewmodel/subway_viewmodel.dart';
 import '../../models/subway_arrival_model.dart';
 import 'subway_schedule_view.dart';
+import 'dart:io' show Platform;
 
 class SubwayView extends GetView<SubwayViewModel> {
   final String stationName;
@@ -57,7 +58,7 @@ class SubwayView extends GetView<SubwayViewModel> {
         children: [
           IconButton(
             onPressed: () => Get.back(),
-            icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onBackground),
+            icon: Icon(Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back, color: Theme.of(context).colorScheme.onBackground),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(
