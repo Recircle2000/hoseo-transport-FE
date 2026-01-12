@@ -368,11 +368,11 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     String message;
     String? firstTimeText;
     if (type == '셔틀' && viewModel.isShuttleServiceNotOperated.value) {
-      message = '모든 셔틀버스 운행 없음';
+      message = '오늘 셔틀버스 운행 없음';
     } else if (type == '셔틀' && viewModel.isShuttleServiceEnded.value) {
-      message = '모든 셔틀버스 운행 종료';
+      message = '오늘 셔틀버스 운행 종료';
     } else if (type == '버스' && viewModel.isCityBusServiceEnded.value) {
-      message = '모든 시내버스 운행 종료';
+      message = '오늘 시내버스 운행 종료';
     } else {
       message = '90분 내 출발 $type 없음';
     }
