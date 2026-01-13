@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../../viewmodel/shuttle_viewmodel.dart';
 import '../../models/shuttle_models.dart';
+import '../components/scale_button.dart';
 
 class NaverMapStationDetailView extends StatefulWidget {
   final int stationId;
@@ -141,9 +142,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
       body: Obx(() {
         if (isLoading.value) {
           return Center(
-            child: Platform.isIOS
-                ? CupertinoActivityIndicator()
-                : CircularProgressIndicator(),
+            child: CircularProgressIndicator.adaptive(),
           );
         }
         
@@ -213,11 +212,14 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 10,
+        //     offset: const Offset(0, 0),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,17 +289,21 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
       width: double.infinity,
       height: 450,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.3),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(25),
         child: Stack(
           children: [
             NaverMap(
+              key: ValueKey(Theme.of(context).brightness),
               options: NaverMapViewOptions(
                 initialCameraPosition: NCameraPosition(
                   target: NLatLng(
@@ -307,6 +313,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                   zoom: 16,
                 ),
                 mapType: NMapType.basic,
+                nightModeEnable: Theme.of(context).brightness == Brightness.dark,
                 maxZoom: 18,
                 minZoom: 10,
                 contentPadding: EdgeInsets.zero,
@@ -383,9 +390,17 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
     final brightness = Theme.of(context).brightness;
     
     if (Platform.isIOS) {
-      return CupertinoButton(
-        padding: EdgeInsets.zero,
-        child: Container(
+      return ScaleButton(
+        onTap: hasImage
+            ? () {
+
+                _showImageViewer(stationInfo.imageUrl!);
+              }
+            : () {
+
+                _showNoImageAlert();
+              },
+        child: Container( 
           width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
@@ -396,17 +411,14 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                 : (brightness == Brightness.dark
                     ? Colors.grey.withOpacity(0.3)
                     : Colors.grey.withOpacity(0.1)),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: hasImage
-                  ? (brightness == Brightness.dark
-                      ? Colors.blue.withOpacity(0.5)
-                      : Colors.blue.withOpacity(0.3))
-                  : (brightness == Brightness.dark
-                      ? Colors.grey.withOpacity(0.5)
-                      : Colors.grey.withOpacity(0.3)),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -431,68 +443,46 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             ],
           ),
         ),
-        onPressed: hasImage
-            ? () {
-                HapticFeedback.lightImpact();
-                _showImageViewer(stationInfo.imageUrl!);
-              }
-            : () {
-                HapticFeedback.lightImpact();
-                _showNoImageAlert();
-              },
       );
     } else {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: hasImage
-              ? (brightness == Brightness.dark
-                  ? Colors.blue.withOpacity(0.3)
-                  : Colors.blue.withOpacity(0.1))
-              : (brightness == Brightness.dark
-                  ? Colors.grey.withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.1)),
-          foregroundColor: hasImage
-              ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
-              : Colors.grey,
+      return ScaleButton(
+        onTap: hasImage ? () => _showImageViewer(stationInfo.imageUrl!) : _showNoImageAlert,
+        child: Container(
+          width: double.infinity,
           padding: EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: hasImage
-                  ? (brightness == Brightness.dark
-                      ? Colors.blue.withOpacity(0.5)
-                      : Colors.blue.withOpacity(0.3))
-                  : (brightness == Brightness.dark
-                      ? Colors.grey.withOpacity(0.5)
-                      : Colors.grey.withOpacity(0.3)),
-              width: 1,
-            ),
+          decoration: BoxDecoration(
+            color: hasImage
+                ? (brightness == Brightness.dark
+                    ? Colors.blue.withOpacity(0.3)
+                    : Colors.blue.withOpacity(0.1))
+                : (brightness == Brightness.dark
+                    ? Colors.grey.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.1)),
+            borderRadius: BorderRadius.circular(20),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              hasImage ? Icons.photo : Icons.photo_library_outlined,
-              color: hasImage
-                  ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
-                  : Colors.grey,
-            ),
-            SizedBox(width: 8),
-            Text(
-              '정류장 사진 보기',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                hasImage ? Icons.photo : Icons.photo_library_outlined,
                 color: hasImage
                     ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
                     : Colors.grey,
               ),
-            ),
-          ],
+              SizedBox(width: 8),
+              Text(
+                '정류장 사진 보기',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: hasImage
+                      ? (brightness == Brightness.dark ? Colors.blue : Colors.blue.shade700)
+                      : Colors.grey,
+                ),
+              ),
+            ],
+          ),
         ),
-        onPressed: hasImage ? () => _showImageViewer(stationInfo.imageUrl!) : _showNoImageAlert,
       );
     }
   }
@@ -665,7 +655,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                       return Container(
                         height: 300,
                         child: Center(
-                          child: CircularProgressIndicator(
+                          child: CircularProgressIndicator.adaptive(
                             value: loadingProgress.expectedTotalBytes != null
                                 ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
                                 : null,

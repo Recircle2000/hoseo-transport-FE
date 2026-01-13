@@ -49,8 +49,18 @@ class NearbyStopsView extends StatelessWidget {
       final isLoading = viewModel.isLoadingLocation.value;
       final hasLocation = viewModel.currentPosition.value != null;
       
-      return Card(
-        elevation: 2,
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
+            ),
+          ],
+        ),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           width: double.infinity,
@@ -74,9 +84,7 @@ class NearbyStopsView extends StatelessWidget {
                 Container(
                   height: 20,
                   width: 20,
-                  child: Platform.isIOS
-                        ? CupertinoActivityIndicator()
-                    : CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                 )
               else if (!hasLocation)
                 _buildCompactLocationButton(context)
@@ -106,7 +114,7 @@ class NearbyStopsView extends StatelessWidget {
             ],
         ),
       ),
-    );
+      );
     });
   }
 
@@ -155,9 +163,7 @@ class NearbyStopsView extends StatelessWidget {
       
       if (isLoading) {
         return Center(
-          child: Platform.isIOS
-            ? CupertinoActivityIndicator()
-            : CircularProgressIndicator(),
+          child: CircularProgressIndicator.adaptive(),
         );
       }
       
@@ -195,8 +201,16 @@ class NearbyStopsView extends StatelessWidget {
           SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
+              // border: Border.all(color: Colors.grey.shade300),
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
@@ -280,8 +294,16 @@ class NearbyStopsView extends StatelessWidget {
           child: Container(
             height: 50,
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
+              // border: Border.all(color: Theme.of(context).dividerColor),
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -385,8 +407,16 @@ class NearbyStopsView extends StatelessWidget {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(Get.context!).dividerColor),
-            borderRadius: BorderRadius.circular(8),
+            // border: Border.all(color: Theme.of(Get.context!).dividerColor),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: InkWell(
@@ -539,9 +569,7 @@ class NearbyStopsView extends StatelessWidget {
     return Obx(() {
       if (viewModel.isLoadingSchedules.value) {
         return Center(
-          child: Platform.isIOS
-            ? CupertinoActivityIndicator()
-            : CircularProgressIndicator(),
+            child: CircularProgressIndicator.adaptive(),
         );
       }
       
@@ -594,8 +622,16 @@ class NearbyStopsView extends StatelessWidget {
       
       return Container(
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
+          // border: Border.all(color: Colors.grey.shade300),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -604,8 +640,8 @@ class NearbyStopsView extends StatelessWidget {
               decoration: BoxDecoration(
                 color: headerBgColor,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
                 ),
               ),
               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),

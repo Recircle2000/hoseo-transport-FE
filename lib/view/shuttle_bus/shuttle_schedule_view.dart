@@ -75,11 +75,14 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 10,
+        //     offset: const Offset(0, 0),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,19 +198,25 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
     
     return Obx(() => viewModel.isLoadingSchedules.value
       ? Center(
-          child: isIOS
-            ? CupertinoActivityIndicator() // iOS 기본 인디케이터
-            : CircularProgressIndicator() // Android 기본 인디케이터
+          child: CircularProgressIndicator.adaptive()
         )
       : viewModel.schedules.isEmpty
           ? Center(child: Text('선택한 노선과 일자에 해당하는 운행 정보가 없습니다'))
           : Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey.withOpacity(0.3),
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
+                // border: Border.all(
+                //   color: Colors.grey.withOpacity(0.3),
+                //   width: 1,
+                // ),
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
               ),  
               child: Column(
                 children: [
@@ -219,8 +228,8 @@ class _ShuttleScheduleViewState extends State<ShuttleScheduleView> {
                         ? Theme.of(context).cardColor.withOpacity(0.5)
                         : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
                       borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
+                        topLeft: Radius.circular(25),
+                        topRight: Radius.circular(25),
                       ),
                     ),
                     child: Row(

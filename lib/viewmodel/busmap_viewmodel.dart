@@ -56,6 +56,41 @@ class BusMapViewModel extends GetxController with WidgetsBindingObserver {
   // 모든 노선의 버스 데이터 저장 (grouped_bus_view에서 사용)
   final RxMap<String, List<Bus>> allRoutesBusData = <String, List<Bus>>{}.obs;
 
+  /// 노선을 변경하고 데이터를 새로고침하는 함수 (웹소켓 재연결 없이)
+  void updateSelectedRoute(String route) {
+    // 이미 같은 노선이면 무시
+    if (selectedRoute.value == route) return;
+    
+    selectedRoute.value = route;
+    
+    // 이전 노선의 데이터 초기화
+    markers.clear();
+    currentPositions.clear();
+    detailedBusPositions.clear();
+    routePolylinePoints.clear();
+    
+    // 데이터 새로고침
+    fetchRouteData();
+    fetchStationData();
+    
+    // 🚀 최적화: 이미 수신된 데이터가 있다면 즉시 표시
+    if (allRoutesBusData.containsKey(route) && allRoutesBusData[route]!.isNotEmpty) {
+      final busList = allRoutesBusData[route]!;
+      updateBusMarkers(busList);
+      _updateCurrentPosition(busList);
+    }
+    
+    // 웹소켓에 새 노선 정보 전송
+    if (channel != null && channel.sink != null) {
+      try {
+        channel.sink.add(jsonEncode({"route": selectedRoute.value}));
+        print("Updated WebSocket route preference: ${selectedRoute.value}");
+      } catch (e) {
+        print("Failed to send route update to WebSocket: $e");
+      }
+    }
+  }
+
   // bus_times.json 캐시
   Map<String, dynamic>? _busTimesCache;
 

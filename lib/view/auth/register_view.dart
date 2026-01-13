@@ -287,7 +287,7 @@ class _PasswordStep extends StatelessWidget {
               height: 56,
               child: Obx(() {
                 if (viewModel.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 }
                 return ElevatedButton(
                   onPressed: (viewModel.isPasswordValid.value && viewModel.isPasswordMatch.value)

@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart'; // 환경 변수 사용을 
 import 'settings_viewmodel.dart';
 import 'notice_viewmodel.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
+import '../utils/env_config.dart';
 
 // BusDeparture에 routeKey 추가 (노선+방향 포함 식별자, 예: '1000_DOWN')
 class BusDeparture {
@@ -35,7 +36,7 @@ class BusDeparture {
 
 class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObserver {
   // 환경 변수에서 BASE_URL 가져오기
-  final String baseUrl = dotenv.env['BASE_URL'] ?? 'http://default.url';
+  final String baseUrl = EnvConfig.baseUrl; // 환경 변수에서 가져옴
   final settingsViewModel = Get.find<SettingsViewModel>();
 
   // NoticeViewModel 참조 (지연 초기화)
@@ -49,6 +50,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
 
   // 데이터 관련 변수들
   var isLoading = true.obs;
+  var isRefreshing = false.obs; // 실시간/자동 새로고침 로딩 상태 (UI 전체 로딩이 아닌 상단 인디케이터용)
   var error = ''.obs;
   var _isInitialLoad = true.obs; // 첫 로딩 여부 추적
 
@@ -114,22 +116,17 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     ever(settingsViewModel.selectedCampus, (_) {
       _isInitialLoad.value = true; // 캠퍼스 변경 시 첫 로딩으로 처리
       loadData();
-      // 타이머도 새로운 간격으로 재시작
-      if (isActive.value && isOnHomePage.value) {
-        _startRefreshTimer();
-      }
+      // loadData 내부에서 타이머 관리하므로 _startRefreshTimer() 호출 불필요
     });
 
     // 활성 상태 변경 리스너 (앱 포그라운드/백그라운드)
     ever(isActive, (active) {
       if (active && isOnHomePage.value) {
-        print('앱이 활성화됨 -> 즉시 새로고침 및 타이머 시작');
-        loadData();
+        print('앱이 활성화됨 -> 즉시 새로고침');
         // 공지사항도 함께 새로고침
         noticeViewModel?.fetchLatestNotice();
-        _startRefreshTimer();
-        // UI 타이머도 초기화하기 위해 콜백 호출
-        _onRefreshCallback?.call();
+        // 데이터 로드 (완료 후 타이머 시작 및 UI 리셋은 loadData 내부에서 처리)
+        loadData();
       } else {
         print('앱이 비활성화됨 -> 타이머 중지');
         _stopRefreshTimer();
@@ -139,13 +136,11 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     // 페이지 상태 변경 리스너 (홈 페이지/다른 페이지)
     ever(isOnHomePage, (onHomePage) {
       if (onHomePage && isActive.value) {
-        print('홈페이지로 돌아옴 -> 즉시 새로고침 및 타이머 시작');
-        loadData();
+        print('홈페이지로 돌아옴 -> 즉시 새로고침');
         // 공지사항도 함께 새로고침
         noticeViewModel?.fetchLatestNotice();
-        _startRefreshTimer();
-        // UI 타이머도 초기화하기 위해 콜백 호출
-        _onRefreshCallback?.call();
+        // 데이터 로드 (완료 후 타이머 시작 및 UI 리셋은 loadData 내부에서 처리)
+        loadData();
       } else {
         print('다른 페이지로 이동 -> 타이머 중지');
         _stopRefreshTimer();
@@ -156,7 +151,6 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
     WidgetsBinding.instance.addPostFrameCallback((_) {
       print('위젯 렌더링 완료 후 초기 데이터 로드');
       loadData();
-      _startRefreshTimer();
     });
   }
 
@@ -187,19 +181,18 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   }
 
   void _startRefreshTimer() {
-    // 기존 타이머 취소
+    // 기존 타이머 취소 (중복 실행 방지)
     _stopRefreshTimer();
 
-    // 천안 캠퍼스는 5초, 나머지는 30초마다 자동 업데이트
+    // 천안 캠퍼스는 5초, 나머지는 30초 후 업데이트 (단발성 Timer)
     final refreshInterval = settingsViewModel.selectedCampus.value == '천안' 
         ? Duration(seconds: 5) 
         : Duration(seconds: 30);
     
-    _refreshTimer = Timer.periodic(refreshInterval, (_) {
-      print('자동 새로고침');
-      loadData(silent: true); // 자동 새로고침은 조용히 수행
-      // 콜백 호출로 UI의 카운트다운도 초기화
-      _onRefreshCallback?.call();
+    // Timer.periodic 대신 Timer 사용 -> loadData 완료 후 다시 예약하는 재귀적 구조
+    _refreshTimer = Timer(refreshInterval, () {
+      print('자동 새로고침 시작');
+      loadData(silent: true);
     });
   }
 
@@ -209,11 +202,15 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
   }
 
   Future<void> loadData({bool silent = false}) async {
+    // 로딩 중에는 타이머가 돌 필요 없으므로 취소
+    _stopRefreshTimer();
+
     print('데이터 로드 시작 (silent: $silent)');
     // silent가 false이면 항상 로딩 인디케이터 표시 (수동 새로고침 또는 첫 로딩)
     if (!silent) {
       isLoading.value = true;
     }
+    isRefreshing.value = true; // 로딩 시작
     error.value = '';
 
     try {
@@ -261,6 +258,16 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
       _isInitialLoad.value = false;
     } finally {
       isLoading.value = false;
+      isRefreshing.value = false; // 로딩 종료
+
+      // 로딩 완료 후 (성공/실패 무관)
+      // 1. UI 타이머 리셋
+      _onRefreshCallback?.call();
+      
+      // 2. 다음 자동 새로고침 예약 (활성 상태이고 홈일 때만)
+      if (isActive.value && isOnHomePage.value) {
+        _startRefreshTimer();
+      }
     }
   }
 
@@ -547,7 +554,7 @@ class UpcomingDepartureViewModel extends GetxController with WidgetsBindingObser
 
   Future<void> fetchCeanRealtimeBuses({bool updateUI = true}) async {
     // 실시간 위치 불러오기
-    final resp = await http.get(Uri.parse('https://hotong.click/buses'));
+    final resp = await http.get(Uri.parse('$baseUrl/buses'));
      //final resp = await http.get(Uri.parse('http://10.0.2.2:8000/buses'));
     if (resp.statusCode != 200) {
       if (updateUI) {

@@ -50,6 +50,9 @@ class _BusMapDetailViewState extends State<BusMapDetailView> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       ),
       body: GetBuilder<BusMapViewModel>(
         builder: (controller) => Stack(
@@ -105,18 +108,36 @@ class _BusMapDetailViewState extends State<BusMapDetailView> {
             Positioned(
               right: 16,
               bottom: 16,
-              child: Obx(() => FloatingActionButton(
-                heroTag: "locationButton",
-                mini: true,
-                onPressed: () => controller.moveToCurrentLocation(),
-                backgroundColor: Colors.white,
-                child: Icon(
-                  controller.isLocationLoading.value
-                      ? Icons.hourglass_empty
-                      : Icons.my_location,
-                  color: controller.isLocationEnabled.value
-                      ? Colors.blue
-                      : Colors.grey,
+              child: Obx(() => Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(50),
+                    onTap: () => controller.moveToCurrentLocation(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        controller.isLocationLoading.value
+                            ? Icons.hourglass_empty
+                            : Icons.my_location,
+                        color: controller.isLocationEnabled.value
+                            ? Colors.blue
+                            : Colors.grey,
+                        size: 24,
+                      ),
+                    ),
+                  ),
                 ),
               )),
             ),

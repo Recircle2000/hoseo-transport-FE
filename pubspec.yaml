@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.9+34
+version: 1.1.0+43
 
 
 environment:
@@ -72,12 +72,17 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#FFFFFF" # 스플래시 화면의 배경색 설정 (흰색)
-  image: "assets/icons/app_icon.png" # 스플래시 화면에 표시될 이미지 설정 (앱 로고)
-  android: true # 안드로이드 플랫폼에 스플래시 화면 적용
-  ios: true # iOS 플랫폼에 스플래시 화면 적용
-  android_12: # Android 12 이상을 위한 추가 설정
-    color: "#FFFFFF" # Android 12 이상 스플래시 화면의 배경색 (흰색)
-    image: "assets/icons/app_icon.png" # Android 12 이상 스플래시 화면에 표시될 이미지
+  image: "assets/icons/app_icon_new.png" # 투명 배경 이미지로 변경
+  color_dark: "#121212" # 다크모드 배경색
+  image_dark: "assets/icons/app_icon_new.png" # 투명 배경 이미지로 변경
+  android: true 
+  ios: true 
+  android_12: 
+    color: "#FFFFFF" 
+    image: "assets/icons/app_icon_new.png" 
+    color_dark: "#121212" 
+    image_dark: "assets/icons/app_icon_new.png" 
+
 
 dev_dependencies:
   flutter_test:

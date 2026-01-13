@@ -8,6 +8,7 @@ import '../../models/shuttle_models.dart';
 import 'shuttle_schedule_view.dart'; // 시간표 화면 임포트
 import 'package:intl/intl.dart';
 import 'nearby_stops_view.dart'; // 가까운 정류장 찾기 화면 임포트
+import '../components/scale_button.dart';
 
 class ShuttleRouteSelectionView extends StatelessWidget {
   final ShuttleViewModel viewModel = Get.put(ShuttleViewModel());
@@ -33,15 +34,9 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 
                 // 검색 버튼
                 Center(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      backgroundColor: shuttleColor,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
+                  child: ScaleButton(
+                    onTap: () {
+
                       // 노선과 운행일자가 모두 선택되었는지 확인
                       if (viewModel.selectedRouteId.value == -1) {
                         Get.snackbar(
@@ -102,7 +97,28 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                         });
                       }
                     },
-                    child: Text('시간표 조회'),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      decoration: BoxDecoration(
+                        color: shuttleColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 5,
+                            offset: Offset(0, 3)
+                          )
+                        ],
+                      ),
+                      child: Text(
+                        '시간표 조회',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 
@@ -120,23 +136,44 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                 Center(
                   child: Column(
                     children: [
-                      ElevatedButton.icon(
-                        icon: Icon(Icons.location_on),
-                        label: Text('주변 정류장 찾기'),
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                          textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
+                      ScaleButton(
+                        onTap: () {
+
                           Get.to(() => NearbyStopsView());
                         },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade700,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              )
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.location_on, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                '정류장별 도착 시간표',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       SizedBox(height: 8),
                       Text(
-                        '(정류장별 도착 시간표)',
+                        '(주변 정류장 검색)',
                         style: TextStyle(
                           fontSize: 12,
                           color: Theme.of(context).hintColor,
@@ -193,11 +230,9 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   // 플랫폼별 로딩 인디케이터
   Widget _buildPlatformLoadingIndicator() {
-    if (Platform.isIOS) {
-      return CupertinoActivityIndicator(radius: 15.0);
-    } else {
-      return CircularProgressIndicator(color: shuttleColor);
-    }
+    return CircularProgressIndicator.adaptive(
+      valueColor: AlwaysStoppedAnimation<Color>(shuttleColor),
+    );
   }
 
   // 현재 시간 정보 및 도움말 카드
@@ -216,11 +251,14 @@ class ShuttleRouteSelectionView extends StatelessWidget {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: borderColor,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(25),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.1),
+        //     blurRadius: 0,
+        //     offset: const Offset(0, 0),
+        //   ),
+        // ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,13 +317,21 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     // 셔틀버스 색상으로 통일
     final Color shuttleColor = Color(0xFFB83227);
     
-    return GestureDetector(
+    return ScaleButton(
       onTap: () => _showIOSRoutePicker(context),
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).dividerColor),
-          borderRadius: BorderRadius.circular(8),
+          // border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
+            ),
+          ],
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -392,8 +438,16 @@ class ShuttleRouteSelectionView extends StatelessWidget {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(Get.context!).dividerColor),
-        borderRadius: BorderRadius.circular(8),
+        // border: Border.all(color: Theme.of(Get.context!).dividerColor),
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Obx(() {
@@ -439,13 +493,21 @@ class ShuttleRouteSelectionView extends StatelessWidget {
           ),
         ),
         SizedBox(height: 12),
-        GestureDetector(
+        ScaleButton(
           onTap: () => _showIOSDatePicker(context),
           child: Container(
             height: 50,
             decoration: BoxDecoration(
-              border: Border.all(color: Theme.of(context).dividerColor),
-              borderRadius: BorderRadius.circular(8),
+              // border: Border.all(color: Theme.of(context).dividerColor),
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(25),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 0),
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -549,11 +611,19 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         Container(
           height: 50,
           decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(8),
+            // border: Border.all(color: Theme.of(context).dividerColor),
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 0),
+              ),
+            ],
           ),
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: InkWell(
+          child: ScaleButton(
             onTap: () => _showAndroidDatePicker(context),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

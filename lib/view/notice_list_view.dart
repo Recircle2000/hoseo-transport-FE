@@ -71,8 +71,8 @@ class NoticeListView extends GetView<NoticeViewModel> {
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(
-            child: CircularProgressIndicator(
-              color: colorScheme.primary,
+            child: CircularProgressIndicator.adaptive(
+              valueColor: AlwaysStoppedAnimation(colorScheme.primary),
               strokeWidth: 3,
             ),
           );

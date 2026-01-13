@@ -11,8 +11,11 @@ import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
+import 'components/auto_scroll_text.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
+import 'subway/subway_view.dart';
+import 'components/scale_button.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -29,8 +32,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     // 다크모드 감지
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? Colors.grey[900] : const Color(0xFFFAFAFA);
+    final backgroundColor = Theme.of(context).scaffoldBackgroundColor;
 
     return WillPopScope(
       // 뒤로가기 처리
@@ -81,27 +83,37 @@ class _HomeViewState extends State<HomeView> {
           actions: [
             Obx(() {
               final controller = Get.find<SettingsViewModel>();
+              final isAsan = controller.selectedCampus.value == '아산';
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+
               return Padding(
-                padding: const EdgeInsets.only(right: 20, top: 10, bottom: 8),
-                child: ToggleButtons(
-                  borderRadius: BorderRadius.circular(8),
-                  constraints: const BoxConstraints(minHeight: 26, minWidth: 40),
-                  isSelected: [
-                    controller.selectedCampus.value == '아산',
-                    controller.selectedCampus.value == '천안',
-                  ],
-                  onPressed: (index) {
-                    HapticFeedback.lightImpact();
-                    if (index == 0) controller.setCampus('아산');
-                    if (index == 1) controller.setCampus('천안');
-                  },
-                  color: Colors.grey,
-                  selectedColor: Theme.of(context).colorScheme.primary,
-                  fillColor: Colors.redAccent.withOpacity(0.8),
-                  children: const [
-                    Text('아캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text('천캠', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ],
+                padding: const EdgeInsets.only(right: 20),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildToggleButton(context, '아캠', isAsan, () {
+                          HapticFeedback.lightImpact();
+                          controller.setCampus('아산');
+                        }),
+                        // const SizedBox(width: 2), // 공간 없이 붙여서 자연스럽게
+                        _buildToggleButton(context, '천캠', !isAsan, () {
+                          HapticFeedback.lightImpact();
+                          controller.setCampus('천안');
+                        }),
+                      ],
+                    ),
+                  ),
                 ),
               );
             }),
@@ -113,192 +125,111 @@ class _HomeViewState extends State<HomeView> {
             children: [
               // 공지사항
               Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '공지사항',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        noticeViewModel.fetchAllNotices();
+                        Get.to(() => const NoticeListView());
+                      },
+                      child: Text(
+                        '전체보기',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(16),
-                    child: Column(
-                      children: [
-                        // 공지사항 제목과 전체보기 버튼이 있는 헤더
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Text(
-                                    '공지사항',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  HapticFeedback.lightImpact();
-                                  noticeViewModel.fetchAllNotices();
-                                  Get.to(() => const NoticeListView());
-                                },
-                                style: TextButton.styleFrom(
-                                  minimumSize: Size.zero,
-                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  '전체보기',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                            ],
+                child: Container(
+                  child: ScaleButton(
+                    onTap: () {
+                      //HapticFeedback.lightImpact();
+                      final notice = noticeViewModel.notice.value;
+                      if (notice != null) {
+                        Get.to(() => NoticeDetailView(notice: notice));
+                      } else {
+                        noticeViewModel.fetchLatestNotice();
+                        Get.to(() => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 0),
                           ),
-                        ),
-                        // 구분선 추가
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 4),
-                          child: Divider(
-                            height: 1,
-                            thickness: 1,
-                            indent: 16,
-                            endIndent: 16,
-                            color: Colors.grey.withOpacity(0.2),
-                          ),
-                        ),
-                        // 공지사항 내용
-                        InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            HapticFeedback.lightImpact();
-                            final notice = noticeViewModel.notice.value;
-                            if (notice != null) {
-                              Get.to(() => NoticeDetailView(notice: notice));
-                            } else {
-                              noticeViewModel.fetchLatestNotice();
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.campaign_outlined,
-                                    color: Colors.blue,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Obx(() {
-                                        if (noticeViewModel.isLoading.value) {
-                                          return const Text(
-                                            '로딩중...',
-                                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                                          );
-                                        }
-
-                                        if (noticeViewModel.error.isNotEmpty) {
-                                          return Text(
-                                            noticeViewModel.error.value,
-                                            style: const TextStyle(fontSize: 14, color: Colors.red),
-                                          );
-                                        }
-
-                                        final notice = noticeViewModel.notice.value;
-                                        return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: AutoScrollText(
-                                                    text: notice?.title ?? '공지사항이 없습니다',
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
-                                                    ),
-                                                    scrollDuration: const Duration(seconds: 5),
-                                                  ),
-                                                ),
-                                                if (notice != null) 
-                                                  const SizedBox(width: 6),
-                                                if (notice != null) ...[
-                                                  _buildNoticeBadge(notice.createdAt),
-                                                ],
-                                              ],
-                                            ),
-                                            if (notice != null)
-                                              Padding(
-                                                padding: const EdgeInsets.only(top: 4),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.access_time,
-                                                      size: 10,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      _getTimeAgo(notice.createdAt),
-                                                      style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.grey[600],
-                                                      ),
-                                                    ),
-                                                    const Spacer(),
-                                                    Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: noticeViewModel.getNoticeTypeColor(notice.noticeType),
-                                                        borderRadius: BorderRadius.circular(8),
-                                                      ),
-                                                      child: Text(
-                                                        noticeViewModel.getNoticeTypeDisplayName(notice.noticeType),
-                                                        style: const TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 9,
-                                                          fontWeight: FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                          ],
-                                        );
-                                      }),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.campaign,
+                              color: Colors.redAccent,
+                              size: 20,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Obx(() {
+                              if (noticeViewModel.isLoading.value) {
+                                return const Text(
+                                  '로딩중...',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                );
+                              }
+
+                              final notice = noticeViewModel.notice.value;
+                              return AutoScrollText(
+                                text: notice?.title ?? '새로운 공지사항이 없습니다',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  //fontWeight: FontWeight.w600,
+                                ),
+                                scrollDuration: const Duration(seconds: 5),
+                              );
+                            }),
+                          ),
+                          const SizedBox(width: 5),
+                          const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                          //const SizedBox(width: 15),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               // 곧 출발 섹션
               UpcomingDeparturesWidget(),
               
@@ -317,7 +248,7 @@ class _HomeViewState extends State<HomeView> {
                             icon: Icons.airport_shuttle,
                             color: Color(0xFFB83227),
                             onTap: () {
-                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
                               Get.to(() => ShuttleRouteSelectionView());
                             },
                           ),
@@ -330,7 +261,7 @@ class _HomeViewState extends State<HomeView> {
                             icon: Icons.directions_bus,
                             color: Colors.blue,
                             onTap: () {
-                              HapticFeedback.mediumImpact(); // 햅틱 피드백
+                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
                               Get.to(() => CityBusGroupedView());
                             },
                           ),
@@ -341,7 +272,27 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              
+              // 지하철 메뉴
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildMenuCard(
+                  context,
+                  title: '지하철',
+                  icon: Icons.subway_outlined,
+                  color: const Color(0xFF0052A4), // 1호선 색상
+                  onTap: () {
+                    //HapticFeedback.mediumImpact();
+                    final settingsViewModel = Get.find<SettingsViewModel>();
+                    Get.to(() => SubwayView(stationName: settingsViewModel.selectedSubwayStation.value));
+                  },
+                  height: 80, // 높이를 줄여서 표시
+                  isHorizontal: true, // 가로 배치 모드
+                ),
+              ),
+
+              const SizedBox(height: 12),
               
               // 면책 문구
               Padding(
@@ -399,53 +350,102 @@ class _HomeViewState extends State<HomeView> {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
+    double? height,
+    bool isHorizontal = false,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDarkMode ? Colors.grey[800] : Colors.white;
+    final cardColor = Theme.of(context).cardColor;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
     
-    return Card(
-      elevation: 2,
-      color: cardColor,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            height: 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 48,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textColor,
-                  ),
-                ),
-              ],
+    return ScaleButton(
+      onTap: onTap,
+      child: Container(
+        height: height ?? 180,
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 0),
             ),
-          ),
+          ],
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: isHorizontal
+              ? Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(isHorizontal ? 8 : 16),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 32,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '실시간 도착 정보 / 시간표',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 48,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -466,7 +466,7 @@ class _HomeViewState extends State<HomeView> {
             BoxShadow(
               color: Colors.red.withOpacity(0.3),
               blurRadius: 4,
-              offset: Offset(0, 1),
+              offset: Offset(0, 0),
             ),
           ],
         ),
@@ -501,5 +501,40 @@ class _HomeViewState extends State<HomeView> {
     } else {
       return '${(difference.inDays / 365).floor()}년 전';
     }
+  }
+
+  Widget _buildToggleButton(
+    BuildContext context,
+    String text,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
+    final primaryColor = colorScheme.primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected
+                ? colorScheme.onPrimary
+                : (isDark ? Colors.grey[400] : Colors.grey[600]),
+          ),
+        ),
+      ),
+    );
   }
 }
