@@ -32,12 +32,12 @@ class _SubwayViewState extends State<SubwayView> {
   }
 
   void _showSwipeTutorial() async {
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // bool hasSeenTutorial = prefs.getBool('has_seen_subway_swipe_tutorial') ?? false;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool hasSeenTutorial = prefs.getBool('has_seen_subway_swipe_tutorial') ?? false;
 
-    // if (hasSeenTutorial) return;
+    if (hasSeenTutorial) return;
 
-    Get.dialog(
+    await Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -76,7 +76,7 @@ class _SubwayViewState extends State<SubwayView> {
                    ElevatedButton(
                      onPressed: () {
                        Get.back();
-                       // prefs.setBool('has_seen_subway_swipe_tutorial', true);
+                       prefs.setBool('has_seen_subway_swipe_tutorial', true);
                      },
                      style: ElevatedButton.styleFrom(
                        backgroundColor: Theme.of(context).colorScheme.primary,
@@ -94,12 +94,12 @@ class _SubwayViewState extends State<SubwayView> {
         ),
       ),
       barrierDismissible: true,
-      // barrierColor: Colors.black54, // Default is usually fine
     );
-     // If triggering automatically, maybe set the pref here too if clicking outside
-     // if (!hasSeenTutorial) {
-     //   await prefs.setBool('has_seen_subway_swipe_tutorial', true);
-     // }
+    
+    // Ensure it's marked as seen even if dismissed via barrier
+    if (prefs.getBool('has_seen_subway_swipe_tutorial') != true) {
+       await prefs.setBool('has_seen_subway_swipe_tutorial', true);
+    }
   }
 
   @override
