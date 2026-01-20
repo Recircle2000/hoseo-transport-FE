@@ -4,23 +4,65 @@ import '../../models/subway_schedule_model.dart';
 import '../../viewmodel/subway_schedule_viewmodel.dart';
 import 'dart:io' show Platform;
 
-class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
+class SubwayScheduleView extends StatefulWidget {
   final String? initialStationName;
 
   const SubwayScheduleView({Key? key, this.initialStationName}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  State<SubwayScheduleView> createState() => _SubwayScheduleViewState();
+}
+
+class _SubwayScheduleViewState extends State<SubwayScheduleView> {
+  late final SubwayScheduleViewModel controller;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controller manually if it's not already registered or find it
     if (!Get.isRegistered<SubwayScheduleViewModel>()) {
-      Get.put(SubwayScheduleViewModel(initialStation: initialStationName));
+      controller = Get.put(SubwayScheduleViewModel(initialStation: widget.initialStationName));
+    } else {
+      controller = Get.find<SubwayScheduleViewModel>();
+      // If passing a specific initial station but reusing VM, ensure VM updates
+      if (widget.initialStationName != null) {
+        controller.changeStation(widget.initialStationName!);
+      }
     }
 
-    if (initialStationName != null && controller.selectedStation.value != initialStationName) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        controller.changeStation(initialStationName!);
-      });
-    }
+    final initialIndex = controller.selectedStation.value == '아산' ? 1 : 0;
+    _pageController = PageController(initialPage: initialIndex);
+  }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onPageChanged(int index) {
+    final station = index == 0 ? '천안' : '아산';
+    controller.changeStation(station);
+  }
+
+  void _onStationTapped(String station) {
+    if (controller.selectedStation.value == station) return;
+    final index = station == '천안' ? 0 : 1;
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+    // controller.changeStation will be called by onPageChanged or we can call it here?
+    // Using PageView onPageChanged is safer for sync. 
+    // But animateToPage triggers onPageChanged? Yes usually.
+    // If we want immediate feedback on the tab while animating:
+    controller.changeStation(station);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -38,55 +80,96 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
               ),
             ),
             Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator.adaptive());
-                }
-                if (controller.error.value.isNotEmpty) {
-                  return Center(child: Text(controller.error.value));
-                }
-                
-                final schedule = controller.scheduleData.value;
-                if (schedule == null) {
-                  return const Center(child: Text('데이터가 없습니다.'));
-                }
-
-                return Column(
-                  children: [
-                    // Up Section
-                    _buildSectionContainer(
-                      context,
-                      title: '상행',
-                      subtitle: '(서울/병점/천안)',
-                      icon: Icons.arrow_circle_up,
-                      isExpanded: controller.isUpExpanded.value,
-                      items: schedule.timetable['상행'] ?? [],
-                      onTap: () => controller.isUpExpanded.toggle(),
-                    ),
-                    
-                    // Down Section
-                    _buildSectionContainer(
-                      context,
-                      title: '하행',
-                      subtitle: '(신창/아산)',
-                      icon: Icons.arrow_circle_down,
-                      isExpanded: controller.isDownExpanded.value,
-                      items: schedule.timetable['하행'] ?? [],
-                      onTap: () => controller.isDownExpanded.toggle(),
-                    ),
-                    
-                    if (!controller.isUpExpanded.value && !controller.isDownExpanded.value)
-                      Expanded(child: _buildFooter(context)),
-                    if (controller.isUpExpanded.value || controller.isDownExpanded.value)
-                      const SizedBox(height: 16), // Bottom spacing
-                  ],
-                );
-              }),
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _buildScheduleContent(context, '천안'),
+                  _buildScheduleContent(context, '아산'),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildScheduleContent(BuildContext context, String station) {
+    return Obx(() {
+        // Since the VM fetches data for *selectedStation*, we need to handle specific station views carefully.
+        // Option 1: The VM only holds one station's data at a time.
+        // In this case, 'PageView' allows swiping, but the off-screen page (or currently loading one) might show wrong data until fetch completes.
+        // Actually, since we trigger fetch on page change, there will be a loading state.
+        
+        // Wait, if we use one VM for both pages, they share the `scheduleData`.
+        // If Page 0 is Cheonan and Page 1 is Asan.
+        // If I swipe to Asan, VM updates to Asan. Page 0 (Cheonan) might now show Asan data if it just observes `scheduleData` directly?
+        // But `_buildScheduleContent` is built for a specific station name passed as argument?
+        // No, `_buildScheduleContent(context, '천안')` creates the widget for Cheonan page.
+        // Inside, if we use `controller.scheduleData`, it shows whatever is currently fetched.
+        // Meaning: While swiping, if you see partially the other page, it might show the OLD data (previous station) or NEW data (current station).
+        // This is a common issue with shared state for parameterized pages.
+        
+        // However, standard VM pattern here: The view updates when `selectedStation` changes.
+        // If `selectedStation` matches the page's station, show data.
+        // If not, show loading or empty?
+        
+        if (controller.selectedStation.value != station) {
+           // This page is NOT the active one. 
+           // Can we keep the old data? Not trivial with current VM.
+           // Just show loading or nothing?
+           // If we are animating, we want to see the destination page.
+           // When `_onPageChanged` is called, `selectedStation` updates, and fetch starts.
+           // So the new page will show loading, then data.
+           // The OLD page will mismatch.
+           return const Center(child: CircularProgressIndicator.adaptive());
+        }
+
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+        if (controller.error.value.isNotEmpty) {
+          return Center(child: Text(controller.error.value));
+        }
+        
+        final schedule = controller.scheduleData.value;
+        if (schedule == null) {
+          return const Center(child: Text('데이터가 없습니다.'));
+        }
+
+        return Column(
+          children: [
+            // Up Section
+            _buildSectionContainer(
+              context,
+              title: '상행',
+              subtitle: '(서울/병점/천안)',
+              icon: Icons.arrow_circle_up,
+              isExpanded: controller.isUpExpanded.value,
+              items: schedule.timetable['상행'] ?? [],
+              onTap: () => controller.isUpExpanded.toggle(),
+            ),
+            
+            // Down Section
+            _buildSectionContainer(
+              context,
+              title: '하행',
+              subtitle: '(신창/아산)',
+              icon: Icons.arrow_circle_down,
+              isExpanded: controller.isDownExpanded.value,
+              items: schedule.timetable['하행'] ?? [],
+              onTap: () => controller.isDownExpanded.toggle(),
+            ),
+            
+            if (!controller.isUpExpanded.value && !controller.isDownExpanded.value)
+              Expanded(child: _buildFooter(context)),
+            if (controller.isUpExpanded.value || controller.isDownExpanded.value)
+              const SizedBox(height: 16), // Bottom spacing
+          ],
+        );
+      });
   }
 
   Widget _buildSectionContainer(
@@ -227,7 +310,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
                 context,
                 text: '천안역',
                 isSelected: isCheonan,
-                onTap: () => controller.changeStation('천안'),
+                onTap: () => _onStationTapped('천안'),
               ),
             ),
             const SizedBox(width: 4),
@@ -236,7 +319,7 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
                 context,
                 text: '아산역',
                 isSelected: !isCheonan,
-                onTap: () => controller.changeStation('아산'),
+                onTap: () => _onStationTapped('아산'),
               ),
             ),
           ],
