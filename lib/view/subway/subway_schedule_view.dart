@@ -366,28 +366,29 @@ class SubwayScheduleView extends GetView<SubwayScheduleViewModel> {
       BuildContext context, String text, bool isSelected, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-            color:
-                isSelected ? Theme.of(context).cardColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    )
-                  ]
-                : null),
+          color: isSelected ? const Color(0xFF0052A4) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  )
+                ]
+              : [],
+        ),
         child: Text(
           text,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             color: isSelected
-                ? Theme.of(context).colorScheme.onSurface
+                ? Colors.white
                 : Theme.of(context).hintColor,
           ),
         ),
