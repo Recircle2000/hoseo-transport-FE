@@ -26,6 +26,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final noticeViewModel = Get.put(NoticeViewModel());
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   // 뒤로가기 시간 저장
   DateTime? _lastBackPressedTime;
   
@@ -39,6 +40,11 @@ class _HomeViewState extends State<HomeView> {
       onWillPop: () async {
         // Android에서만 동작
         if (!Platform.isAndroid) return true;
+
+        // Drawer가 열려있으면 뒤로가기 시 Drawer 닫기 (기본 동작 허용)
+        if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+          return true;
+        }
 
         // 현재 시간
         final currentTime = DateTime.now();
@@ -63,6 +69,8 @@ class _HomeViewState extends State<HomeView> {
         return true; // 두 번째 누른 경우 앱 종료
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: SettingsView(),
         backgroundColor: backgroundColor,
         appBar: AppBar(
           backgroundColor: backgroundColor, // 앱바도 배경과 같은 색상
@@ -77,8 +85,8 @@ class _HomeViewState extends State<HomeView> {
             icon: const Icon(Icons.settings, size: 24),
             onPressed: () {
               HapticFeedback.lightImpact();
-              Get.to(() => SettingsView());},
-
+              _scaffoldKey.currentState?.openDrawer();
+            },
           ),
           actions: [
             Obx(() {

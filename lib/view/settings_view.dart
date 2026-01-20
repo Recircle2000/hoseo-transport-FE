@@ -16,22 +16,28 @@ class SettingsView extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
     final cardColor = theme.cardColor;
     
-    return Scaffold(
+    return Drawer(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          '설정',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: theme.scaffoldBackgroundColor,
-      ),
-      body: GetBuilder<SettingsViewModel>(
+      child: Column(
+        children: [
+          // 드로어 헤더 (AppBar 대체)
+          Container(
+            padding: const EdgeInsets.only(top: 60, bottom: 20),
+            alignment: Alignment.center,
+            child: Text(
+              '설정',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GetBuilder<SettingsViewModel>(
         init: SettingsViewModel(),
         builder: (controller) => ListView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           children: [
             // 캠퍼스 설정 섹션
             Padding(
@@ -137,6 +143,9 @@ class SettingsView extends StatelessWidget {
             _buildInfoSection(context),
           ],
         ),
+      ),
+          ),
+        ],
       ),
     );
   }
