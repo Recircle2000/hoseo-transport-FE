@@ -82,7 +82,7 @@ class _HomeViewState extends State<HomeView> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.settings, size: 24),
+            icon: const Icon(Icons.menu_outlined, size: 24),
             onPressed: () {
               HapticFeedback.lightImpact();
               _scaffoldKey.currentState?.openDrawer();
