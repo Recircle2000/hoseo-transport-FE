@@ -5,6 +5,7 @@ import '../viewmodel/settings_viewmodel.dart';
 import 'auth/login_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'subway/subway_view.dart';
+import 'guide/guide_selection_view.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
@@ -22,7 +23,7 @@ class SettingsView extends StatelessWidget {
         children: [
           // 드로어 헤더 (AppBar 대체)
           Container(
-            padding: const EdgeInsets.only(top: 60, bottom: 20),
+            padding: const EdgeInsets.only(top: 60, bottom: 10),
             alignment: Alignment.center,
             child: Text(
               '설정',
@@ -41,7 +42,7 @@ class SettingsView extends StatelessWidget {
           children: [
             // 캠퍼스 설정 섹션
             Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              padding: const EdgeInsets.only(left: 8, bottom: 8),
               child: Text(
                 '기준 캠퍼스',
                 style: TextStyle(
@@ -86,11 +87,11 @@ class SettingsView extends StatelessWidget {
               )),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             
             // 지하철역 설정 섹션
             Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              padding: const EdgeInsets.only(left: 8, bottom: 8),
               child: Text(
                 '기준 지하철역',
                 style: TextStyle(
@@ -137,7 +138,61 @@ class SettingsView extends StatelessWidget {
               )),
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
+            
+            // 가이드 섹션
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              child: Text(
+                '도움말',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 0),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Get.to(() => const GuideSelectionView()),
+                  borderRadius: BorderRadius.circular(25),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.help_outline, color: Colors.blue),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '셔틀/시내버스 가이드',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
             
             // 정보 섹션
             _buildInfoSection(context),
@@ -172,7 +227,7 @@ class SettingsView extends StatelessWidget {
           bottom: isLast ? const Radius.circular(25) : Radius.zero,
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
               Expanded(
