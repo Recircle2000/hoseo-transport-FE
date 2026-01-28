@@ -42,8 +42,7 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
-    // final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
-    final hasSeenGuide = false; // 디버깅용: 항상 튜토리얼 표시
+    final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
 
     if (!hasSeenGuide) {
       // 첫 실행인 경우
