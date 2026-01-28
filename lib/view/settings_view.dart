@@ -9,8 +9,13 @@ import 'guide/guide_selection_view.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
+import 'components/scale_button.dart';
 
 class SettingsView extends StatelessWidget {
+  final GlobalKey? guideKey;
+
+  const SettingsView({Key? key, this.guideKey}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -152,41 +157,38 @@ class SettingsView extends StatelessWidget {
                 ),
               ),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => Get.to(() => const GuideSelectionView()),
+            ScaleButton(
+              onTap: () => Get.to(() => const GuideSelectionView()),
+              child: Container(
+                key: guideKey,
+                decoration: BoxDecoration(
+                  color: cardColor,
                   borderRadius: BorderRadius.circular(25),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Row(
-                      children: [
-                        Icon(Icons.help_outline, color: Colors.blue),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            '셔틀/시내버스 가이드',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, color: Colors.blue),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '셔틀/시내버스 가이드',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-                      ],
-                    ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                    ],
                   ),
                 ),
               ),
@@ -218,57 +220,50 @@ class SettingsView extends StatelessWidget {
     final isSelected = value == groupValue;
     final colorScheme = Theme.of(context).colorScheme;
     
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onChanged(value),
-        borderRadius: BorderRadius.vertical(
-          top: isFirst ? const Radius.circular(25) : Radius.zero,
-          bottom: isLast ? const Radius.circular(25) : Radius.zero,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return ScaleButton(
+      onTap: () => onChanged(value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      title,
+                      subtitle,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        fontSize: 12,
+                        color: Colors.grey[600],
                       ),
                     ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  color: colorScheme.primary,
-                  size: 24,
-                )
-              else
-                Icon(
-                  Icons.radio_button_unchecked,
-                  color: Colors.grey[400],
-                  size: 24,
-                ),
-            ],
-          ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: colorScheme.primary,
+                size: 24,
+              )
+            else
+              Icon(
+                Icons.radio_button_unchecked,
+                color: Colors.grey[400],
+                size: 24,
+              ),
+          ],
         ),
       ),
     );
@@ -373,9 +368,8 @@ class SettingsView extends StatelessWidget {
   }
 
   Widget _buildTextButton(BuildContext context, String label, VoidCallback onTap) {
-    return InkWell(
+    return ScaleButton(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         child: Text(

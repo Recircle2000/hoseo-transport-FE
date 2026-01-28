@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import '../city_bus/grouped_bus_view.dart';
+import '../components/scale_button.dart';
 
 class CityBusGuideView extends StatefulWidget {
   const CityBusGuideView({super.key});
@@ -82,9 +83,9 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black87),
-          onPressed: () => Get.back(),
+        leading: ScaleButton(
+          onTap: () => Get.back(),
+          child: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black87),
         ),
       ),
       body: Stack(
@@ -99,7 +100,6 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
               // 섹션 제목 (시내버스 핵심 정리)
               Row(
                 children: [
-                   const Text('🚌', style: TextStyle(fontSize: 24)),
                    const SizedBox(width: 8),
                    Text(
                      _selectedCampusIndex == 0 ? '천안시 시내버스' : '아산시 시내버스',
@@ -137,7 +137,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
@@ -150,33 +150,38 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                   stops: const [0.0, 0.6, 1.0],
                 ),
               ),
-              child: ElevatedButton(
-                onPressed: () => Get.to(() => CityBusGroupedView(
+              child: ScaleButton(
+                onTap: () => Get.to(() => CityBusGroupedView(
                   forcedCampus: _selectedCampusIndex == 0 ? '천안' : '아산',
                 )),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
+                child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+                  decoration: BoxDecoration(
+                    color: primaryColor,
                     borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 4,
-                  shadowColor: primaryColor.withOpacity(0.4),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.place_rounded),
-                    SizedBox(width: 8),
-                    Text(
-                      '실시간 버스 위치 확인',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.place_rounded, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        '자세한 정보 확인',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -233,9 +238,10 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
     required Color primaryColor,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return ScaleButton(
       onTap: onTap,
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
@@ -325,7 +331,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
           number: '1000',
           numberSuffix: '번',
           title: '천안아산역 경유',
-          description: '천안아산역까지 약 15-20분 소요\n탕정역-지중해마을 종점',
+          description: '천안아산역까지 평균 25분 소요\n탕정역-지중해마을 종점',
           fullWidth: true,
         ),
         const SizedBox(height: 16),
@@ -494,19 +500,19 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                 TextSpan(text: '24번', style: TextStyle(color: primaryColor)),
                 const TextSpan(text: ' / '),
                 TextSpan(text: '81번', style: TextStyle(color: primaryColor)),
-                const TextSpan(text: '모두 경유'),
+                const TextSpan(text: ' 모두 경유'),
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '먼저 오는 버스가 정답!',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
-            ),
-          ),
+          // const SizedBox(height: 8),
+          // Text(
+          //   '먼저 오는 버스가 정답!',
+          //   style: TextStyle(
+          //     fontSize: 14,
+          //     fontWeight: FontWeight.w500,
+          //     color: isDarkMode ? Colors.grey[400] : Colors.grey[500],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -520,7 +526,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
       children: [
         Row(
            children: [
-             const Text('📍', style: TextStyle(fontSize: 24)),
+             //const Text('📍', style: TextStyle(fontSize: 24)),
              const SizedBox(width: 8),
              const Text(
                '정류장 위치',
@@ -566,6 +572,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     maxZoom: 18,
                     minZoom: 10,
                   ),
+                  forceGesture: true,
                   onMapReady: (controller) {
                     _mapController = controller;
                     
@@ -575,13 +582,11 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                       NMarker(
                         id: 'cheonan_station',
                         position: _cheonanLoc,
-                        caption: NOverlayCaption(text: '천안 시내버스 정류장'),
                       ),
                       // 아산캠퍼스 마커
                       NMarker(
                         id: 'asan_station',
                         position: _asanLoc,
-                        caption: NOverlayCaption(text: '아산 시내버스 정류장'),
                       ),
                     });
                   },
@@ -601,14 +606,16 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                         ),
                       ],
                     ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.directions_bus,
-                        color: Colors.blue,
-                        size: 24,
+                    child: ScaleButton(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Icon(
+                          Icons.directions_bus,
+                          color: Colors.blue,
+                          size: 24,
+                        ),
                       ),
-                      onPressed: () => _moveMapToCampus(_selectedCampusIndex),
-                      tooltip: '정류장 위치 보기',
+                      onTap: () => _moveMapToCampus(_selectedCampusIndex),
                     ),
                   ),
                 ),
