@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'city_bus_guide_view.dart';
 import 'shuttle_guide_view.dart';
 
 class GuideSelectionView extends StatelessWidget {
@@ -34,24 +34,19 @@ class GuideSelectionView extends StatelessWidget {
           _buildGuideCard(
             context,
             title: '셔틀버스 가이드',
-            description: '아산/천안 캠퍼스 셔틀버스 노선 및 이용 방법 안내',
+            description: '아캠/천캠 셔틀버스 이용 방법 안내',
             icon: Icons.airport_shuttle_rounded,
-            color: Colors.blue,
+            color: const Color(0xFFB83227),
             onTap: () => Get.to(() => const ShuttleGuideView()),
           ),
           const SizedBox(height: 20),
           _buildGuideCard(
             context,
             title: '시내버스 가이드',
-            description: '천안 시내버스(24번, 81번 등) 및 환승 안내',
+            description: '아산/천안 시내버스 이용 방법 및 1호선 환승 안내',
             icon: Icons.directions_bus_rounded,
-            color: Colors.green,
-            onTap: () async {
-              final Uri url = Uri.parse('https://www.notion.so/1eda668f263380ff9d2ae3ac8b74b157?pvs=4'); // 임시 링크
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url, mode: LaunchMode.externalApplication);
-              }
-            },
+            color: Colors.blue,
+            onTap: () => Get.to(() => const CityBusGuideView()),
           ),
         ],
       ),
