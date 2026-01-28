@@ -171,72 +171,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system, // 시스템 설정에 따라 테마 변경
-      home: DisclaimerManager(),
+      home: const HomeView(),
     );
-  }
-}
-
-class DisclaimerManager extends StatefulWidget {
-  @override
-  _DisclaimerManagerState createState() => _DisclaimerManagerState();
-}
-
-class _DisclaimerManagerState extends State<DisclaimerManager> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkFirstRun();
-      _checkAppVersionUpdate();
-    });
-  }
-
-  // 앱 최초 실행 여부 확인 및 팝업 표시
-  Future<void> _checkFirstRun() async {
-    final prefs = await SharedPreferences.getInstance();
-    final bool isFirstRun = prefs.getBool('first_run') ?? true;
-
-    if (isFirstRun) {
-      // 최초 실행으로 표시를 저장
-      await prefs.setBool('first_run', false);
-      // 면책 사항 팝업 표시
-      PlatformUtils.showPlatformDisclaimerDialog(context);
-    }
-  }
-
-  Future<void> _checkAppVersionUpdate() async {
-    final result = await AppVersionUpdate.checkForUpdates(
-      appleId: dotenv.env['APPLE_APP_ID'] ?? '',
-      playStoreId: dotenv.env['PLAY_STORE_ID'] ?? '',
-      country: 'kr',
-    );
-    if (result.canUpdate == true) {
-      await AppVersionUpdate.showAlertUpdate(
-        appVersionResult: result,
-        context: context,
-        backgroundColor: Colors.white,
-        title: '새로운 버전이 있습니다',
-        titleTextStyle: const TextStyle(
-          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-        content: '최신 버전으로 업데이트를 권장합니다.',
-        contentTextStyle: const TextStyle(
-          color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
-        updateButtonText: '업데이트',
-        updateButtonStyle: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.lightBlueAccent),
-        ),
-        updateTextStyle: const TextStyle(color: Colors.black),
-        cancelButtonText: '나중에',
-        cancelTextStyle: const TextStyle(color: Colors.white),
-        cancelButtonStyle: ButtonStyle(
-          backgroundColor: WidgetStateProperty.all(Colors.black54),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return HomeView();
   }
 }

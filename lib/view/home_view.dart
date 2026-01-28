@@ -19,6 +19,9 @@ import 'package:hsro/view/components/scale_button.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:app_version_update/app_version_update.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
 
@@ -37,25 +40,36 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    _checkFirstLaunch();
+    // 화면이 그려진 후 초기화 로직 실행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleStartupFlow();
+    });
   }
 
-  Future<void> _checkFirstLaunch() async {
+  Future<void> _handleStartupFlow() async {
     final prefs = await SharedPreferences.getInstance();
-    final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
+    
+    // 1. 면책 문구 확인 (최초 실행 시)
+    final bool isFirstRun = prefs.getBool('first_run') ?? true;
+    if (isFirstRun) {
+      await PlatformUtils.showPlatformDisclaimerDialog(context);
+      await prefs.setBool('first_run', false);
+    }
 
+    // 2. 가이드 확인
+    final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
     if (!hasSeenGuide) {
-      // 첫 실행인 경우
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        // 드로어 열기
-        _scaffoldKey.currentState?.openDrawer();
-        
-        // 드로어 애니메이션 대기
-        await Future.delayed(const Duration(milliseconds: 500));
-        
-        // 튜토리얼 표시
-        _showTutorial();
-      });
+      // 드로어 열기
+      _scaffoldKey.currentState?.openDrawer();
+      
+      // 드로어 애니메이션 대기
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 튜토리얼 표시
+      _showTutorial();
+    } else {
+      // 가이드를 이미 본 경우 바로 버전 확인
+      _checkAppVersionUpdate();
     }
   }
 
@@ -134,6 +148,40 @@ class _HomeViewState extends State<HomeView> {
     // 튜토리얼 종료 시 드로어 닫기
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop(); 
+    }
+
+    // 3. 가이드 종료 후 버전 확인
+    _checkAppVersionUpdate();
+  }
+
+  Future<void> _checkAppVersionUpdate() async {
+    final result = await AppVersionUpdate.checkForUpdates(
+      appleId: dotenv.env['APPLE_APP_ID'] ?? '',
+      playStoreId: dotenv.env['PLAY_STORE_ID'] ?? '',
+      country: 'kr',
+    );
+    if (result.canUpdate == true) {
+      await AppVersionUpdate.showAlertUpdate(
+        appVersionResult: result,
+        context: context,
+        backgroundColor: Colors.white,
+        title: '새로운 버전이 있습니다',
+        titleTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        content: '최신 버전으로 업데이트를 권장합니다.',
+        contentTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
+        updateButtonText: '업데이트',
+        updateButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.lightBlueAccent),
+        ),
+        updateTextStyle: const TextStyle(color: Colors.black),
+        cancelButtonText: '나중에',
+        cancelTextStyle: const TextStyle(color: Colors.white),
+        cancelButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.black54),
+        ),
+      );
     }
   }
 
