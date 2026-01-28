@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../viewmodel/settings_viewmodel.dart';
 import '../city_bus/grouped_bus_view.dart';
 import '../components/scale_button.dart';
 
@@ -26,6 +27,14 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
   @override
   void initState() {
     super.initState();
+    // 설정값 반영
+    try {
+      final settings = Get.find<SettingsViewModel>();
+      _selectedCampusIndex = settings.selectedCampus.value == '천안' ? 0 : 1;
+    } catch (e) {
+      // SettingsViewModel을 찾지 못한 경우 기본값(0: 천안) 사용
+      _selectedCampusIndex = 0;
+    }
     _requestLocationPermission();
   }
 
