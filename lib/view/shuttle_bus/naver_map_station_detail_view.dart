@@ -318,7 +318,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                 minZoom: 10,
                 contentPadding: EdgeInsets.zero,
                 rotationGesturesEnable: false, // 회전 제스처 비활성화
-                locationButtonEnable: false, // 기본 내 위치 버튼 비활성화 (커스텀 버튼 사용)
+                // locationButtonEnable: false, // Deprecated in 1.4.0: Use NMyLocationButtonWidget or omit if not needed
 
             
               ),

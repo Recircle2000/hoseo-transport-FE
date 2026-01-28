@@ -576,7 +576,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     //consumeSymbolTapEvents: true,
                     logoClickEnable: true,
                     contentPadding: const EdgeInsets.only(bottom: 0, left:0),
-                    locationButtonEnable: false, // 현위치 버튼 비활성화 (커스텀 버튼 사용)
+                    // locationButtonEnable: false, // Deprecated in 1.4.0
                     rotationGesturesEnable: false, // 회전 제스처 비활성화
                     maxZoom: 18,
                     minZoom: 10,
