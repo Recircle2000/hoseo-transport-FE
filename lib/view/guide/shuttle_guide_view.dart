@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../shuttle_bus/shuttle_route_selection_view.dart';
+import '../components/scale_button.dart';
 
 class ShuttleGuideView extends StatelessWidget {
   const ShuttleGuideView({super.key});
@@ -24,9 +25,9 @@ class ShuttleGuideView extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
-          onPressed: () => Get.back(),
+        leading: ScaleButton(
+          onTap: () => Get.back(),
+          child: Icon(Icons.arrow_back, color: theme.iconTheme.color),
         ),
       ),
       body: Stack(
@@ -57,40 +58,49 @@ class ShuttleGuideView extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor.withOpacity(0.9),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.grey.withOpacity(0.1),
-                    width: 1,
-                  ),
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    theme.scaffoldBackgroundColor,
+                    theme.scaffoldBackgroundColor.withOpacity(0.9),
+                    theme.scaffoldBackgroundColor.withOpacity(0.0),
+                  ],
+                  stops: const [0.0, 0.6, 1.0],
                 ),
               ),
-              child: ElevatedButton(
-                onPressed: () => Get.to(() => ShuttleRouteSelectionView()),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: shuttleThemeColor,
-                  foregroundColor: Colors.white,
+              child: ScaleButton(
+                onTap: () => Get.to(() => ShuttleRouteSelectionView()),
+                child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.search),
-                    SizedBox(width: 8),
-                    Text(
-                      '셔틀버스 조회하러 가기',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                  decoration: BoxDecoration(
+                    color: shuttleThemeColor,
+                    borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: shuttleThemeColor.withOpacity(0.4),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        '셔틀버스 조회하러 가기',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

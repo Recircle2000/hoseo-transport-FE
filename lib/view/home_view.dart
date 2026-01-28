@@ -15,7 +15,9 @@ import 'components/auto_scroll_text.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
 import 'subway/subway_view.dart';
-import 'components/scale_button.dart';
+import 'package:hsro/view/components/scale_button.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -27,8 +29,115 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final noticeViewModel = Get.put(NoticeViewModel());
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey guideKey = GlobalKey();
+  
   // 뒤로가기 시간 저장
   DateTime? _lastBackPressedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    // final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
+    final hasSeenGuide = false; // 디버깅용: 항상 튜토리얼 표시
+
+    if (!hasSeenGuide) {
+      // 첫 실행인 경우
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // 드로어 열기
+        _scaffoldKey.currentState?.openDrawer();
+        
+        // 드로어 애니메이션 대기
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // 튜토리얼 표시
+        _showTutorial();
+      });
+    }
+  }
+
+  void _showTutorial() {
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: "guide_key",
+          keyTarget: guideKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "셔틀/시내버스 가이드",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 20.0,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        "이곳에서 셔틀버스와 시내버스 이용 가이드를 확인해보세요!",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          controller.next();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text("확인"),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+          shape: ShapeLightFocus.RRect,
+          radius: 15,
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      onFinish: () => _completeTutorial(),
+      onClickTarget: (target) => _completeTutorial(),
+      onClickOverlay: (target) => _completeTutorial(),
+    ).show(context: context);
+  }
+
+  Future<void> _completeTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_guide', true);
+    
+    // 튜토리얼 종료 시 드로어 닫기
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop(); 
+    }
+  }
+
   
   @override
   Widget build(BuildContext context) {
@@ -70,7 +179,7 @@ class _HomeViewState extends State<HomeView> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: SettingsView(),
+        drawer: SettingsView(guideKey: guideKey),
         backgroundColor: backgroundColor,
         appBar: AppBar(
           backgroundColor: backgroundColor, // 앱바도 배경과 같은 색상
