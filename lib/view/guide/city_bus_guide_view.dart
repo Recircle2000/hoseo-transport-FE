@@ -576,7 +576,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     //consumeSymbolTapEvents: true,
                     logoClickEnable: true,
                     contentPadding: const EdgeInsets.only(bottom: 0, left:0),
-                    locationButtonEnable: true, // 현위치 버튼 활성화
+                    locationButtonEnable: false, // 현위치 버튼 비활성화 (커스텀 버튼 사용)
                     rotationGesturesEnable: false, // 회전 제스처 비활성화
                     maxZoom: 18,
                     minZoom: 10,
@@ -600,32 +600,67 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     });
                   },
                 ),
+                // 정류장 위치 보기 버튼 (및 내 위치 버튼)
                 Positioned(
                   right: 10,
                   bottom: 50, // 네이버 로고 높이 고려
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(1),
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                       Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor.withOpacity(1),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: ScaleButton(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const Icon(
-                          Icons.directions_bus,
-                          color: Colors.blue,
-                          size: 24,
+                        child: ScaleButton(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: const Icon(
+                              Icons.my_location,
+                              color: Colors.blue,
+                              size: 24,
+                            ),
+                          ),
+                          onTap: () {
+                             if (_mapController != null) {
+                               _mapController!.setLocationTrackingMode(NLocationTrackingMode.follow);
+                             }
+                          },
                         ),
                       ),
-                      onTap: () => _moveMapToCampus(_selectedCampusIndex),
-                    ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor.withOpacity(1),
+                          borderRadius: BorderRadius.circular(3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ScaleButton(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: const Icon(
+                              Icons.directions_bus,
+                              color: Colors.blue,
+                              size: 24,
+                            ),
+                          ),
+                          onTap: () => _moveMapToCampus(_selectedCampusIndex),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

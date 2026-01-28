@@ -318,7 +318,7 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
                 minZoom: 10,
                 contentPadding: EdgeInsets.zero,
                 rotationGesturesEnable: false, // 회전 제스처 비활성화
-                locationButtonEnable: true, // 기본 내 위치 버튼 활성화
+                locationButtonEnable: false, // 기본 내 위치 버튼 비활성화 (커스텀 버튼 사용)
 
             
               ),
@@ -343,39 +343,70 @@ class _NaverMapStationDetailViewState extends State<NaverMapStationDetailView> {
             Positioned(
               right: 10,
               bottom: 42,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withOpacity(1),
-                  borderRadius: BorderRadius.circular(3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.directions_bus,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    if (mapController != null && station.value != null) {
-                      // 정류장 위치로 지도 이동
-                      mapController!.updateCamera(
-                        NCameraUpdate.withParams(
-                          target: NLatLng(
-                            station.value!.latitude,
-                            station.value!.longitude,
-                          ),
+              child: Column(
+                children: [
+                   Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withOpacity(1),
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
                         ),
-                      );
-                    }
-                  },
-                  tooltip: '정류장 위치 보기',
-                ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.my_location,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        if (mapController != null) {
+                           mapController!.setLocationTrackingMode(NLocationTrackingMode.follow);
+                        }
+                      },
+                      tooltip: '내 위치 보기',
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor.withOpacity(1),
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.directions_bus,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        if (mapController != null && station.value != null) {
+                          // 정류장 위치로 지도 이동
+                          mapController!.updateCamera(
+                            NCameraUpdate.withParams(
+                              target: NLatLng(
+                                station.value!.latitude,
+                                station.value!.longitude,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      tooltip: '정류장 위치 보기',
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
