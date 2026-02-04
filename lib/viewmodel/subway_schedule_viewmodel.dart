@@ -24,7 +24,13 @@ class SubwayScheduleViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Default to '천안' and '평일' on load
+    // 현재 요일에 따라 평일/주말 초기값 설정 (토, 일은 주말)
+    final now = DateTime.now();
+    if (now.weekday == DateTime.saturday || now.weekday == DateTime.sunday) {
+      selectedDayType.value = '주말';
+    } else {
+      selectedDayType.value = '평일';
+    }
     fetchSchedule();
   }
 

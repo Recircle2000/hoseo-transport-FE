@@ -5,37 +5,49 @@ import '../viewmodel/settings_viewmodel.dart';
 import 'auth/login_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'subway/subway_view.dart';
+import 'guide/guide_selection_view.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hsro/utils/bus_times_loader.dart';
+import 'components/scale_button.dart';
 
 class SettingsView extends StatelessWidget {
+  final GlobalKey? guideKey;
+
+  const SettingsView({Key? key, this.guideKey}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     final cardColor = theme.cardColor;
     
-    return Scaffold(
+    return Drawer(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          '설정',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: theme.scaffoldBackgroundColor,
-      ),
-      body: GetBuilder<SettingsViewModel>(
+      child: Column(
+        children: [
+          // 드로어 헤더 (AppBar 대체)
+          Container(
+            padding: const EdgeInsets.only(top: 60, bottom: 10),
+            alignment: Alignment.center,
+            child: Text(
+              '설정',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Expanded(
+            child: GetBuilder<SettingsViewModel>(
         init: SettingsViewModel(),
         builder: (controller) => ListView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           children: [
             // 캠퍼스 설정 섹션
             Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              padding: const EdgeInsets.only(left: 8, bottom: 8),
               child: Text(
                 '기준 캠퍼스',
                 style: TextStyle(
@@ -80,11 +92,11 @@ class SettingsView extends StatelessWidget {
               )),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             
             // 지하철역 설정 섹션
             Padding(
-              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              padding: const EdgeInsets.only(left: 8, bottom: 8),
               child: Text(
                 '기준 지하철역',
                 style: TextStyle(
@@ -131,12 +143,66 @@ class SettingsView extends StatelessWidget {
               )),
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
+            
+            // 가이드 섹션
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 12),
+              child: Text(
+                '도움말',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            ScaleButton(
+              onTap: () => Get.to(() => const GuideSelectionView()),
+              child: Container(
+                key: guideKey,
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.help_outline, color: Colors.blue),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '셔틀/시내버스 가이드',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 32),
             
             // 정보 섹션
             _buildInfoSection(context),
           ],
         ),
+      ),
+          ),
+        ],
       ),
     );
   }
@@ -154,57 +220,50 @@ class SettingsView extends StatelessWidget {
     final isSelected = value == groupValue;
     final colorScheme = Theme.of(context).colorScheme;
     
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => onChanged(value),
-        borderRadius: BorderRadius.vertical(
-          top: isFirst ? const Radius.circular(25) : Radius.zero,
-          bottom: isLast ? const Radius.circular(25) : Radius.zero,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+    return ScaleButton(
+      onTap: () => onChanged(value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      title,
+                      subtitle,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        fontSize: 12,
+                        color: Colors.grey[600],
                       ),
                     ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  color: colorScheme.primary,
-                  size: 24,
-                )
-              else
-                Icon(
-                  Icons.radio_button_unchecked,
-                  color: Colors.grey[400],
-                  size: 24,
-                ),
-            ],
-          ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: colorScheme.primary,
+                size: 24,
+              )
+            else
+              Icon(
+                Icons.radio_button_unchecked,
+                color: Colors.grey[400],
+                size: 24,
+              ),
+          ],
         ),
       ),
     );
@@ -309,9 +368,8 @@ class SettingsView extends StatelessWidget {
   }
 
   Widget _buildTextButton(BuildContext context, String label, VoidCallback onTap) {
-    return InkWell(
+    return ScaleButton(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         child: Text(

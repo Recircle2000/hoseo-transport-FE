@@ -1,49 +1,166 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../viewmodel/subway_viewmodel.dart';
 import '../../models/subway_arrival_model.dart';
 import 'subway_schedule_view.dart';
 import 'dart:io' show Platform;
 
-class SubwayView extends GetView<SubwayViewModel> {
+class SubwayView extends StatefulWidget {
   final String stationName;
 
   const SubwayView({Key? key, required this.stationName}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<SubwayViewModel>()) {
-      Get.put(SubwayViewModel());
+  State<SubwayView> createState() => _SubwayViewState();
+}
+
+class _SubwayViewState extends State<SubwayView> {
+  final SubwayViewModel controller = Get.put(SubwayViewModel());
+  late PageController _pageController;
+  late RxString _selectedStation;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialIndex = widget.stationName == '아산' ? 1 : 0;
+    _selectedStation = (widget.stationName == '아산' ? '아산' : '천안').obs;
+    _pageController = PageController(initialPage: initialIndex);
+
+    // Show swipe tutorial after frame build
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showSwipeTutorial());
+  }
+
+  void _showSwipeTutorial() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool hasSeenTutorial = prefs.getBool('has_seen_subway_swipe_tutorial') ?? false;
+
+    if (hasSeenTutorial) return;
+
+    await Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                ),
+              ),
+              child: Column(
+                children: [
+                    Icon(
+                     Icons.swipe, 
+                     size: 48, 
+                     color: Theme.of(context).brightness == Brightness.light
+                        ? const Color(0xFF0052A4)
+                        : const Color(0xFF478ED1),
+                   ),
+                   const SizedBox(height: 16),
+                   Text(
+                     '화면을 좌우로 밀어서\n천안역과 아산역을 전환해보세요!',
+                     textAlign: TextAlign.center,
+                     style: TextStyle(
+                       fontSize: 16,
+                       fontWeight: FontWeight.bold,
+                       color: Theme.of(context).colorScheme.onSurface,
+                     ),
+                   ),
+                   const SizedBox(height: 24),
+                   ElevatedButton(
+                     onPressed: () {
+                       Get.back();
+                       prefs.setBool('has_seen_subway_swipe_tutorial', true);
+                     },
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Theme.of(context).colorScheme.primary,
+                       shape: RoundedRectangleBorder(
+                         borderRadius: BorderRadius.circular(12),
+                       ),
+                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                     ),
+                     child: Text('확인', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+                   ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      barrierDismissible: true,
+    );
+    
+    // Ensure it's marked as seen even if dismissed via barrier
+    if (prefs.getBool('has_seen_subway_swipe_tutorial') != true) {
+       await prefs.setBool('has_seen_subway_swipe_tutorial', true);
     }
+  }
 
-    // Local state for selected station (default to passed stationName or '천안')
-    final RxString selectedStation = (stationName == '아산' ? '아산' : '천안').obs;
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
+  void _onStationTapped(String station) {
+    if (_selectedStation.value == station) return;
+    final pageIndex = station == '천안' ? 0 : 1;
+    _pageController.animateToPage(
+      pageIndex,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+     // _selectedStation will be updated by onPageChanged
+  }
+
+  void _onPageChanged(int index) {
+    _selectedStation.value = index == 0 ? '천안' : '아산';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor matches theme (0xFFFAFAFA)
       body: SafeArea(
         child: Column(
           children: [
-             _buildHeader(context),
+            _buildHeader(context),
+            _buildStationSelector(context),
+            const SizedBox(height: 16),
+            _buildStatusBar(context),
+            const SizedBox(height: 24),
             Expanded(
-              child: SingleChildScrollView(
+              child: PageView(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
                 physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    children: [
-                       _buildStationSelector(selectedStation, context),
-                      const SizedBox(height: 16),
-                       _buildStatusBar(context, selectedStation),
-                      const SizedBox(height: 24),
-                      Obx(() => _buildArrivalContent(context, selectedStation.value)),
-                       _buildFooter(context),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
+                children: [
+                  _buildStationContent(context, '천안'),
+                  _buildStationContent(context, '아산'),
+                ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStationContent(BuildContext context, String station) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            Obx(() => _buildArrivalContent(context, station)),
+            _buildFooter(context),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -58,7 +175,8 @@ class SubwayView extends GetView<SubwayViewModel> {
         children: [
           IconButton(
             onPressed: () => Get.back(),
-            icon: Icon(Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back, color: Theme.of(context).colorScheme.onBackground),
+            icon: Icon(Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
+                color: Theme.of(context).colorScheme.onBackground),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             style: IconButton.styleFrom(
@@ -78,47 +196,50 @@ class SubwayView extends GetView<SubwayViewModel> {
     );
   }
 
-  Widget _buildStationSelector(RxString selectedStation, BuildContext context) {
-    return Obx(() {
-      final isCheonan = selectedStation.value == '천안';
-      return Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildToggleButton(
-                context,
-                text: '천안역',
-                isSelected: isCheonan,
-                onTap: () => selectedStation.value = '천안',
+  Widget _buildStationSelector(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Obx(() {
+        final isCheonan = _selectedStation.value == '천안';
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
               ),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: _buildToggleButton(
-                context,
-                text: '아산역',
-                isSelected: !isCheonan,
-                onTap: () => selectedStation.value = '아산',
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildToggleButton(
+                  context,
+                  text: '천안역',
+                  isSelected: isCheonan,
+                  onTap: () => _onStationTapped('천안'),
+                ),
               ),
-            ),
-          ],
-        ),
-      );
-    });
+              const SizedBox(width: 4),
+              Expanded(
+                child: _buildToggleButton(
+                  context,
+                  text: '아산역',
+                  isSelected: !isCheonan,
+                  onTap: () => _onStationTapped('아산'),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
   }
 
   Widget _buildToggleButton(BuildContext context,
@@ -135,7 +256,7 @@ class SubwayView extends GetView<SubwayViewModel> {
               ? const Color(0xFF0052A4)
               : Theme.of(context).brightness == Brightness.dark
                   ? Colors.transparent
-                  : Colors.transparent, // Hover effect could be added here
+                  : Colors.transparent, 
           borderRadius: BorderRadius.circular(8),
           boxShadow: isSelected
               ? [
@@ -162,56 +283,59 @@ class SubwayView extends GetView<SubwayViewModel> {
     );
   }
 
-  Widget _buildStatusBar(BuildContext context, RxString selectedStation) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            _PulsingDot(),
-            const SizedBox(width: 8),
-            Text(
-              '실시간 운행 정보',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+  Widget _buildStatusBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              _PulsingDot(),
+              const SizedBox(width: 8),
+              Text(
+                '실시간 운행 정보',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () => Get.to(() => SubwayScheduleView(initialStationName: selectedStation.value)),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-               boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            ],
+          ),
+          GestureDetector(
+            onTap: () => Get.to(() => SubwayScheduleView(initialStationName: _selectedStation.value)),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                 boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '시간표 보기',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ],
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 4),
-                Text(
-                  '시간표 보기',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -15,7 +15,12 @@ import 'components/auto_scroll_text.dart';
 import '../utils/platform_utils.dart';
 import 'city_bus/grouped_bus_view.dart';
 import 'subway/subway_view.dart';
-import 'components/scale_button.dart';
+import 'package:hsro/view/components/scale_button.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:app_version_update/app_version_update.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -26,8 +31,160 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final noticeViewModel = Get.put(NoticeViewModel());
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey guideKey = GlobalKey();
+  
   // 뒤로가기 시간 저장
   DateTime? _lastBackPressedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    // 화면이 그려진 후 초기화 로직 실행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleStartupFlow();
+    });
+  }
+
+  Future<void> _handleStartupFlow() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. 면책 문구 확인 (최초 실행 시)
+    final bool isFirstRun = prefs.getBool('first_run') ?? true;
+    if (isFirstRun) {
+      await PlatformUtils.showPlatformDisclaimerDialog(context);
+      await prefs.setBool('first_run', false);
+    }
+
+    // 2. 가이드 확인
+    final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
+    if (!hasSeenGuide) {
+      // 드로어 열기
+      _scaffoldKey.currentState?.openDrawer();
+      
+      // 드로어 애니메이션 대기
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // 튜토리얼 표시
+      _showTutorial();
+    } else {
+      // 가이드를 이미 본 경우 바로 버전 확인
+      _checkAppVersionUpdate();
+    }
+  }
+
+  void _showTutorial() {
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: "guide_key",
+          keyTarget: guideKey,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "셔틀/시내버스 가이드",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 20.0,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        "이곳에서 셔틀버스와 시내버스 이용 가이드를 확인해보세요!",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          controller.next();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text("확인"),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+          shape: ShapeLightFocus.RRect,
+          radius: 15,
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      onFinish: () => _completeTutorial(),
+      onClickTarget: (target) => _completeTutorial(),
+      onClickOverlay: (target) => _completeTutorial(),
+    ).show(context: context);
+  }
+
+  Future<void> _completeTutorial() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_seen_guide', true);
+    
+    // 튜토리얼 종료 시 드로어 닫기
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop(); 
+    }
+
+    // 3. 가이드 종료 후 버전 확인
+    _checkAppVersionUpdate();
+  }
+
+  Future<void> _checkAppVersionUpdate() async {
+    final result = await AppVersionUpdate.checkForUpdates(
+      appleId: dotenv.env['APPLE_APP_ID'] ?? '',
+      playStoreId: dotenv.env['PLAY_STORE_ID'] ?? '',
+      country: 'kr',
+    );
+    if (result.canUpdate == true) {
+      await AppVersionUpdate.showAlertUpdate(
+        appVersionResult: result,
+        context: context,
+        backgroundColor: Colors.white,
+        title: '새로운 버전이 있습니다',
+        titleTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        content: '최신 버전으로 업데이트를 권장합니다.',
+        contentTextStyle: const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
+        updateButtonText: '업데이트',
+        updateButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.lightBlueAccent),
+        ),
+        updateTextStyle: const TextStyle(color: Colors.black),
+        cancelButtonText: '나중에',
+        cancelTextStyle: const TextStyle(color: Colors.white),
+        cancelButtonStyle: ButtonStyle(
+          backgroundColor: WidgetStateProperty.all(Colors.black54),
+        ),
+      );
+    }
+  }
+
   
   @override
   Widget build(BuildContext context) {
@@ -39,6 +196,11 @@ class _HomeViewState extends State<HomeView> {
       onWillPop: () async {
         // Android에서만 동작
         if (!Platform.isAndroid) return true;
+
+        // Drawer가 열려있으면 뒤로가기 시 Drawer 닫기 (기본 동작 허용)
+        if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+          return true;
+        }
 
         // 현재 시간
         final currentTime = DateTime.now();
@@ -63,6 +225,8 @@ class _HomeViewState extends State<HomeView> {
         return true; // 두 번째 누른 경우 앱 종료
       },
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: SettingsView(guideKey: guideKey),
         backgroundColor: backgroundColor,
         appBar: AppBar(
           backgroundColor: backgroundColor, // 앱바도 배경과 같은 색상
@@ -74,11 +238,11 @@ class _HomeViewState extends State<HomeView> {
           ),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.settings, size: 24),
+            icon: const Icon(Icons.menu_outlined, size: 24),
             onPressed: () {
               HapticFeedback.lightImpact();
-              Get.to(() => SettingsView());},
-
+              _scaffoldKey.currentState?.openDrawer();
+            },
           ),
           actions: [
             Obx(() {
