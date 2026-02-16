@@ -238,76 +238,83 @@ class ShuttleRouteSelectionView extends StatelessWidget {
 
   // 현재 시간 정보 및 도움말 카드
   Widget _buildCurrentTimeInfo(BuildContext context) {
-    final now = DateTime.now();
-    final dayOfWeek =
-        ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'][now.weekday - 1];
-    final timeString = DateFormat('HH:mm').format(now);
-
-    final brightness = Theme.of(context).brightness;
-    final backgroundColor = brightness == Brightness.dark
-        ? shuttleColor.withOpacity(0.2)
-        : shuttleColor.withOpacity(0.1);
-    final borderColor = shuttleColor.withOpacity(0.3);
-
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(25),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withOpacity(0.1),
-        //     blurRadius: 0,
-        //     offset: const Offset(0, 0),
-        //   ),
-        // ],
+    return StreamBuilder<DateTime>(
+      stream: Stream<DateTime>.periodic(
+        const Duration(seconds: 1),
+        (_) => DateTime.now(),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      initialData: DateTime.now(),
+      builder: (context, snapshot) {
+        final now = snapshot.data ?? DateTime.now();
+        final dayOfWeek =
+            ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'][now.weekday - 1];
+        final timeString = DateFormat('HH:mm').format(now);
+        final brightness = Theme.of(context).brightness;
+        final backgroundColor = brightness == Brightness.dark
+            ? shuttleColor.withOpacity(0.2)
+            : shuttleColor.withOpacity(0.1);
+
+        return Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(25),
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: Colors.black.withOpacity(0.1),
+            //     blurRadius: 0,
+            //     offset: const Offset(0, 0),
+            //   ),
+            // ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.access_time, color: shuttleColor),
-              SizedBox(width: 8),
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: shuttleColor),
+                  SizedBox(width: 8),
+                  Text(
+                    '현재 시간: $timeString',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: brightness == Brightness.dark
+                          ? Colors.redAccent
+                          : shuttleColor,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.calendar_today, color: shuttleColor),
+                  SizedBox(width: 8),
+                  Text(
+                    '오늘:  ${DateFormat('yyyy년 MM월 dd일').format(now)} ($dayOfWeek)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: brightness == Brightness.dark
+                          ? Colors.redAccent
+                          : shuttleColor,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
               Text(
-                '현재 시간: $timeString',
+                '아래에서 노선과 운행 날짜를 선택하여 셔틀버스 시간표를 확인하세요.',
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: brightness == Brightness.dark
-                      ? Colors.redAccent
-                      : shuttleColor,
+                  color: Theme.of(context).hintColor,
+                  fontSize: 14,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.calendar_today, color: shuttleColor),
-              SizedBox(width: 8),
-              Text(
-                '오늘:  ${DateFormat('yyyy년 MM월 dd일').format(now)} ($dayOfWeek)',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: brightness == Brightness.dark
-                      ? Colors.redAccent
-                      : shuttleColor,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text(
-            '아래에서 노선과 운행 날짜를 선택하여 셔틀버스 시간표를 확인하세요.',
-            style: TextStyle(
-              color: Theme.of(context).hintColor,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
