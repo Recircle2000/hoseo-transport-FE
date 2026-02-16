@@ -8,6 +8,7 @@ import '../../viewmodel/nearby_stops_viewmodel.dart';
 import '../../models/shuttle_models.dart';
 import 'shuttle_route_detail_view.dart'; // 노선 상세 정보 화면 임포트
 import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
+import '../components/scale_button.dart';
 
 class NearbyStopsView extends StatelessWidget {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
@@ -48,7 +49,7 @@ class NearbyStopsView extends StatelessWidget {
     return Obx(() {
       final isLoading = viewModel.isLoadingLocation.value;
       final hasLocation = viewModel.currentPosition.value != null;
-      
+
       return Container(
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
@@ -65,15 +66,15 @@ class NearbyStopsView extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           width: double.infinity,
           child: Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    color: Colors.green.shade700,
+            children: [
+              Icon(
+                Icons.location_on,
+                color: Colors.green.shade700,
                 size: 20,
-                  ),
-                  SizedBox(width: 8),
+              ),
+              SizedBox(width: 8),
               Text(
-                    '내 위치에서 가까운 정류장',
+                '내 위치에서 가까운 정류장',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -89,31 +90,31 @@ class NearbyStopsView extends StatelessWidget {
               else if (!hasLocation)
                 _buildCompactLocationButton(context)
               else
-                    InkWell(
-                      onTap: () => viewModel.getCurrentLocation(),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.refresh,
+                InkWell(
+                  onTap: () => viewModel.getCurrentLocation(),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.refresh,
                         size: 14,
-                            color: Colors.green.shade700,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '위치 새로고침',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                        color: Colors.green.shade700,
                       ),
+                      SizedBox(width: 4),
+                      Text(
+                        '위치 새로고침',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
+          ),
         ),
-      ),
       );
     });
   }
@@ -127,7 +128,7 @@ class NearbyStopsView extends StatelessWidget {
           '위치 확인',
           style: TextStyle(
             fontSize: 12,
-        color: Colors.green.shade700,
+            color: Colors.green.shade700,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -157,33 +158,32 @@ class NearbyStopsView extends StatelessWidget {
     return Obx(() {
       final isLoading = viewModel.isLoadingStations.value;
       final hasLocation = viewModel.currentPosition.value != null;
-      final stations = hasLocation 
-          ? viewModel.sortedStations 
-          : viewModel.stations;
-      
+      final stations =
+          hasLocation ? viewModel.sortedStations : viewModel.stations;
+
       if (isLoading) {
         return Center(
           child: CircularProgressIndicator.adaptive(),
         );
       }
-      
+
       if (stations.isEmpty) {
         return Center(
           child: Text('정류장 정보를 불러올 수 없습니다.'),
         );
       }
-      
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-        children: [
-          Text(
-            '정류장 선택',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            children: [
+              Text(
+                '정류장 선택',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               if (hasLocation)
                 Padding(
@@ -221,11 +221,12 @@ class NearbyStopsView extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 12),
                 borderRadius: BorderRadius.circular(8),
                 items: stations.map((station) {
-                  final hasDistance = hasLocation && viewModel.currentPosition.value != null;
+                  final hasDistance =
+                      hasLocation && viewModel.currentPosition.value != null;
                   final distance = hasDistance
                       ? viewModel.getDistanceToStation(station)
                       : null;
-                  
+
                   return DropdownMenuItem<int>(
                     value: station.id,
                     child: Row(
@@ -238,7 +239,8 @@ class NearbyStopsView extends StatelessWidget {
                         ),
                         if (hasDistance)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.green.shade50,
                               borderRadius: BorderRadius.circular(4),
@@ -289,64 +291,20 @@ class NearbyStopsView extends StatelessWidget {
           ),
         ),
         SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => _showIOSDatePicker(context),
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              // border: Border.all(color: Theme.of(context).dividerColor),
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 0),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Obx(() {
-                    if (viewModel.selectedDate.value.isEmpty) {
-                      return Text('운행 날짜를 선택하세요', 
-                        style: TextStyle(color: Theme.of(context).hintColor));
-                    } else {
-                      // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
-                      final dateStr = viewModel.selectedDate.value;
-                      try {
-                        final date = DateFormat('yyyy-MM-dd').parse(dateStr);
-                        return Text('${DateFormat('yyyy년 MM월 dd일').format(date)} (${_getDayOfWeekString(date)})');
-                      } catch (e) {
-                        return Text(dateStr);
-                      }
-                    }
-                  }),
-                  Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
-                ],
-              ),
-            ),
-          ),
+        _buildDateSelectorWithArrows(
+          context,
+          onTapDatePicker: () => _showIOSDatePicker(context),
         ),
       ],
     );
   }
 
   void _showIOSDatePicker(BuildContext context) {
-    DateTime selectedDate = DateTime.now();
-    
-    // 현재 선택된 날짜가 있으면 해당 날짜로 초기화
-    if (viewModel.selectedDate.value.isNotEmpty) {
-      try {
-        selectedDate = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
-      } catch (e) {
-        print('날짜 파싱 오류: $e');
-      }
-    }
-    
+    DateTime selectedDate =
+        _clampDateToSelectableRange(_getSelectedDateOrToday());
+    final minimumDate = _getMinimumSelectableDate();
+    final maximumDate = _getMaximumSelectableDate();
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) => Container(
@@ -367,7 +325,8 @@ class NearbyStopsView extends StatelessWidget {
                   CupertinoButton(
                     child: Text('확인'),
                     onPressed: () {
-                      final formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                      final formattedDate =
+                          DateFormat('yyyy-MM-dd').format(selectedDate);
                       viewModel.selectDate(formattedDate);
                       Navigator.pop(context);
                     },
@@ -379,11 +338,11 @@ class NearbyStopsView extends StatelessWidget {
               child: CupertinoDatePicker(
                 mode: CupertinoDatePickerMode.date,
                 initialDateTime: selectedDate,
+                minimumDate: minimumDate,
+                maximumDate: maximumDate,
                 onDateTimeChanged: (DateTime date) {
                   selectedDate = date;
                 },
-                minimumYear: DateTime.now().year - 1,
-                maximumYear: DateTime.now().year + 1,
               ),
             ),
           ],
@@ -404,66 +363,195 @@ class NearbyStopsView extends StatelessWidget {
           ),
         ),
         SizedBox(height: 8),
-        Container(
-          height: 50,
-          decoration: BoxDecoration(
-            // border: Border.all(color: Theme.of(Get.context!).dividerColor),
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(25),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: InkWell(
-            onTap: () => _showAndroidDatePicker(context),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Obx(() {
-                  if (viewModel.selectedDate.value.isEmpty) {
-                    return Text('운행 날짜를 선택하세요', style: TextStyle(color: Theme.of(context).hintColor));
-                  } else {
-                    // 날짜 형식 변환 (YYYY-MM-DD -> YYYY년 MM월 DD일)
-                    final dateStr = viewModel.selectedDate.value;
-                    try {
-                      final date = DateFormat('yyyy-MM-dd').parse(dateStr);
-                      return Text('${DateFormat('yyyy년 MM월 dd일').format(date)} (${_getDayOfWeekString(date)})');
-                    } catch (e) {
-                      return Text(dateStr);
-                    }
-                  }
-                }),
-                Icon(Icons.calendar_today, color: Theme.of(context).hintColor),
-              ],
-            ),
-          ),
+        _buildDateSelectorWithArrows(
+          context,
+          onTapDatePicker: () => _showAndroidDatePicker(context),
         ),
       ],
     );
   }
 
-  Future<void> _showAndroidDatePicker(BuildContext context) async {
-    DateTime selectedDate = DateTime.now();
-    
-    // 현재 선택된 날짜가 있으면 해당 날짜로 초기화
-    if (viewModel.selectedDate.value.isNotEmpty) {
-      try {
-        selectedDate = DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
-      } catch (e) {
-        print('날짜 파싱 오류: $e');
-      }
+  Widget _buildDateSelectorWithArrows(
+    BuildContext context, {
+    required VoidCallback onTapDatePicker,
+  }) {
+    return Obx(() {
+      final selectedDate = _getSelectedDateOrToday();
+      final minimumDate = _getMinimumSelectableDate();
+      final maximumDate = _getMaximumSelectableDate();
+      final canMovePrevious = selectedDate.isAfter(minimumDate);
+      final canMoveNext = selectedDate.isBefore(maximumDate);
+      final hasSelectedDate = viewModel.selectedDate.value.isNotEmpty;
+
+      return Row(
+        children: [
+          _buildDateArrowButton(
+            context: context,
+            icon: Icons.chevron_left,
+            enabled: canMovePrevious,
+            onTap: () => _moveSelectedDateBy(-1),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: ScaleButton(
+              onTap: onTapDatePicker,
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _getSelectedDateLabel(),
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: hasSelectedDate
+                              ? null
+                              : Theme.of(context).hintColor,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.calendar_today,
+                        color: Theme.of(context).hintColor),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 8),
+          _buildDateArrowButton(
+            context: context,
+            icon: Icons.chevron_right,
+            enabled: canMoveNext,
+            onTap: () => _moveSelectedDateBy(1),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildDateArrowButton({
+    required BuildContext context,
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return IgnorePointer(
+      ignoring: !enabled,
+      child: Opacity(
+        opacity: enabled ? 1.0 : 0.4,
+        child: ScaleButton(
+          onTap: onTap,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 0),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: enabled
+                  ? (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.redAccent
+                      : shuttleColor)
+                  : Theme.of(context).disabledColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getSelectedDateLabel() {
+    if (viewModel.selectedDate.value.isEmpty) {
+      return '운행 날짜를 선택하세요';
     }
-    
+    return _formatDate(viewModel.selectedDate.value);
+  }
+
+  DateTime _getSelectedDateOrToday() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (viewModel.selectedDate.value.isEmpty) {
+      return today;
+    }
+
+    try {
+      final selectedDate =
+          DateFormat('yyyy-MM-dd').parse(viewModel.selectedDate.value);
+      return DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    } catch (e) {
+      return today;
+    }
+  }
+
+  DateTime _getMinimumSelectableDate() {
+    final minimumDate = DateTime.now().subtract(Duration(days: 365));
+    return DateTime(minimumDate.year, minimumDate.month, minimumDate.day);
+  }
+
+  DateTime _getMaximumSelectableDate() {
+    final maximumDate = DateTime.now().add(Duration(days: 365));
+    return DateTime(maximumDate.year, maximumDate.month, maximumDate.day);
+  }
+
+  DateTime _clampDateToSelectableRange(DateTime date) {
+    final minimumDate = _getMinimumSelectableDate();
+    final maximumDate = _getMaximumSelectableDate();
+
+    if (date.isBefore(minimumDate)) {
+      return minimumDate;
+    }
+    if (date.isAfter(maximumDate)) {
+      return maximumDate;
+    }
+    return date;
+  }
+
+  void _moveSelectedDateBy(int dayOffset) {
+    final currentDate = _getSelectedDateOrToday();
+    final nextDate = currentDate.add(Duration(days: dayOffset));
+    final minimumDate = _getMinimumSelectableDate();
+    final maximumDate = _getMaximumSelectableDate();
+
+    if (nextDate.isBefore(minimumDate) || nextDate.isAfter(maximumDate)) {
+      return;
+    }
+
+    viewModel.selectDate(DateFormat('yyyy-MM-dd').format(nextDate));
+  }
+
+  Future<void> _showAndroidDatePicker(BuildContext context) async {
+    DateTime selectedDate =
+        _clampDateToSelectableRange(_getSelectedDateOrToday());
+    final firstDate = _getMinimumSelectableDate();
+    final lastDate = _getMaximumSelectableDate();
+
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime.now().subtract(Duration(days: 365)),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      firstDate: firstDate,
+      lastDate: lastDate,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -475,7 +563,7 @@ class NearbyStopsView extends StatelessWidget {
         );
       },
     );
-    
+
     if (picked != null) {
       final formattedDate = DateFormat('yyyy-MM-dd').format(picked);
       viewModel.selectDate(formattedDate);
@@ -485,27 +573,35 @@ class NearbyStopsView extends StatelessWidget {
   String _getDayOfWeekString(DateTime date) {
     final dayOfWeek = date.weekday;
     switch (dayOfWeek) {
-      case 1: return '월';
-      case 2: return '화';
-      case 3: return '수';
-      case 4: return '목';
-      case 5: return '금';
-      case 6: return '토';
-      case 7: return '일';
-      default: return '';
+      case 1:
+        return '월';
+      case 2:
+        return '화';
+      case 3:
+        return '수';
+      case 4:
+        return '목';
+      case 5:
+        return '금';
+      case 6:
+        return '토';
+      case 7:
+        return '일';
+      default:
+        return '';
     }
   }
 
   Widget _buildScheduleHeader(BuildContext context) {
     return Obx(() {
       final selectedId = viewModel.selectedStationId.value;
-      final stationName = selectedId != -1
-          ? viewModel.getStationName(selectedId)
-          : '';
+      final stationName =
+          selectedId != -1 ? viewModel.getStationName(selectedId) : '';
       final scheduleTypeName = viewModel.scheduleTypeName.value.isNotEmpty
           ? viewModel.scheduleTypeName.value
-          : viewModel.scheduleTypeNames[viewModel.selectedScheduleType.value] ?? '전체';
-      
+          : viewModel.scheduleTypeNames[viewModel.selectedScheduleType.value] ??
+              '전체';
+
       return Row(
         children: [
           Icon(
@@ -546,9 +642,9 @@ class NearbyStopsView extends StatelessWidget {
                   ),
                   SizedBox(width: 4),
                   Icon(
-                    Platform.isIOS 
-                      ? CupertinoIcons.info_circle_fill 
-                      : Icons.info_outline,
+                    Platform.isIOS
+                        ? CupertinoIcons.info_circle_fill
+                        : Icons.info_outline,
                     size: 14,
                     color: Colors.grey.shade600,
                   ),
@@ -559,20 +655,20 @@ class NearbyStopsView extends StatelessWidget {
       );
     });
   }
-  
+
   Widget _buildScheduleTable(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final headerBgColor = brightness == Brightness.dark 
-        ? Colors.grey.shade800 
+    final headerBgColor = brightness == Brightness.dark
+        ? Colors.grey.shade800
         : Colors.grey.shade200;
-    
+
     return Obx(() {
       if (viewModel.isLoadingSchedules.value) {
         return Center(
-            child: CircularProgressIndicator.adaptive(),
+          child: CircularProgressIndicator.adaptive(),
         );
       }
-      
+
       if (viewModel.filteredSchedules.isEmpty) {
         return Center(
           child: Column(
@@ -619,7 +715,7 @@ class NearbyStopsView extends StatelessWidget {
           ),
         );
       }
-      
+
       return Container(
         decoration: BoxDecoration(
           // border: Border.all(color: Colors.grey.shade300),
@@ -649,32 +745,35 @@ class NearbyStopsView extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 1,
-                    child: Text('번호', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('번호',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   Expanded(
                     flex: 4,
-                    child: Text('노선', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('노선',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                   Expanded(
                     flex: 2,
-                    child: Text('도착 시간', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('도착 시간',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
-            
+
             // 테이블 내용
             Expanded(
               child: Platform.isIOS
-                ? _buildIosScheduleList()
-                : _buildAndroidScheduleList(),
+                  ? _buildIosScheduleList()
+                  : _buildAndroidScheduleList(),
             ),
           ],
         ),
       );
     });
   }
-  
+
   Widget _buildIosScheduleList() {
     return ListView.separated(
       itemCount: viewModel.filteredSchedules.length,
@@ -682,17 +781,17 @@ class NearbyStopsView extends StatelessWidget {
       itemBuilder: (context, index) {
         final schedule = viewModel.filteredSchedules[index];
         final routeName = viewModel.getRouteName(schedule.routeId);
-        
+
         return InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
             Get.to(() => ShuttleRouteDetailView(
-              scheduleId: schedule.scheduleId,
-              routeName: routeName,
-              round: 0, // 회차 정보가 없으므로 0으로 설정
-              startTime: _formatTime(schedule.arrivalTime),
-            ));
+                  scheduleId: schedule.scheduleId,
+                  routeName: routeName,
+                  round: 0, // 회차 정보가 없으므로 0으로 설정
+                  startTime: _formatTime(schedule.arrivalTime),
+                ));
           },
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -737,7 +836,7 @@ class NearbyStopsView extends StatelessWidget {
       },
     );
   }
-  
+
   Widget _buildAndroidScheduleList() {
     return Scrollbar(
       interactive: true,
@@ -748,17 +847,17 @@ class NearbyStopsView extends StatelessWidget {
         itemBuilder: (context, index) {
           final schedule = viewModel.filteredSchedules[index];
           final routeName = viewModel.getRouteName(schedule.routeId);
-          
+
           return InkWell(
             onTap: () {
               HapticFeedback.lightImpact();
               // 스케줄 항목 클릭 시 노선 상세 화면으로 이동
               Get.to(() => ShuttleRouteDetailView(
-                scheduleId: schedule.scheduleId,
-                routeName: routeName,
-                round: 0, // 회차 정보가 없으므로 0으로 설정
-                startTime: _formatTime(schedule.arrivalTime),
-              ));
+                    scheduleId: schedule.scheduleId,
+                    routeName: routeName,
+                    round: 0, // 회차 정보가 없으므로 0으로 설정
+                    startTime: _formatTime(schedule.arrivalTime),
+                  ));
             },
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -804,7 +903,7 @@ class NearbyStopsView extends StatelessWidget {
       ),
     );
   }
-  
+
   // "HH:MM:SS" 형식의 시간을 "HH:MM" 형식으로 변환
   String _formatTime(String timeString) {
     if (timeString.length >= 5) {
@@ -822,4 +921,4 @@ class NearbyStopsView extends StatelessWidget {
       return dateStr;
     }
   }
-} 
+}
