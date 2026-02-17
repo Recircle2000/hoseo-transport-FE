@@ -9,7 +9,7 @@ import 'package:latlong2/latlong.dart';
 import '../../viewmodel/busmap_viewmodel.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/rendering.dart';
-import 'bus_map_detail_view.dart';
+import 'naver_bus_map_detail_view.dart';
 import 'components/route_picker.dart';
 import 'components/station_list.dart';
 import 'components/route_info_view.dart';
@@ -253,7 +253,7 @@ class _BusMapViewState extends State<BusMapView> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 HapticFeedback.lightImpact();
-                                Get.to(() => BusMapDetailView(
+                                Get.to(() => NaverBusMapDetailView(
                                     routeName: routeDisplayNames[controller.selectedRoute.value] ??
                                         controller.selectedRoute.value));
                               },
