@@ -16,15 +16,19 @@ class UpcomingDeparturesWidget extends StatefulWidget {
   UpcomingDeparturesWidget({Key? key}) : super(key: key);
 
   @override
-  _UpcomingDeparturesWidgetState createState() => _UpcomingDeparturesWidgetState();
+  _UpcomingDeparturesWidgetState createState() =>
+      _UpcomingDeparturesWidgetState();
 }
 
-class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> with RouteAware {
-  final UpcomingDepartureViewModel viewModel = Get.put(UpcomingDepartureViewModel());
+class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget>
+    with RouteAware {
+  final UpcomingDepartureViewModel viewModel =
+      Get.put(UpcomingDepartureViewModel());
   int _remainingSeconds = 30; // 자동 새로고침까지 남은 시간(초)
   Timer? _refreshCountdownTimer;
 
-  final RouteObserver<PageRoute> _routeObserver = Get.find<RouteObserver<PageRoute>>();
+  final RouteObserver<PageRoute> _routeObserver =
+      Get.find<RouteObserver<PageRoute>>();
 
   @override
   void initState() {
@@ -90,7 +94,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     _refreshCountdownTimer?.cancel();
 
     // 천안 캠퍼스는 5초, 나머지는 30초
-    final countdownSeconds = viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
+    final countdownSeconds =
+        viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
 
     // 초기값 설정
     _remainingSeconds = countdownSeconds;
@@ -102,7 +107,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
           _remainingSeconds--;
         } else {
           // 카운트다운 종료 시 다시 시작 (캠퍼스 변경 시 간격도 변경 가능하도록)
-          final newCountdownSeconds = viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
+          final newCountdownSeconds =
+              viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
           _remainingSeconds = newCountdownSeconds;
           // 타이머 초기화와 동시에 수행되는 자동 새로고침
           // 뷰모델의 타이머가 자동으로 새로고침을 실행하므로 여기서는 호출하지 않음
@@ -113,7 +119,6 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
 
   // 수동 새로고침 시 카운트다운도 리셋
   void _manualRefresh() {
-
     viewModel.loadData();
     _startRefreshCountdown();
   }
@@ -121,7 +126,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
   // 타이머 디스플레이를 리셋하는 메소드
   void _resetTimerDisplay() {
     setState(() {
-      final countdownSeconds = viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
+      final countdownSeconds =
+          viewModel.settingsViewModel.selectedCampus.value == '천안' ? 5 : 30;
       _remainingSeconds = countdownSeconds;
     });
   }
@@ -137,7 +143,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Icon(Icons.timer, size: 16, color: Theme.of(context).colorScheme.primary),
+              Icon(Icons.timer,
+                  size: 16, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 6),
               Text(
                 '곧 출발',
@@ -150,13 +157,13 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
               const SizedBox(width: 4),
               Expanded(
                 child: Obx(() => Text(
-                  '${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '기점 출발 기준 / 실시간 도착 정보 제공' : '아캠 출발 기준'} ',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
-                  ),
-                )),
+                      '${viewModel.settingsViewModel.selectedCampus.value == '천안' ? '기점 출발 기준 / 실시간 도착 정보 제공' : '아캠 출발 기준'} ',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    )),
               ),
               const SizedBox(width: 8),
               Obx(() => viewModel.isRefreshing.value
@@ -282,17 +289,19 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                         children: [
                           _buildSectionTitle(context, '셔틀버스'),
                           viewModel.upcomingShuttles.isEmpty
-                            ? _buildEmptyMessage(context, '셔틀')
-                            : Column(
-                                children: viewModel.upcomingShuttles
-                                  .take(3) // 최대 2개만 표시
-                                  .map((shuttle) => _buildCompactShuttleItem(
-                                    context,
-                                    shuttle,
-                                    Colors.deepOrange,
-                                    Icons.airport_shuttle,
-                                  )).toList(),
-                              ),
+                              ? _buildEmptyMessage(context, '셔틀')
+                              : Column(
+                                  children: viewModel.upcomingShuttles
+                                      .take(3) // 최대 2개만 표시
+                                      .map(
+                                          (shuttle) => _buildCompactShuttleItem(
+                                                context,
+                                                shuttle,
+                                                Colors.deepOrange,
+                                                Icons.airport_shuttle,
+                                              ))
+                                      .toList(),
+                                ),
                         ],
                       ),
                     ),
@@ -303,14 +312,16 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                   // 시내버스 (오른쪽)
                   Expanded(
                     child: Container(
-                     // height: 210,
+                      // height: 210,
                       child: Column(
                         mainAxisSize: MainAxisSize.min, // 추가
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionTitle(context, '시내버스'),
                           // 천안 캠퍼스: 실시간 버스 + 기존 시내버스 합쳐서 최대 3개
-                          if (viewModel.settingsViewModel.selectedCampus.value == '천안')
+                          if (viewModel
+                                  .settingsViewModel.selectedCampus.value ==
+                              '천안')
                             Obx(() {
                               final combinedBuses = [
                                 ...viewModel.ceRealtimeBuses,
@@ -320,37 +331,40 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                                 return _buildEmptyMessage(context, '버스');
                               }
                               return Column(
-                                children: combinedBuses
-                                    .take(3)
-                                    .map((bus) {
-                                      // destination이 "호서대(천안)"이고 routeKey가 24_DOWN 또는 81_DOWN이면 실시간 버스
-                                      final isRealtime = bus.destination == '호서대천캠' &&
-                                          (bus.routeKey == '24_DOWN' || bus.routeKey == '81_DOWN');
-                                      return _buildCompactBusItem(
-                                        context,
-                                        bus,
-                                        isRealtime ? Colors.blue : Colors.blue,
-                                        isRealtime ? Icons.location_on : Icons.directions_bus,
-                                      );
-                                    })
-                                    .toList(),
+                                children: combinedBuses.take(3).map((bus) {
+                                  // destination이 "호서대(천안)"이고 routeKey가 24_DOWN 또는 81_DOWN이면 실시간 버스
+                                  final isRealtime =
+                                      bus.destination == '호서대천캠' &&
+                                          (bus.routeKey == '24_DOWN' ||
+                                              bus.routeKey == '81_DOWN');
+                                  return _buildCompactBusItem(
+                                    context,
+                                    bus,
+                                    isRealtime ? Colors.blue : Colors.blue,
+                                    isRealtime
+                                        ? Icons.location_on
+                                        : Icons.directions_bus,
+                                  );
+                                }).toList(),
                               );
                             }),
                           // 아산 캠퍼스: 기존 시내버스만 최대 3개
-                          if (viewModel.settingsViewModel.selectedCampus.value != '천안')
+                          if (viewModel
+                                  .settingsViewModel.selectedCampus.value !=
+                              '천안')
                             Obx(() => viewModel.upcomingCityBuses.isEmpty
-                              ? _buildEmptyMessage(context, '버스')
-                              : Column(
-                                  children: viewModel.upcomingCityBuses
-                                      .take(3)
-                                      .map((cityBus) => _buildCompactBusItem(
-                                            context,
-                                            cityBus,
-                                            Colors.blue,
-                                            Icons.directions_bus,
-                                          ))
-                                      .toList(),
-                                )),
+                                ? _buildEmptyMessage(context, '버스')
+                                : Column(
+                                    children: viewModel.upcomingCityBuses
+                                        .take(3)
+                                        .map((cityBus) => _buildCompactBusItem(
+                                              context,
+                                              cityBus,
+                                              Colors.blue,
+                                              Icons.directions_bus,
+                                            ))
+                                        .toList(),
+                                  )),
                         ],
                       ),
                     ),
@@ -380,7 +394,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       padding: EdgeInsets.symmetric(vertical: 15.5, horizontal: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: Colors.grey.withOpacity(0.2),
           width: 1,
@@ -403,12 +417,12 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                 firstTimeText,
                 style: TextStyle(
                   color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ],
         ),
       ),
-    ],
-    ],
-    ),
-    ),
     );
   }
 
@@ -440,21 +454,22 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       child: ScaleButton(
         onTap: () {
           // 셔틀버스 클릭 시 상세 페이지로 이동
-          
+
           // 해당 셔틀의 scheduleId가 있는 경우에만 이동
           if (departure.scheduleId != null) {
             // ShuttleViewModel이 없는 경우 초기화 (Get.find 오류 방지)
             if (!Get.isRegistered<ShuttleViewModel>()) {
               Get.put(ShuttleViewModel());
             }
-            
+
             // 셔틀 상세 화면으로 이동
             Get.to(() => ShuttleRouteDetailView(
-              scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
-              routeName: departure.destination, // 노선명 전달
-              round: 0, // 기본값으로 0 (0으로 설정시 표시되지 않음)
-              startTime: '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
-            ));
+                  scheduleId: departure.scheduleId!, // 각 셔틀의 scheduleId 사용
+                  routeName: departure.destination, // 노선명 전달
+                  round: 0, // 기본값으로 0 (0으로 설정시 표시되지 않음)
+                  startTime:
+                      '${departure.departureTime.hour.toString().padLeft(2, '0')}:${departure.departureTime.minute.toString().padLeft(2, '0')}', // 출발 시간 전달
+                ));
           } else {
             // scheduleId가 없는 경우 스낵바 표시
             Get.snackbar(
@@ -536,9 +551,11 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _getTimeColor(departure.minutesLeft).withOpacity(0.1),
+                    color:
+                        _getTimeColor(departure.minutesLeft).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Text(
@@ -572,7 +589,7 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
       child: ScaleButton(
         onTap: () {
           // 시내버스 클릭 시 햅틱 피드백 제공
-          
+
           // BusMapView로 이동 (클릭한 노선 정보와 목적지 전달)
           Get.to(
             () => BusMapView(
@@ -623,7 +640,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                     children: [
                       // 자동 롤링 텍스트
                       AutoScrollText(
-                        text: '${departure.routeName} → ${departure.destination}',
+                        text:
+                            '${departure.routeName} → ${departure.destination}',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
@@ -633,8 +651,9 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                         builder: (context) {
                           // 실시간 버스인지 확인
                           final isRealtime = departure.destination == '호서대천캠' &&
-                              (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
-                          
+                              (departure.routeKey == '24_DOWN' ||
+                                  departure.routeKey == '81_DOWN');
+
                           // 실시간 버스가 아닐 때만 출발 시간 표시
                           if (isRealtime) {
                             // 실시간 버스는 문자열 그대로 출력, Row를 Expanded로 감싸 overflow 방지
@@ -642,7 +661,8 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                               children: [
                                 Expanded(
                                   child: Text(
-                                    '위치 : ' + departure.departureTime.toString(),
+                                    '위치 : ' +
+                                        departure.departureTime.toString(),
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: Colors.grey[600],
@@ -701,11 +721,12 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                   builder: (context) {
                     // 실시간 버스인지 확인 (destination이 "호서대(천안)"이고 routeKey가 24_DOWN 또는 81_DOWN)
                     final isRealtime = departure.destination == '호서대천캠' &&
-                        (departure.routeKey == '24_DOWN' || departure.routeKey == '81_DOWN');
-                    
+                        (departure.routeKey == '24_DOWN' ||
+                            departure.routeKey == '81_DOWN');
+
                     String displayText;
                     Color badgeColor;
-                    
+
                     if (isRealtime) {
                       // 실시간 버스: 남은 정거장 표시
                       final left = departure.minutesLeft;
@@ -727,9 +748,10 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
                       displayText = '${departure.minutesLeft}분';
                       badgeColor = _getTimeColor(departure.minutesLeft);
                     }
-                    
+
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: badgeColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(15),
@@ -763,4 +785,3 @@ class _UpcomingDeparturesWidgetState extends State<UpcomingDeparturesWidget> wit
     }
   }
 }
-
