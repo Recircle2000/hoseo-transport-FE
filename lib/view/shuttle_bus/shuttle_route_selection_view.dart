@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import '../../viewmodel/shuttle_viewmodel.dart';
+import '../../models/emergency_notice_model.dart';
 import '../../models/shuttle_models.dart';
 import 'shuttle_schedule_view.dart'; // 시간표 화면 임포트
 import 'package:intl/intl.dart';
 import 'nearby_stops_view.dart'; // 가까운 정류장 찾기 화면 임포트
 import '../components/scale_button.dart';
+import '../components/emergency_notice_banner.dart';
 
 class ShuttleRouteSelectionView extends StatelessWidget {
   final ShuttleViewModel viewModel = Get.put(ShuttleViewModel());
@@ -22,168 +23,181 @@ class ShuttleRouteSelectionView extends StatelessWidget {
         title: Text('셔틀버스 노선 선택'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSelectionArea(context),
-
-                SizedBox(height: 32),
-
-                // 검색 버튼
-                Center(
-                  child: ScaleButton(
-                    onTap: () {
-                      // 노선과 운행일자가 모두 선택되었는지 확인
-                      if (viewModel.selectedRouteId.value == -1) {
-                        Get.snackbar(
-                          '알림',
-                          '노선을 선택해주세요',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                        return;
-                      }
-
-                      if (viewModel.selectedDate.value.isEmpty) {
-                        Get.snackbar(
-                          '알림',
-                          '운행 날짜를 선택해주세요',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                        return;
-                      }
-
-                      try {
-                        // 날짜 포맷 변환 및 요일 가져오기
-                        final date = DateFormat('yyyy-MM-dd')
-                            .parse(viewModel.selectedDate.value);
-                        final dayOfWeek = _getDayOfWeekString(date);
-
-                        // 조회 버튼을 누를 때만 API를 호출하도록 변경
-                        viewModel
-                            .fetchSchedules(viewModel.selectedRouteId.value,
-                                viewModel.selectedDate.value)
-                            .then((success) {
-                          if (!success) {
-                            // 404 에러: 해당 날짜에 운행하는 셔틀 노선이 없음
-                            _showNoScheduleAlert(context);
-                          } else {
-                            // API 호출 성공 또는 더미 데이터로 대체된 경우
-                            Get.to(() => ShuttleScheduleView(
-                                  routeId: viewModel.selectedRouteId.value,
-                                  date: viewModel.selectedDate.value,
-                                  routeName: _getSelectedRouteName(),
-                                ));
-                          }
-                        });
-                      } catch (e) {
-                        print('날짜 포맷 변환 오류: $e');
-                        // 에러가 발생해도 기본 API 호출은 계속 진행
-                        viewModel
-                            .fetchSchedules(viewModel.selectedRouteId.value,
-                                viewModel.selectedDate.value)
-                            .then((success) {
-                          if (!success) {
-                            _showNoScheduleAlert(context);
-                          } else {
-                            Get.to(() => ShuttleScheduleView(
-                                  routeId: viewModel.selectedRouteId.value,
-                                  date: viewModel.selectedDate.value,
-                                  routeName: _getSelectedRouteName(),
-                                ));
-                          }
-                        });
-                      }
-                    },
-                    child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      decoration: BoxDecoration(
-                        color: shuttleColor,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 5,
-                              offset: Offset(0, 3))
-                        ],
-                      ),
-                      child: Text(
-                        '시간표 조회',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 24),
-
-                // 구분선 추가
-                Divider(
-                  color: shuttleColor.withOpacity(0.3),
-                  thickness: 1.5,
-                ),
-
-                SizedBox(height: 24),
-
-                // 가까운 정류장 찾기 버튼
-                Center(
+        child: Column(
+          children: [
+            const EmergencyNoticeBanner(
+              category: EmergencyNoticeCategory.shuttle,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ScaleButton(
-                        onTap: () {
-                          Get.to(() => NearbyStopsView());
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          decoration: BoxDecoration(
-                            color: Colors.green.shade700,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              )
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.location_on, color: Colors.white),
-                              SizedBox(width: 8),
-                              Text(
-                                '정류장별 도착 시간표',
-                                style: TextStyle(
+                      _buildSelectionArea(context),
+
+                      SizedBox(height: 32),
+
+                      // 검색 버튼
+                      Center(
+                        child: ScaleButton(
+                          onTap: () {
+                            // 노선과 운행일자가 모두 선택되었는지 확인
+                            if (viewModel.selectedRouteId.value == -1) {
+                              Get.snackbar(
+                                '알림',
+                                '노선을 선택해주세요',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                              return;
+                            }
+
+                            if (viewModel.selectedDate.value.isEmpty) {
+                              Get.snackbar(
+                                '알림',
+                                '운행 날짜를 선택해주세요',
+                                snackPosition: SnackPosition.BOTTOM,
+                              );
+                              return;
+                            }
+
+                            try {
+                              // 날짜 포맷 변환
+                              DateFormat('yyyy-MM-dd')
+                                  .parse(viewModel.selectedDate.value);
+
+                              // 조회 버튼을 누를 때만 API를 호출하도록 변경
+                              viewModel
+                                  .fetchSchedules(
+                                      viewModel.selectedRouteId.value,
+                                      viewModel.selectedDate.value)
+                                  .then((success) {
+                                if (!success) {
+                                  // 404 에러: 해당 날짜에 운행하는 셔틀 노선이 없음
+                                  _showNoScheduleAlert(context);
+                                } else {
+                                  // API 호출 성공 또는 더미 데이터로 대체된 경우
+                                  Get.to(() => ShuttleScheduleView(
+                                        routeId:
+                                            viewModel.selectedRouteId.value,
+                                        date: viewModel.selectedDate.value,
+                                        routeName: _getSelectedRouteName(),
+                                      ));
+                                }
+                              });
+                            } catch (e) {
+                              print('날짜 포맷 변환 오류: $e');
+                              // 에러가 발생해도 기본 API 호출은 계속 진행
+                              viewModel
+                                  .fetchSchedules(
+                                      viewModel.selectedRouteId.value,
+                                      viewModel.selectedDate.value)
+                                  .then((success) {
+                                if (!success) {
+                                  _showNoScheduleAlert(context);
+                                } else {
+                                  Get.to(() => ShuttleScheduleView(
+                                        routeId:
+                                            viewModel.selectedRouteId.value,
+                                        date: viewModel.selectedDate.value,
+                                        routeName: _getSelectedRouteName(),
+                                      ));
+                                }
+                              });
+                            }
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 50, vertical: 15),
+                            decoration: BoxDecoration(
+                              color: shuttleColor,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3))
+                              ],
+                            ),
+                            child: Text(
+                              '시간표 조회',
+                              style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                                  color: Colors.white),
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        '(주변 정류장 검색)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context).hintColor,
+
+                      SizedBox(height: 24),
+
+                      // 구분선 추가
+                      Divider(
+                        color: shuttleColor.withOpacity(0.3),
+                        thickness: 1.5,
+                      ),
+
+                      SizedBox(height: 24),
+
+                      // 가까운 정류장 찾기 버튼
+                      Center(
+                        child: Column(
+                          children: [
+                            ScaleButton(
+                              onTap: () {
+                                Get.to(() => NearbyStopsView());
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 40, vertical: 15),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade700,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 5,
+                                      offset: Offset(0, 3),
+                                    )
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.location_on,
+                                        color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '정류장별 시간표 간편 조회',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '(주변 정류장 검색)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).hintColor,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -327,9 +341,6 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildIOSRouteSelector(BuildContext context) {
-    // 셔틀버스 색상으로 통일
-    final Color shuttleColor = Color(0xFFB83227);
-
     return ScaleButton(
       onTap: () => _showIOSRoutePicker(context),
       child: Container(
@@ -446,9 +457,6 @@ class ShuttleRouteSelectionView extends StatelessWidget {
   }
 
   Widget _buildAndroidRouteSelector() {
-    // 셔틀버스 색상으로 통일
-    final Color shuttleColor = Color(0xFFB83227);
-
     return Container(
       height: 50,
       decoration: BoxDecoration(

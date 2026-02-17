@@ -418,7 +418,7 @@ class _SubwayScheduleViewState extends State<SubwayScheduleView> {
               children: [
                 _buildDayTypeButton(context, '평일', isWeekday,
                     () => controller.changeDayType('평일')),
-                _buildDayTypeButton(context, '주말', !isWeekday,
+                _buildDayTypeButton(context, '토요일/공휴일', !isWeekday,
                     () => controller.changeDayType('주말')),
               ],
             ),

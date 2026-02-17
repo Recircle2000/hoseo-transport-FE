@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
@@ -16,12 +18,13 @@ class CityBusGuideView extends StatefulWidget {
 class _CityBusGuideViewState extends State<CityBusGuideView> {
   // 0: 천안캠퍼스, 1: 아산캠퍼스
   int _selectedCampusIndex = 0;
-  
+
   // 네이버 맵 컨트롤러
   NaverMapController? _mapController;
-  
+
   // 캠퍼스 좌표
-  final NLatLng _cheonanLoc = const NLatLng(36.830589281815676, 127.17974684136121);
+  final NLatLng _cheonanLoc =
+      const NLatLng(36.830589281815676, 127.17974684136121);
   final NLatLng _asanLoc = const NLatLng(36.73846886386694, 127.07697982680475);
 
   @override
@@ -62,14 +65,16 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
   // 캠퍼스 변경 시 지도 이동
   void _moveMapToCampus(int index) {
     if (_mapController == null) return;
-    
+
     final targetLoc = index == 0 ? _cheonanLoc : _asanLoc;
     final cameraUpdate = NCameraUpdate.withParams(
       target: targetLoc,
       zoom: 16,
     );
-    cameraUpdate.setAnimation(animation: NCameraAnimation.fly, duration: const Duration(milliseconds: 1500));
-    
+    cameraUpdate.setAnimation(
+        animation: NCameraAnimation.fly,
+        duration: const Duration(milliseconds: 1500));
+
     _mapController!.updateCamera(cameraUpdate);
   }
 
@@ -94,7 +99,10 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
         centerTitle: true,
         leading: ScaleButton(
           onTap: () => Get.back(),
-          child: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black87),
+          child: Icon(
+            Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
+            color: isDarkMode ? Colors.white : Colors.black87,
+          ),
         ),
       ),
       body: Stack(
@@ -109,15 +117,14 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
               // 섹션 제목 (시내버스 핵심 정리)
               Row(
                 children: [
-                   const SizedBox(width: 8),
-                   Text(
-                     _selectedCampusIndex == 0 ? '천안시 시내버스' : '아산시 시내버스',
-                     style: const TextStyle(
-                       fontSize: 20,
-                       fontWeight: FontWeight.bold,
-                       
-                     ),
-                   ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _selectedCampusIndex == 0 ? '천안시 시내버스' : '아산시 시내버스',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -128,11 +135,16 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
               else
                 _buildAsanContent(isDarkMode, primaryColor),
 
+              const SizedBox(height: 24),
+
+              // 시내버스 요금 안내
+              _buildCityBusFareCard(isDarkMode, primaryColor),
+
               const SizedBox(height: 32),
-              
+
               // 정류장 지도
               _buildMapSection(isDarkMode),
-              
+
               const SizedBox(height: 32),
 
               // 환승 혜택 카드
@@ -161,8 +173,8 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
               ),
               child: ScaleButton(
                 onTap: () => Get.to(() => CityBusGroupedView(
-                  forcedCampus: _selectedCampusIndex == 0 ? '천안' : '아산',
-                )),
+                      forcedCampus: _selectedCampusIndex == 0 ? '천안' : '아산',
+                    )),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
@@ -205,7 +217,9 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+        color: isDarkMode
+            ? Colors.white.withOpacity(0.05)
+            : Colors.black.withOpacity(0.05),
         borderRadius: BorderRadius.circular(25),
       ),
       child: Row(
@@ -354,6 +368,112 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
           fullWidth: true,
         ),
       ],
+    );
+  }
+
+  /// 시내버스 요금 안내 카드
+  Widget _buildCityBusFareCard(bool isDarkMode, Color primaryColor) {
+    final labelColor = isDarkMode ? Colors.grey[400] : Colors.grey[600];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primaryColor.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.payments_rounded, color: primaryColor, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                '시내버스 요금 안내',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDarkMode
+                  ? primaryColor.withOpacity(0.2)
+                  : primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '카드',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: labelColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '1,500원',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 42,
+                  color: primaryColor.withOpacity(0.25),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '현금',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: labelColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '1,600원',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -526,25 +646,25 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
       ),
     );
   }
-  
+
   /// 정류장 지도 위젯 빌더
   Widget _buildMapSection(bool isDarkMode) {
     final targetLoc = _selectedCampusIndex == 0 ? _cheonanLoc : _asanLoc;
-    
+
     return Column(
       children: [
         Row(
-           children: [
-             //const Text('📍', style: TextStyle(fontSize: 24)),
-             const SizedBox(width: 8),
-             const Text(
-               '정류장 위치',
-               style: TextStyle(
-                 fontSize: 20,
-                 fontWeight: FontWeight.bold,
-               ),
-             ),
-           ],
+          children: [
+            //const Text('📍', style: TextStyle(fontSize: 24)),
+            const SizedBox(width: 8),
+            const Text(
+              '정류장 위치',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Container(
@@ -575,7 +695,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     liteModeEnable: false,
                     //consumeSymbolTapEvents: true,
                     logoClickEnable: true,
-                    contentPadding: const EdgeInsets.only(bottom: 0, left:0),
+                    contentPadding: const EdgeInsets.only(bottom: 0, left: 0),
                     // locationButtonEnable: false, // Deprecated in 1.4.0
                     rotationGesturesEnable: false, // 회전 제스처 비활성화
                     maxZoom: 18,
@@ -584,7 +704,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                   forceGesture: true,
                   onMapReady: (controller) {
                     _mapController = controller;
-                    
+
                     // 마커 추가
                     _mapController!.addOverlayAll({
                       // 천안캠퍼스 마커
@@ -607,7 +727,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                       Container(
+                      Container(
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor.withOpacity(1),
                           borderRadius: BorderRadius.circular(3),
@@ -629,9 +749,10 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                             ),
                           ),
                           onTap: () {
-                             if (_mapController != null) {
-                               _mapController!.setLocationTrackingMode(NLocationTrackingMode.follow);
-                             }
+                            if (_mapController != null) {
+                              _mapController!.setLocationTrackingMode(
+                                  NLocationTrackingMode.follow);
+                            }
                           },
                         ),
                       ),
@@ -674,7 +795,7 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
   /// 환승 혜택 안내 섹션 위젯 빌더
   Widget _buildTransferBenefitSection(bool isDarkMode, Color primaryColor) {
     final isCheonan = _selectedCampusIndex == 0;
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -704,7 +825,8 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.currency_exchange, color: Colors.white, size: 28),
+            child: const Icon(Icons.currency_exchange,
+                color: Colors.white, size: 28),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -723,14 +845,18 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Text(
                         '1호선',
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -749,7 +875,9 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                         TextSpan(text: '전용 카드 필요 없이 '),
                         TextSpan(
                           text: '기존 카드 그대로',
-                          style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
                         ),
                         TextSpan(text: ',\n수도권 환승과 동일하게 적용됩니다.'),
                       ],
@@ -766,12 +894,14 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.info_outline, color: Colors.amberAccent, size: 16),
+                        const Icon(Icons.info_outline,
+                            color: Colors.amberAccent, size: 16),
                         const SizedBox(width: 8),
                         const Expanded(
                           child: Text(
                             '수도권 전철 1호선 평택역~신창역 구간에서 승하차 시 혜택 적용',
-                            style: TextStyle(color: Colors.white, fontSize: 11, height: 1.4),
+                            style: TextStyle(
+                                color: Colors.white, fontSize: 11, height: 1.4),
                           ),
                         ),
                       ],
@@ -790,7 +920,9 @@ class _CityBusGuideViewState extends State<CityBusGuideView> {
                         TextSpan(text: 'K-패스 등록카드로 충청남도 주소지 검증을 받은 '),
                         TextSpan(
                           text: '충남 도민만',
-                          style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              decoration: TextDecoration.underline),
                         ),
                         TextSpan(text: '\n추후 환급 방식으로 적용됩니다.'),
                       ],

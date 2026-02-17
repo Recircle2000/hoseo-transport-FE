@@ -364,7 +364,7 @@ class _HomeViewState extends State<HomeView> {
                             child: Obx(() {
                               if (noticeViewModel.isLoading.value) {
                                 return const Text(
-                                  '로딩중...',
+                                  '서버에 연결 중...',
                                   style: TextStyle(fontSize: 14, color: Colors.grey),
                                 );
                               }

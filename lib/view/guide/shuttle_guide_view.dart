@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../shuttle_bus/shuttle_route_selection_view.dart';
@@ -27,7 +29,10 @@ class ShuttleGuideView extends StatelessWidget {
         centerTitle: true,
         leading: ScaleButton(
           onTap: () => Get.back(),
-          child: Icon(Icons.arrow_back, color: theme.iconTheme.color),
+          child: Icon(
+            Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
+            color: theme.iconTheme.color,
+          ),
         ),
       ),
       body: Stack(
@@ -37,6 +42,10 @@ class ShuttleGuideView extends StatelessWidget {
             children: [
               // 안내 사항
               _buildInfoBox(isDarkMode, shuttleThemeColor),
+              const SizedBox(height: 24),
+
+              // 셔틀버스 요금 안내
+              _buildShuttleFareBox(isDarkMode, shuttleThemeColor),
               const SizedBox(height: 24),
 
               // 학교 자체 버스
@@ -51,7 +60,7 @@ class ShuttleGuideView extends StatelessWidget {
               _buildDestinationCheckSection(shuttleThemeColor),
             ],
           ),
-          
+
           // 하단 버튼
           Positioned(
             left: 0,
@@ -140,7 +149,6 @@ class ShuttleGuideView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                
                 const SizedBox(height: 4),
                 RichText(
                   text: TextSpan(
@@ -153,14 +161,80 @@ class ShuttleGuideView extends StatelessWidget {
                       const TextSpan(text: '셔틀버스는 '),
                       TextSpan(
                         text: '학교 자체 버스',
-                        style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: primaryColor, fontWeight: FontWeight.bold),
                       ),
                       const TextSpan(text: '와 '),
                       TextSpan(
                         text: '\n관광 버스',
-                        style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: primaryColor, fontWeight: FontWeight.bold),
                       ),
-                      const TextSpan(text: ' 두 가지 형태로 운영됩니다. \n탑승하시는 버스 종류에 따라 교통카드 태그 방식이 상이합니다.'),
+                      const TextSpan(
+                          text:
+                              ' 두 가지 형태로 운영됩니다. \n탑승하시는 버스 종류에 따라 교통카드 태그 방식이 상이합니다.'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShuttleFareBox(bool isDarkMode, Color primaryColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(Get.context!).cardColor,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.local_atm_rounded, color: primaryColor, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '셔틀버스 요금',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                    children: const [
+                      TextSpan(text: '기본요금 '),
+                      TextSpan(
+                        text: '1,300원',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFB83227),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -232,7 +306,8 @@ class ShuttleGuideView extends StatelessWidget {
                     const SizedBox(height: 16),
                     const Text(
                       '탑승 시 태그',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -282,7 +357,8 @@ class ShuttleGuideView extends StatelessWidget {
           isDarkMode,
           primaryColor,
           title: "학교에서 탑승할 때",
-          imagePath: 'assets/tutorial_illustration/shttule_boarding_fromschool_bigbus.png',
+          imagePath:
+              'assets/tutorial_illustration/shttule_boarding_fromschool_bigbus.png',
           imageLabel: "1. 태그",
           imageDesc: "외부 단말기 태그",
           nextStepIcon: Icons.directions_bus,
@@ -299,7 +375,8 @@ class ShuttleGuideView extends StatelessWidget {
           isDarkMode,
           primaryColor,
           title: "학교 외 정류장에서 탑승할 때",
-          imagePath: 'assets/tutorial_illustration/shttule_boarding_fromschool_bigbus.png',
+          imagePath:
+              'assets/tutorial_illustration/shttule_boarding_fromschool_bigbus.png',
           imageLabel: "2. 하차 시 태그",
           imageDesc: "외부 단말기 태그",
           nextStepIcon: Icons.login,
@@ -349,7 +426,9 @@ class ShuttleGuideView extends StatelessWidget {
           Text(
             imageDesc,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 10, color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
+            style: TextStyle(
+                fontSize: 10,
+                color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
           ),
         ],
       ),
@@ -377,7 +456,9 @@ class ShuttleGuideView extends StatelessWidget {
           Text(
             nextStepDesc,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 10, color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
+            style: TextStyle(
+                fontSize: 10,
+                color: isDarkMode ? Colors.grey[500] : Colors.grey[600]),
           ),
         ],
       ),
@@ -403,7 +484,8 @@ class ShuttleGuideView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(25)),
               color: headerColor,
             ),
             child: Row(
@@ -429,7 +511,11 @@ class ShuttleGuideView extends StatelessWidget {
                       imageWidget,
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Icon(Icons.east_rounded, size: 18, color: isDarkMode ? Colors.grey[800] : Colors.grey[200]),
+                        child: Icon(Icons.east_rounded,
+                            size: 18,
+                            color: isDarkMode
+                                ? Colors.grey[800]
+                                : Colors.grey[200]),
                       ),
                       infoWidget,
                     ]
@@ -437,7 +523,11 @@ class ShuttleGuideView extends StatelessWidget {
                       infoWidget,
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Icon(Icons.east_rounded, size: 18, color: isDarkMode ? Colors.grey[800] : Colors.grey[200]),
+                        child: Icon(Icons.east_rounded,
+                            size: 18,
+                            color: isDarkMode
+                                ? Colors.grey[800]
+                                : Colors.grey[200]),
                       ),
                       imageWidget,
                     ],
@@ -447,7 +537,6 @@ class ShuttleGuideView extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildDestinationCheckSection(Color primaryColor) {
     return Container(

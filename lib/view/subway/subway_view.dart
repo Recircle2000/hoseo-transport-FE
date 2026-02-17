@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/emergency_notice_model.dart';
 import '../../viewmodel/subway_viewmodel.dart';
 import '../../models/subway_arrival_model.dart';
+import '../components/emergency_notice_banner.dart';
 import 'subway_schedule_view.dart';
 import 'dart:io' show Platform;
 
@@ -33,7 +35,8 @@ class _SubwayViewState extends State<SubwayView> {
 
   void _showSwipeTutorial() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool hasSeenTutorial = prefs.getBool('has_seen_subway_swipe_tutorial') ?? false;
+    bool hasSeenTutorial =
+        prefs.getBool('has_seen_subway_swipe_tutorial') ?? false;
 
     if (hasSeenTutorial) return;
 
@@ -55,38 +58,41 @@ class _SubwayViewState extends State<SubwayView> {
               ),
               child: Column(
                 children: [
-                    Icon(
-                     Icons.swipe, 
-                     size: 48, 
-                     color: Theme.of(context).brightness == Brightness.light
+                  Icon(
+                    Icons.swipe,
+                    size: 48,
+                    color: Theme.of(context).brightness == Brightness.light
                         ? const Color(0xFF0052A4)
                         : const Color(0xFF478ED1),
-                   ),
-                   const SizedBox(height: 16),
-                   Text(
-                     '화면을 좌우로 밀어서\n천안역과 아산역을 전환해보세요!',
-                     textAlign: TextAlign.center,
-                     style: TextStyle(
-                       fontSize: 16,
-                       fontWeight: FontWeight.bold,
-                       color: Theme.of(context).colorScheme.onSurface,
-                     ),
-                   ),
-                   const SizedBox(height: 24),
-                   ElevatedButton(
-                     onPressed: () {
-                       Get.back();
-                       prefs.setBool('has_seen_subway_swipe_tutorial', true);
-                     },
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: Theme.of(context).colorScheme.primary,
-                       shape: RoundedRectangleBorder(
-                         borderRadius: BorderRadius.circular(12),
-                       ),
-                       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                     ),
-                     child: Text('확인', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                   ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '화면을 좌우로 밀어서\n천안역과 아산역을 전환해보세요!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                      prefs.setBool('has_seen_subway_swipe_tutorial', true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                    ),
+                    child: Text('확인',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary)),
+                  ),
                 ],
               ),
             ),
@@ -95,10 +101,10 @@ class _SubwayViewState extends State<SubwayView> {
       ),
       barrierDismissible: true,
     );
-    
+
     // Ensure it's marked as seen even if dismissed via barrier
     if (prefs.getBool('has_seen_subway_swipe_tutorial') != true) {
-       await prefs.setBool('has_seen_subway_swipe_tutorial', true);
+      await prefs.setBool('has_seen_subway_swipe_tutorial', true);
     }
   }
 
@@ -116,7 +122,7 @@ class _SubwayViewState extends State<SubwayView> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
-     // _selectedStation will be updated by onPageChanged
+    // _selectedStation will be updated by onPageChanged
   }
 
   void _onPageChanged(int index) {
@@ -130,6 +136,9 @@ class _SubwayViewState extends State<SubwayView> {
         child: Column(
           children: [
             _buildHeader(context),
+            const EmergencyNoticeBanner(
+              category: EmergencyNoticeCategory.subway,
+            ),
             _buildStationSelector(context),
             const SizedBox(height: 16),
             _buildStatusBar(context),
@@ -256,7 +265,7 @@ class _SubwayViewState extends State<SubwayView> {
               ? const Color(0xFF0052A4)
               : Theme.of(context).brightness == Brightness.dark
                   ? Colors.transparent
-                  : Colors.transparent, 
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           boxShadow: isSelected
               ? [
@@ -303,24 +312,27 @@ class _SubwayViewState extends State<SubwayView> {
             ],
           ),
           GestureDetector(
-            onTap: () => Get.to(() => SubwayScheduleView(initialStationName: _selectedStation.value)),
+            onTap: () => Get.to(() =>
+                SubwayScheduleView(initialStationName: _selectedStation.value)),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-                 boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
-                  Icon(Icons.calendar_today_rounded, size: 14, color: Theme.of(context).colorScheme.primary),
+                  Icon(Icons.calendar_today_rounded,
+                      size: 14, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
                     '시간표 보기',
@@ -340,41 +352,46 @@ class _SubwayViewState extends State<SubwayView> {
   }
 
   Widget _buildArrivalContent(BuildContext context, String station) {
-    if (!controller.isConnected.value && (controller.arrivalInfo[station]?.isEmpty ?? true)) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 100),
-            child: Center(
-              child: Column(
-                children: [
-                  const CircularProgressIndicator.adaptive(),
-                  const SizedBox(height: 16),
-                  Text('연결 중...', style: TextStyle(color: Theme.of(context).hintColor)),
-                ],
-              ),
-            ),
-          );
+    if (!controller.isConnected.value &&
+        (controller.arrivalInfo[station]?.isEmpty ?? true)) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 100),
+        child: Center(
+          child: Column(
+            children: [
+              const CircularProgressIndicator.adaptive(),
+              const SizedBox(height: 16),
+              Text('연결 중...',
+                  style: TextStyle(color: Theme.of(context).hintColor)),
+            ],
+          ),
+        ),
+      );
     }
-    
+
     final arrivals = controller.arrivalInfo[station] ?? [];
-    
+
     if (arrivals.isEmpty) {
-        return Padding(
-            padding: const EdgeInsets.only(top: 100),
-            child: Center(
-                child: Text('도착 정보가 없습니다.', style: TextStyle(color: Theme.of(context).hintColor))),
-        );
+      return Padding(
+        padding: const EdgeInsets.only(top: 100),
+        child: Center(
+            child: Text('도착 정보가 없습니다.',
+                style: TextStyle(color: Theme.of(context).hintColor))),
+      );
     }
 
     // Filter Up (상행) and Down (하행)
-    
+
     final upLine = arrivals.where((a) => a.updnLine.contains('상행')).toList();
     final downLine = arrivals.where((a) => a.updnLine.contains('하행')).toList();
 
     return Column(
       children: [
-        _buildSection(context, '상행', '(서울/청량리 방면)', upLine, Icons.arrow_circle_up),
+        _buildSection(
+            context, '상행', '(서울/청량리 방면)', upLine, Icons.arrow_circle_up),
         const SizedBox(height: 24),
-        _buildSection(context, '하행', '(신창/아산 방면)', downLine, Icons.arrow_circle_down),
+        _buildSection(
+            context, '하행', '(신창/아산 방면)', downLine, Icons.arrow_circle_down),
       ],
     );
   }
@@ -413,9 +430,10 @@ class _SubwayViewState extends State<SubwayView> {
 
   Widget _buildArrivalCard(BuildContext context, SubwayArrival arrival) {
     // 열차번호 자릿수로 급행 구분
-    final String digits = arrival.btrainNo?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
+    final String digits =
+        arrival.btrainNo?.replaceAll(RegExp(r'[^0-9]'), '') ?? '';
     final isExpress = digits.length == 4;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -491,7 +509,8 @@ class _SubwayViewState extends State<SubwayView> {
                           arrival.btrainNo ?? '', // Train Number e.g. 1023호
                           style: TextStyle(
                             fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -509,11 +528,11 @@ class _SubwayViewState extends State<SubwayView> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onBackground,
+                                color:
+                                    Theme.of(context).colorScheme.onBackground,
                                 height: 1.2,
                               ),
                             ),
-                          
                           ],
                         ),
                         Column(
@@ -527,7 +546,6 @@ class _SubwayViewState extends State<SubwayView> {
                                 color: Color(0xFFFF6B6B), // Primary red-ish
                               ),
                             ),
-                            
                           ],
                         ),
                       ],
@@ -555,7 +573,8 @@ class _SubwayViewState extends State<SubwayView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.info_outline, size: 14, color: Theme.of(context).hintColor),
+            Icon(Icons.info_outline,
+                size: 14, color: Theme.of(context).hintColor),
             const SizedBox(width: 6),
             Text(
               '실시간 정보는 상황에 따라 다를 수 있습니다',
@@ -585,9 +604,9 @@ class _PulsingDotState extends State<_PulsingDot>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-        duration: const Duration(seconds: 1), vsync: this)
-      ..repeat(reverse: true);
+    _controller =
+        AnimationController(duration: const Duration(seconds: 1), vsync: this)
+          ..repeat(reverse: true);
     _animation = Tween<double>(begin: 0.5, end: 1.0).animate(_controller);
   }
 
