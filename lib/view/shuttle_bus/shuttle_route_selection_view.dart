@@ -170,7 +170,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                                         color: Colors.white),
                                     SizedBox(width: 8),
                                     Text(
-                                      '정류장별 도착 시간표',
+                                      '정류장별 시간표 간편 조회',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
