@@ -10,11 +10,46 @@ import 'package:intl/intl.dart';
 import 'nearby_stops_view.dart'; // 가까운 정류장 찾기 화면 임포트
 import '../components/scale_button.dart';
 import '../components/emergency_notice_banner.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-class ShuttleRouteSelectionView extends StatelessWidget {
+class ShuttleRouteSelectionView extends StatefulWidget {
+  final bool startExperienceTour;
+
+  const ShuttleRouteSelectionView({
+    super.key,
+    this.startExperienceTour = false,
+  });
+
+  @override
+  State<ShuttleRouteSelectionView> createState() =>
+      _ShuttleRouteSelectionViewState();
+}
+
+class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
   final ShuttleViewModel viewModel = Get.put(ShuttleViewModel());
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
-  final Color shuttleColor = Color(0xFFB83227);
+  final Color shuttleColor = const Color(0xFFB83227);
+  final ScrollController _scrollController = ScrollController();
+
+  final GlobalKey _nearbyButtonKey = GlobalKey();
+
+  bool _isExperienceTourRunning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startExperienceTour) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startExperienceTour();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +65,7 @@ class ShuttleRouteSelectionView extends StatelessWidget {
             ),
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -145,45 +181,49 @@ class ShuttleRouteSelectionView extends StatelessWidget {
                       Center(
                         child: Column(
                           children: [
-                            ScaleButton(
-                              onTap: () {
-                                Get.to(() => NearbyStopsView());
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 40, vertical: 15),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade700,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 5,
-                                      offset: Offset(0, 3),
-                                    )
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.location_on,
-                                        color: Colors.white),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      '정류장별 시간표 간편 조회',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                            Container(
+                              key: _nearbyButtonKey,
+                              child: ScaleButton(
+                                onTap: () {
+                                  Get.to(() => NearbyStopsView());
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 40, vertical: 15),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.shade700,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 5,
+                                        offset: Offset(0, 3),
+                                      )
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.location_on,
+                                          color: Colors.white),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        '정류장별 시간표 간편 조회',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                             SizedBox(height: 8),
                             Text(
                               '(주변 정류장 검색)',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Theme.of(context).hintColor,
@@ -199,6 +239,128 @@ class ShuttleRouteSelectionView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _startExperienceTour() async {
+    if (!mounted || _isExperienceTourRunning) return;
+    _isExperienceTourRunning = true;
+
+    if (_scrollController.hasClients) {
+      await _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: 'shuttle_nearby_button',
+          keyTarget: _nearbyButtonKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 16,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => _buildExperienceContent(
+                controller: controller,
+                title: '정류장별 시간표 간편 조회',
+                description: '현재 위치 기준으로 가까운 정류장을 자동 정렬해 빠르게 시간표를 확인할 수 있습니다.',
+                isLast: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 8,
+      opacityShadow: 0.8,
+      onFinish: () => _openNearbyStopsExperience(),
+      onSkip: () {
+        _completeExperienceTour(proceedToNext: false);
+        return true;
+      },
+      onClickOverlay: (target) {},
+    ).show(context: context);
+  }
+
+  Future<void> _openNearbyStopsExperience() async {
+    final shouldContinue = await Get.to(
+      () => NearbyStopsView(startExperienceTour: widget.startExperienceTour),
+    );
+    _completeExperienceTour(proceedToNext: shouldContinue == true);
+  }
+
+  void _completeExperienceTour({required bool proceedToNext}) {
+    _isExperienceTourRunning = false;
+    if (widget.startExperienceTour && mounted) {
+      Get.back(result: proceedToNext);
+    }
+  }
+
+  Widget _buildExperienceContent({
+    required dynamic controller,
+    required String title,
+    required String description,
+    bool isLast = false,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => controller.skip(),
+                child: const Text(
+                  '종료',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () {
+                  controller.next();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text('다음'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

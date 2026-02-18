@@ -7,7 +7,6 @@ import '../viewmodel/notice_viewmodel.dart';
 import '../viewmodel/settings_viewmodel.dart';
 import 'notice_detail_view.dart';
 import 'notice_list_view.dart';
-import 'city_bus/bus_map_view.dart';
 import 'shuttle_bus/shuttle_route_selection_view.dart';
 import 'settings_view.dart';
 import 'components/upcoming_departures_widget.dart';
@@ -33,7 +32,15 @@ class _HomeViewState extends State<HomeView> {
   final noticeViewModel = Get.put(NoticeViewModel());
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey guideKey = GlobalKey();
-  
+  final ScrollController _homeScrollController = ScrollController();
+
+  // 체험형 홈 투어 타깃
+  final GlobalKey _upcomingWidgetKey = GlobalKey();
+  final GlobalKey _transportMenuGroupKey = GlobalKey();
+
+  bool _isHomeTourRunning = false;
+  bool _runDeepExperienceFlow = false;
+
   // 뒤로가기 시간 저장
   DateTime? _lastBackPressedTime;
 
@@ -48,7 +55,7 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _handleStartupFlow() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // 1. 면책 문구 확인 (최초 실행 시)
     final bool isFirstRun = prefs.getBool('first_run') ?? true;
     if (isFirstRun) {
@@ -61,10 +68,10 @@ class _HomeViewState extends State<HomeView> {
     if (!hasSeenGuide) {
       // 드로어 열기
       _scaffoldKey.currentState?.openDrawer();
-      
+
       // 드로어 애니메이션 대기
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // 튜토리얼 표시
       _showTutorial();
     } else {
@@ -88,7 +95,7 @@ class _HomeViewState extends State<HomeView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "셔틀/시내버스 가이드",
+                      "호통 이용 가이드",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -98,7 +105,7 @@ class _HomeViewState extends State<HomeView> {
                     const Padding(
                       padding: EdgeInsets.only(top: 10.0),
                       child: Text(
-                        "이곳에서 셔틀버스와 시내버스 이용 가이드를 확인해보세요!",
+                        "이곳에서 앱 사용 방법과 버스 이용 가이드를 확인해보세요!",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
@@ -144,10 +151,10 @@ class _HomeViewState extends State<HomeView> {
   Future<void> _completeTutorial() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_guide', true);
-    
+
     // 튜토리얼 종료 시 드로어 닫기
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-      Navigator.of(context).pop(); 
+      Navigator.of(context).pop();
     }
 
     // 3. 가이드 종료 후 버전 확인
@@ -167,10 +174,10 @@ class _HomeViewState extends State<HomeView> {
         backgroundColor: Colors.white,
         title: '새로운 버전이 있습니다',
         titleTextStyle: const TextStyle(
-          color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+            color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
         content: '최신 버전으로 업데이트를 권장합니다.',
         contentTextStyle: const TextStyle(
-          color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
+            color: Colors.black, fontWeight: FontWeight.normal, fontSize: 16),
         updateButtonText: '업데이트',
         updateButtonStyle: ButtonStyle(
           backgroundColor: WidgetStateProperty.all(Colors.lightBlueAccent),
@@ -185,7 +192,176 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  
+  Future<void> _startHomeExperienceTourFromGuide() async {
+    _runDeepExperienceFlow = true;
+
+    // Drawer가 열려 있으면 먼저 닫고 투어 시작
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+      await Future.delayed(const Duration(milliseconds: 250));
+    }
+
+    // 타깃들이 안정적으로 그려진 뒤 시작
+    if (_homeScrollController.hasClients) {
+      await _homeScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+
+    await Future.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+    _showHomeExperienceTutorial();
+  }
+
+  Future<void> _startShuttleExperienceFlow() async {
+    if (!mounted) return;
+    final shouldContinue = await Get.to(
+      () => const ShuttleRouteSelectionView(startExperienceTour: true),
+    );
+    if (shouldContinue == true) {
+      await _startCityBusExperienceFlow();
+    }
+  }
+
+  Future<void> _startCityBusExperienceFlow() async {
+    if (!mounted) return;
+    await Get.to(
+      () => const CityBusGroupedView(startExperienceTour: true),
+    );
+  }
+
+  void _showHomeExperienceTutorial() {
+    if (_isHomeTourRunning) return;
+    _isHomeTourRunning = true;
+
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: "upcoming_widget",
+          keyTarget: _upcomingWidgetKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 18,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) => _buildTourContent(
+                controller: controller,
+                title: '곧 출발',
+                description: '셔틀/시내버스 임박 운행 정보를 빠르게 확인할 수 있습니다.',
+              ),
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: "transport_menu_group",
+          keyTarget: _transportMenuGroupKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 18,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => _buildTourContent(
+                controller: controller,
+                title: '교통 메뉴 바로가기',
+                description: '셔틀버스, 시내버스, 지하철 중 원하는 메뉴로 바로 이동할 수 있습니다.',
+                isLast: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 8,
+      opacityShadow: 0.8,
+      onFinish: () {
+        _isHomeTourRunning = false;
+        if (_runDeepExperienceFlow) {
+          _runDeepExperienceFlow = false;
+          _startShuttleExperienceFlow();
+        }
+      },
+      onSkip: () {
+        _isHomeTourRunning = false;
+        _runDeepExperienceFlow = false;
+        return true;
+      },
+      onClickOverlay: (target) {},
+    ).show(context: context);
+  }
+
+  Widget _buildTourContent({
+    required dynamic controller,
+    required String title,
+    required String description,
+    bool isLast = false,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => controller.skip(),
+                child: const Text(
+                  '건너뛰기',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () {
+                  if (isLast) {
+                    controller.next();
+                    return;
+                  }
+                  controller.next();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(isLast ? '셔틀버스 이동' : '다음'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _homeScrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // 다크모드 감지
@@ -207,7 +383,8 @@ class _HomeViewState extends State<HomeView> {
 
         // 처음 뒤로가기를 누른 경우 또는 마지막으로 누른 지 3초가 지난 경우
         if (_lastBackPressedTime == null ||
-            currentTime.difference(_lastBackPressedTime!) > const Duration(seconds: 2)) {
+            currentTime.difference(_lastBackPressedTime!) >
+                const Duration(seconds: 2)) {
           // 현재 시간 저장
           _lastBackPressedTime = currentTime;
 
@@ -226,7 +403,10 @@ class _HomeViewState extends State<HomeView> {
       },
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: SettingsView(guideKey: guideKey),
+        drawer: SettingsView(
+          guideKey: guideKey,
+          onRequestHomeExperienceTour: _startHomeExperienceTourFromGuide,
+        ),
         backgroundColor: backgroundColor,
         appBar: AppBar(
           backgroundColor: backgroundColor, // 앱바도 배경과 같은 색상
@@ -256,10 +436,14 @@ class _HomeViewState extends State<HomeView> {
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                      color: isDark
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.black.withOpacity(0.05),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.1),
                         width: 1,
                       ),
                     ),
@@ -284,6 +468,7 @@ class _HomeViewState extends State<HomeView> {
           ],
         ),
         body: SingleChildScrollView(
+          controller: _homeScrollController,
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
@@ -329,7 +514,8 @@ class _HomeViewState extends State<HomeView> {
                         Get.to(() => NoticeDetailView(notice: notice));
                       } else {
                         noticeViewModel.fetchLatestNotice();
-                        Get.to(() => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
+                        Get.to(
+                            () => const NoticeListView()); // 데이터 없을 땐 리스트로 이동
                       }
                     },
                     child: Container(
@@ -344,7 +530,8 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
                       child: Row(
                         children: [
                           Container(
@@ -365,7 +552,8 @@ class _HomeViewState extends State<HomeView> {
                               if (noticeViewModel.isLoading.value) {
                                 return const Text(
                                   '서버에 연결 중...',
-                                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
                                 );
                               }
 
@@ -395,69 +583,86 @@ class _HomeViewState extends State<HomeView> {
               ),
               const SizedBox(height: 12),
               // 곧 출발 섹션
-              UpcomingDeparturesWidget(),
-              
-             // const SizedBox(height: 16),
+              Container(
+                key: _upcomingWidgetKey,
+                child: UpcomingDeparturesWidget(),
+              ),
+
+              // const SizedBox(height: 16),
               // 메뉴
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              Container(
+                key: _transportMenuGroupKey,
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildMenuCard(
-                            context,
-                            title: '셔틀버스',
-                            icon: Icons.airport_shuttle,
-                            color: Color(0xFFB83227),
-                            onTap: () {
-                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
-                              Get.to(() => ShuttleRouteSelectionView());
-                            },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  child: _buildMenuCard(
+                                    context,
+                                    title: '셔틀버스',
+                                    icon: Icons.airport_shuttle,
+                                    color: Color(0xFFB83227),
+                                    onTap: () {
+                                      //HapticFeedback.mediumImpact(); // 햅틱 피드백
+                                      Get.to(() => ShuttleRouteSelectionView());
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Container(
+                                  child: _buildMenuCard(
+                                    context,
+                                    title: '시내버스',
+                                    icon: Icons.directions_bus,
+                                    color: Colors.blue,
+                                    onTap: () {
+                                      //HapticFeedback.mediumImpact(); // 햅틱 피드백
+                                      Get.to(() => CityBusGroupedView());
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // 지하철 메뉴
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        child: _buildMenuCard(
+                          context,
+                          title: '지하철',
+                          icon: Icons.subway_outlined,
+                          color: const Color(0xFF0052A4), // 1호선 색상
+                          onTap: () {
+                            //HapticFeedback.mediumImpact();
+                            final settingsViewModel =
+                                Get.find<SettingsViewModel>();
+                            Get.to(() => SubwayView(
+                                stationName: settingsViewModel
+                                    .selectedSubwayStation.value));
+                          },
+                          height: 80, // 높이를 줄여서 표시
+                          isHorizontal: true, // 가로 배치 모드
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildMenuCard(
-                            context,
-                            title: '시내버스',
-                            icon: Icons.directions_bus,
-                            color: Colors.blue,
-                            onTap: () {
-                              //HapticFeedback.mediumImpact(); // 햅틱 피드백
-                              Get.to(() => CityBusGroupedView());
-                            },
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              
-              const SizedBox(height: 12),
-              
-              // 지하철 메뉴
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildMenuCard(
-                  context,
-                  title: '지하철',
-                  icon: Icons.subway_outlined,
-                  color: const Color(0xFF0052A4), // 1호선 색상
-                  onTap: () {
-                    //HapticFeedback.mediumImpact();
-                    final settingsViewModel = Get.find<SettingsViewModel>();
-                    Get.to(() => SubwayView(stationName: settingsViewModel.selectedSubwayStation.value));
-                  },
-                  height: 80, // 높이를 줄여서 표시
-                  isHorizontal: true, // 가로 배치 모드
-                ),
-              ),
 
               const SizedBox(height: 12),
-              
+
               // 면책 문구
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
@@ -487,7 +692,8 @@ class _HomeViewState extends State<HomeView> {
                       },
                       style: TextButton.styleFrom(
                         minimumSize: Size.zero,
-                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
@@ -520,7 +726,7 @@ class _HomeViewState extends State<HomeView> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final cardColor = Theme.of(context).cardColor;
     final textColor = isDarkMode ? Colors.white : Colors.black87;
-    
+
     return ScaleButton(
       onTap: onTap,
       child: Container(
@@ -618,7 +824,7 @@ class _HomeViewState extends State<HomeView> {
   Widget _buildNoticeBadge(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     // 24시간 이내인 경우에만 NEW 배지 표시
     if (difference.inHours < 24) {
       return Container(
@@ -645,7 +851,7 @@ class _HomeViewState extends State<HomeView> {
         ),
       );
     }
-    
+
     // 24시간 이상인 경우 빈 위젯 반환
     return const SizedBox();
   }
@@ -653,7 +859,7 @@ class _HomeViewState extends State<HomeView> {
   String _getTimeAgo(DateTime createdAt) {
     final now = DateTime.now();
     final difference = now.difference(createdAt);
-    
+
     if (difference.inDays < 1) {
       return '오늘';
     } else if (difference.inDays < 7) {

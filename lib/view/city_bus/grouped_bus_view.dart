@@ -8,11 +8,17 @@ import '../../viewmodel/settings_viewmodel.dart';
 import '../../utils/bus_times_loader.dart';
 import '../components/emergency_notice_banner.dart';
 import '../components/auto_scroll_text.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 class CityBusGroupedView extends StatefulWidget {
   final String? forcedCampus;
+  final bool startExperienceTour;
 
-  const CityBusGroupedView({Key? key, this.forcedCampus}) : super(key: key);
+  const CityBusGroupedView({
+    Key? key,
+    this.forcedCampus,
+    this.startExperienceTour = false,
+  }) : super(key: key);
 
   @override
   State<CityBusGroupedView> createState() => _CityBusGroupedViewState();
@@ -21,6 +27,8 @@ class CityBusGroupedView extends StatefulWidget {
 class _CityBusGroupedViewState extends State<CityBusGroupedView> {
   final settingsViewModel = Get.find<SettingsViewModel>();
   late final BusMapViewModel busMapViewModel;
+  final GlobalKey _firstRouteKey = GlobalKey();
+  bool _isExperienceTourRunning = false;
 
   // 아산캠퍼스 노선 그룹핑 정보
   final List<Map<String, dynamic>> groupedRoutesAsan = [
@@ -209,12 +217,123 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
     // BusMapViewModel 인스턴스 생성 및 초기화 (Shared Instance)
     busMapViewModel = Get.put(BusMapViewModel());
     _loadAllNextDepartureTimes();
+    if (widget.startExperienceTour) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startExperienceTour();
+      });
+    }
   }
 
   @override
   void dispose() {
     Get.delete<BusMapViewModel>();
     super.dispose();
+  }
+
+  Future<void> _startExperienceTour() async {
+    if (!mounted || _isExperienceTourRunning) return;
+    _isExperienceTourRunning = true;
+    await Future.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: 'citybus_route_item',
+          keyTarget: _firstRouteKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 14,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) => _buildExperienceContent(
+                controller: controller,
+                title: '노선 선택',
+                description: '원하는 노선 항목을 눌러 실시간 상세 화면으로 이동할 수 있습니다.',
+                isLast: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 8,
+      opacityShadow: 0.8,
+      onFinish: () => _completeExperienceTour(completed: true),
+      onSkip: () {
+        _completeExperienceTour(completed: false);
+        return true;
+      },
+      onClickOverlay: (target) {},
+    ).show(context: context);
+  }
+
+  void _completeExperienceTour({required bool completed}) {
+    _isExperienceTourRunning = false;
+    if (widget.startExperienceTour && mounted) {
+      Get.back(result: completed);
+    }
+  }
+
+  Widget _buildExperienceContent({
+    required dynamic controller,
+    required String title,
+    required String description,
+    bool isLast = false,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => controller.skip(),
+                child: const Text(
+                  '종료',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () async {
+                  controller.next();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(isLast ? '완료' : '다음'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   /// 특정 노선의 현재 버스 위치 정보를 가져오는 함수
@@ -430,6 +549,9 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                               ? fullLabel.substring(
                                   splitIndex + 2, fullLabel.length - 1)
                               : '';
+                          final isFirstExperienceRoute = groupIdx == 0 &&
+                              subGroupIdx == 0 &&
+                              routeIdx == 0;
 
                           return Obx(() {
                             final busLocationStatus =
@@ -440,6 +562,9 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                                 nextDepartureTime != '로딩...';
 
                             return InkWell(
+                              key: isFirstExperienceRoute
+                                  ? _firstRouteKey
+                                  : null,
                               onTap: () {
                                 HapticFeedback.lightImpact();
                                 Get.to(
@@ -474,7 +599,7 @@ class _CityBusGroupedViewState extends State<CityBusGroupedView> {
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                              const SizedBox(width: 8),
+                                              const SizedBox(width: 4),
                                               if (direction.isNotEmpty)
                                                 Expanded(
                                                   child: Text(
