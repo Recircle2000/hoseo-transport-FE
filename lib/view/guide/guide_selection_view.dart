@@ -16,7 +16,7 @@ class GuideSelectionView extends StatelessWidget {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          '버스 이용 가이드',
+          '이용 가이드',
           style: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black87,
             fontWeight: FontWeight.bold,
@@ -26,12 +26,22 @@ class GuideSelectionView extends StatelessWidget {
         elevation: 0,
         leading: ScaleButton(
           onTap: () => Get.back(),
-          child: Icon(Icons.arrow_back_ios, color: isDarkMode ? Colors.white : Colors.black87),
+          child: Icon(Icons.arrow_back_ios,
+              color: isDarkMode ? Colors.white : Colors.black87),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          _buildGuideCard(
+            context,
+            title: '호통 이용 가이드',
+            description: '앱 핵심 기능과 화면별 사용 흐름 안내(약 1분 소요)',
+            icon: Icons.menu_book_rounded,
+            color: Colors.teal,
+            onTap: () => Get.back(result: true),
+          ),
+          const SizedBox(height: 20),
           _buildGuideCard(
             context,
             title: '셔틀버스 가이드',

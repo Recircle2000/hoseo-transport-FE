@@ -5,15 +5,40 @@ import 'package:get/get.dart';
 import 'dart:io' show Platform;
 import 'package:intl/intl.dart';
 import '../../viewmodel/nearby_stops_viewmodel.dart';
-import '../../models/shuttle_models.dart';
 import 'shuttle_route_detail_view.dart'; // 노선 상세 정보 화면 임포트
 import 'naver_map_station_detail_view.dart'; // 네이버 지도 정류장 상세 정보 화면 임포트
 import '../components/scale_button.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-class NearbyStopsView extends StatelessWidget {
+class NearbyStopsView extends StatefulWidget {
+  final bool startExperienceTour;
+
+  const NearbyStopsView({
+    super.key,
+    this.startExperienceTour = false,
+  });
+
+  @override
+  State<NearbyStopsView> createState() => _NearbyStopsViewState();
+}
+
+class _NearbyStopsViewState extends State<NearbyStopsView> {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
   final Color shuttleColor = Color(0xFFB83227);
   final NearbyStopsViewModel viewModel = Get.put(NearbyStopsViewModel());
+  final GlobalKey _stationSelectorKey = GlobalKey();
+  final GlobalKey _scheduleTableKey = GlobalKey();
+  bool _isExperienceTourRunning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.startExperienceTour) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startExperienceTour();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +54,144 @@ class NearbyStopsView extends StatelessWidget {
             children: [
               _buildLocationHeader(context),
               SizedBox(height: 16),
-              _buildStationSelector(context),
+              Container(
+                key: _stationSelectorKey,
+                child: _buildStationSelector(context),
+              ),
               SizedBox(height: 16),
               _buildDateSelector(context),
               SizedBox(height: 8),
               _buildScheduleHeader(context),
               SizedBox(height: 8),
               Expanded(
-                child: _buildScheduleTable(context),
+                child: Container(
+                  key: _scheduleTableKey,
+                  child: _buildScheduleTable(context),
+                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _startExperienceTour() async {
+    if (!mounted || _isExperienceTourRunning) return;
+    _isExperienceTourRunning = true;
+    await Future.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+
+    TutorialCoachMark(
+      targets: [
+        TargetFocus(
+          identify: 'nearby_station_selector',
+          keyTarget: _stationSelectorKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 14,
+          contents: [
+            TargetContent(
+              align: ContentAlign.bottom,
+              builder: (context, controller) => _buildExperienceContent(
+                controller: controller,
+                title: '정류장 선택',
+                description: '내 위치 기준 가까운 정류장을 우선으로 선택할 수 있습니다.',
+              ),
+            ),
+          ],
+        ),
+        TargetFocus(
+          identify: 'nearby_schedule_table',
+          keyTarget: _scheduleTableKey,
+          shape: ShapeLightFocus.RRect,
+          radius: 14,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => _buildExperienceContent(
+                controller: controller,
+                title: '시간표 확인',
+                description: '선택한 정류장의 도착 시간을 표 형태로 빠르게 확인합니다.',
+                isLast: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+      colorShadow: Colors.black,
+      hideSkip: true,
+      paddingFocus: 8,
+      opacityShadow: 0.8,
+      onFinish: () => _completeExperienceTour(shouldContinue: true),
+      onSkip: () {
+        _completeExperienceTour(shouldContinue: false);
+        return true;
+      },
+      onClickOverlay: (target) {},
+    ).show(context: context);
+  }
+
+  void _completeExperienceTour({required bool shouldContinue}) {
+    _isExperienceTourRunning = false;
+    if (widget.startExperienceTour && mounted) {
+      Get.back(result: shouldContinue);
+    }
+  }
+
+  Widget _buildExperienceContent({
+    required dynamic controller,
+    required String title,
+    required String description,
+    bool isLast = false,
+  }) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 320),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => controller.skip(),
+                child: const Text(
+                  '종료',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const Spacer(),
+              ElevatedButton(
+                onPressed: () => controller.next(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(isLast ? '시내버스 이동' : '다음'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

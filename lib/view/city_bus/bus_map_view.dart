@@ -1,16 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
-import 'package:latlong2/latlong.dart';
 import '../../viewmodel/busmap_viewmodel.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:flutter/rendering.dart';
 import 'naver_bus_map_detail_view.dart';
-import 'components/route_picker.dart';
 import 'components/station_list.dart';
 import 'components/route_info_view.dart';
 import 'components/timetable_view.dart';
@@ -20,11 +14,11 @@ import 'helpers/timetable_helper.dart';
 // BusMapViewModel 확장 - 강조 표시용 변수 추가
 extension BusMapViewModelExtension on BusMapViewModel {
   static final RxInt highlightedStation = RxInt(-1);
-  
+
   void highlightStation(int index) {
     BusMapViewModelExtension.highlightedStation.value = index;
   }
-  
+
   void clearHighlightedStation() {
     BusMapViewModelExtension.highlightedStation.value = -1;
   }
@@ -33,8 +27,12 @@ extension BusMapViewModelExtension on BusMapViewModel {
 class BusMapView extends StatefulWidget {
   final String? initialRoute;
   final String? initialDestination;
-  
-  const BusMapView({Key? key, this.initialRoute, this.initialDestination}) : super(key: key);
+
+  const BusMapView({
+    Key? key,
+    this.initialRoute,
+    this.initialDestination,
+  }) : super(key: key);
 
   @override
   State<BusMapView> createState() => _BusMapViewState();
@@ -78,27 +76,27 @@ class _BusMapViewState extends State<BusMapView> {
     "81_DOWN": "81",
     "81_UP": "81",
   };
-  
+
   // 스크롤 컨트롤러 선언
   late ScrollController stationScrollController;
-  
+
   // 시간표 데이터 캐시
   Map<String, dynamic>? _cachedTimetableData;
-  
+
   @override
   void initState() {
     super.initState();
     // 스크롤 컨트롤러 초기화
     stationScrollController = ScrollController();
-    
+
     // 스크롤 상태 모니터링 (디버깅용)
     stationScrollController.addListener(() {
       // print("스크롤 위치: ${stationScrollController.position.pixels}");
     });
-    
+
     // 시간표 데이터 미리 로드
     _loadTimetableData();
-    
+
     // 초기 노선이 지정된 경우 자동 선택
     if (widget.initialRoute != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -106,7 +104,8 @@ class _BusMapViewState extends State<BusMapView> {
         if (Get.isRegistered<BusMapViewModel>()) {
           final controller = Get.find<BusMapViewModel>();
           // 노선 매핑 확인
-          String? mappedRoute = _findMappedRoute(widget.initialRoute!, destination: widget.initialDestination);
+          String? mappedRoute = _findMappedRoute(widget.initialRoute!,
+              destination: widget.initialDestination);
           if (mappedRoute != null) {
             // 웹소켓 재연결 없이 노선 정보만 업데이트
             controller.updateSelectedRoute(mappedRoute);
@@ -115,7 +114,7 @@ class _BusMapViewState extends State<BusMapView> {
       });
     }
   }
-  
+
   // 시간표 데이터 로드 메서드
   Future<void> _loadTimetableData() async {
     try {
@@ -125,7 +124,7 @@ class _BusMapViewState extends State<BusMapView> {
       print('시간표 데이터 로드 실패: $e');
     }
   }
-  
+
   @override
   void dispose() {
     // 스크롤 컨트롤러 해제
@@ -140,10 +139,10 @@ class _BusMapViewState extends State<BusMapView> {
         title: Obx(() {
           final controller = Get.find<BusMapViewModel>();
           return Text(
-            controller.selectedRoute.value.isEmpty 
+            controller.selectedRoute.value.isEmpty
                 ? '시내버스 위치'
-                : routeDisplayNames[controller.selectedRoute.value] ?? 
-                  controller.selectedRoute.value,
+                : routeDisplayNames[controller.selectedRoute.value] ??
+                    controller.selectedRoute.value,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -157,14 +156,15 @@ class _BusMapViewState extends State<BusMapView> {
           children: [
             // 노선 간략 정보
             _buildRouteInfoBanner(controller),
-            
+
             // 운행 중인 버스가 없을 때 표시할 정보
             Obx(() {
-              if (controller.stationNames.isNotEmpty && 
-                  controller.hasReceivedWebSocketData.value && 
+              if (controller.stationNames.isNotEmpty &&
+                  controller.hasReceivedWebSocketData.value &&
                   controller.markers.isEmpty) {
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
                   padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.1),
@@ -211,7 +211,8 @@ class _BusMapViewState extends State<BusMapView> {
             Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(25)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -241,9 +242,9 @@ class _BusMapViewState extends State<BusMapView> {
                       //     controller.resetConnection();
                       //   },
                       // ),
-                      
+
                       // const SizedBox(height: 12),
-                      
+
                       // 액션 버튼들
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -254,55 +255,58 @@ class _BusMapViewState extends State<BusMapView> {
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 Get.to(() => NaverBusMapDetailView(
-                                    routeName: routeDisplayNames[controller.selectedRoute.value] ??
+                                    routeName: routeDisplayNames[
+                                            controller.selectedRoute.value] ??
                                         controller.selectedRoute.value));
                               },
                               icon: const Icon(Icons.map, size: 20),
                               label: const Text('운행 지도'),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(width: 12),
-                          
+
                           // 가까운 정류장 찾기 버튼
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 LocationHelper.findNearestStationAndScroll(
-                                  context, stationScrollController
-                                );
+                                    context, stationScrollController);
                               },
                               icon: const Icon(Icons.near_me, size: 20),
                               label: const Text('주변 정류장'),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(width: 12),
-                          
+
                           // 노선 정보 버튼
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 HapticFeedback.lightImpact();
                                 _showRouteInfo(context, controller);
-                                },
+                              },
                               icon: const Icon(Icons.access_time, size: 20),
                               label: const Text('시간표'),
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -325,18 +329,19 @@ class _BusMapViewState extends State<BusMapView> {
   // 노선 간략 정보 배너 위젯
   Widget _buildRouteInfoBanner(BusMapViewModel controller) {
     return Obx(() {
-      if (controller.selectedRoute.value.isEmpty || _cachedTimetableData == null) {
+      if (controller.selectedRoute.value.isEmpty ||
+          _cachedTimetableData == null) {
         return const SizedBox.shrink();
       }
-      
+
       final routeData = _cachedTimetableData![controller.selectedRoute.value];
       if (routeData == null) return const SizedBox.shrink();
-      
+
       final List<dynamic> times = routeData['시간표'] ?? [];
       final String firstBus = times.isNotEmpty ? times.first.toString() : '-';
       final String lastBus = times.isNotEmpty ? times.last.toString() : '-';
       final String interval = TimetableHelper.calculateInterval(times);
-      
+
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -405,37 +410,41 @@ class _BusMapViewState extends State<BusMapView> {
                   Expanded(
                     child: Platform.isIOS
                         ? DefaultTabController(
-                          length: 2,
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 350,
-                                child: Obx(() => CupertinoSlidingSegmentedControl<int>(
-                                  children: const {
-                                    0: Text('시간표'),
-                                    1: Text('노선 정보'),
-                                  },
-                                  groupValue: controller.selectedTab.value,
-                                  onValueChanged: (value) {
-                                    if (value != null) {
-                                      controller.selectedTab.value = value;
-                                    }
-                                  },
-                                )),
-                              ),
-                              Expanded(
-                                child: Obx(() =>
-                                  controller.selectedTab.value == 0
-                                    ? TimetableView()
-                                    : RouteInfoView(
-                                        routeSimpleNames: routeSimpleNames,
-                                        routeDisplayNames: routeDisplayNames,
-                                      )
+                            length: 2,
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 350,
+                                  child: Obx(() =>
+                                      CupertinoSlidingSegmentedControl<int>(
+                                        children: const {
+                                          0: Text('시간표'),
+                                          1: Text('노선 정보'),
+                                        },
+                                        groupValue:
+                                            controller.selectedTab.value,
+                                        onValueChanged: (value) {
+                                          if (value != null) {
+                                            controller.selectedTab.value =
+                                                value;
+                                          }
+                                        },
+                                      )),
                                 ),
-                              ),
-                            ],
-                          ),
-                        )
+                                Expanded(
+                                  child: Obx(
+                                      () => controller.selectedTab.value == 0
+                                          ? TimetableView()
+                                          : RouteInfoView(
+                                              routeSimpleNames:
+                                                  routeSimpleNames,
+                                              routeDisplayNames:
+                                                  routeDisplayNames,
+                                            )),
+                                ),
+                              ],
+                            ),
+                          )
                         : DefaultTabController(
                             length: 2,
                             child: Column(
@@ -475,41 +484,40 @@ class _BusMapViewState extends State<BusMapView> {
     if (destination != null) {
       // 목적지를 기반으로 상행/하행 판단
       bool isUpDirection = _isUpDirection(destination);
-      
+
       // 해당 노선의 상행/하행 키 찾기
       String targetSuffix = isUpDirection ? "_UP" : "_DOWN";
       String targetKey = "${routeName}${targetSuffix}";
-      
+
       if (routeDisplayNames.containsKey(targetKey)) {
         return targetKey;
       }
     }
-    
+
     // 목적지 정보가 없거나 매칭되지 않는 경우 기존 로직 사용
     for (String key in routeDisplayNames.keys) {
       if (key.startsWith(routeName)) {
         return key;
       }
     }
-    
+
     // 직접 매칭되는 키가 있는지 확인
     if (routeDisplayNames.containsKey(routeName)) {
       return routeName;
     }
-    
+
     return null;
   }
-  
+
   bool _isUpDirection(String destination) {
     // 호서대학교 방향이면 상행(UP), 그 외는 하행(DOWN)
     List<String> upDestinations = [
       '호서대학교',
-
     ];
-    
+
     List<String> downDestinations = [
       '천안아산역',
-      '아산역', 
+      '아산역',
       '아산터미널',
       '탕정면사무소',
       '지중해마을',
@@ -517,21 +525,21 @@ class _BusMapViewState extends State<BusMapView> {
       '동우아파트',
       '호서대(천안)',
     ];
-    
+
     // 상행 목적지 확인 (호서대학교 방향)
     for (String upDest in upDestinations) {
       if (destination.contains(upDest)) {
         return true;
       }
     }
-    
+
     // 하행 목적지 확인 (호서대학교에서 출발하는 방향)
     for (String downDest in downDestinations) {
       if (destination.contains(downDest)) {
         return false;
       }
     }
-    
+
     // 기본값은 하행
     return false;
   }
@@ -554,8 +562,9 @@ class StationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       // 강조 표시 여부 확인
-      final isHighlighted = BusMapViewModelExtension.highlightedStation.value == index;
-      
+      final isHighlighted =
+          BusMapViewModelExtension.highlightedStation.value == index;
+
       // 강조 표시된 정류장이면 애니메이션 효과 추가
       if (isHighlighted) {
         return TweenAnimationBuilder<double>(
@@ -564,7 +573,8 @@ class StationItem extends StatelessWidget {
           builder: (context, value, child) {
             return Container(
               decoration: BoxDecoration(
-                color: Color.lerp(Colors.transparent, Colors.yellow.withOpacity(0.3), value),
+                color: Color.lerp(
+                    Colors.transparent, Colors.yellow.withOpacity(0.3), value),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: child,
@@ -573,12 +583,12 @@ class StationItem extends StatelessWidget {
           child: _buildStationContent(context, isHighlighted),
         );
       }
-      
+
       // 일반 정류장
       return _buildStationContent(context, isHighlighted);
     });
   }
-  
+
   // 정류장 내용 위젯
   Widget _buildStationContent(BuildContext context, bool isHighlighted) {
     return Column(
@@ -624,9 +634,9 @@ class StationItem extends StatelessWidget {
                         size: 20,
                       )
                     // 강조 표시된 정류장이면 위치 아이콘 표시
-                    : isHighlighted 
-                      ? _buildPulsingIcon()
-                      : null,
+                    : isHighlighted
+                        ? _buildPulsingIcon()
+                        : null,
               ),
 
               // 정류장 이름과 번호
@@ -638,14 +648,14 @@ class StationItem extends StatelessWidget {
                       stationName,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: isBusHere || isHighlighted 
-                            ? FontWeight.bold 
+                        fontWeight: isBusHere || isHighlighted
+                            ? FontWeight.bold
                             : FontWeight.normal,
-                        color: isHighlighted 
+                        color: isHighlighted
                             ? Colors.orange
                             : isBusHere
-                              ? Colors.blue
-                              : Theme.of(context).textTheme.bodyLarge?.color,
+                                ? Colors.blue
+                                : Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -659,7 +669,8 @@ class StationItem extends StatelessWidget {
                         "$stationNumber",
                         style: TextStyle(
                           fontSize: 12,
-                          color: isHighlighted ? Colors.orange[700] : Colors.grey,
+                          color:
+                              isHighlighted ? Colors.orange[700] : Colors.grey,
                         ),
                       );
                     }),
@@ -675,15 +686,16 @@ class StationItem extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 76.0),
             child: Divider(
-              height: 0, 
-              thickness: 1, 
-              color: isHighlighted ? Colors.orange.withOpacity(0.3) : Colors.grey,
+              height: 0,
+              thickness: 1,
+              color:
+                  isHighlighted ? Colors.orange.withOpacity(0.3) : Colors.grey,
             ),
           ),
       ],
     );
   }
-  
+
   // 펄스 애니메이션 아이콘
   Widget _buildPulsingIcon() {
     return TweenAnimationBuilder<double>(
@@ -692,7 +704,8 @@ class StationItem extends StatelessWidget {
       // 애니메이션 반복
       onEnd: () {
         // 반복 애니메이션을 위해 다시 빌드하게 함
-        Future.microtask(() => BusMapViewModelExtension.highlightedStation.refresh());
+        Future.microtask(
+            () => BusMapViewModelExtension.highlightedStation.refresh());
       },
       builder: (context, value, child) {
         return Transform.scale(
