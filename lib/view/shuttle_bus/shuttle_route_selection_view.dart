@@ -406,9 +406,19 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
   }
 
   // 플랫폼별 로딩 인디케이터
-  Widget _buildPlatformLoadingIndicator() {
-    return CircularProgressIndicator.adaptive(
-      valueColor: AlwaysStoppedAnimation<Color>(shuttleColor),
+  Widget _buildPlatformLoadingIndicator({
+    double size = 24,
+    Color? color,
+    double strokeWidth = 2.5,
+  }) {
+    final indicatorColor = color ?? shuttleColor;
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CircularProgressIndicator.adaptive(
+        strokeWidth: strokeWidth,
+        valueColor: AlwaysStoppedAnimation<Color>(indicatorColor),
+      ),
     );
   }
 
@@ -684,6 +694,8 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
           context,
           onTapDatePicker: () => _showIOSDatePicker(context),
         ),
+        SizedBox(height: 8),
+        _buildScheduleTypeInfoText(context),
       ],
     );
   }
@@ -756,8 +768,54 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
           context,
           onTapDatePicker: () => _showAndroidDatePicker(context),
         ),
+        SizedBox(height: 8),
+        _buildScheduleTypeInfoText(context),
       ],
     );
+  }
+
+  Widget _buildScheduleTypeInfoText(BuildContext context) {
+    return Obx(() {
+      if (viewModel.selectedDate.value.isEmpty) {
+        return SizedBox.shrink();
+      }
+
+      final scheduleTypeName = viewModel.scheduleTypeName.value;
+      final isLoading = viewModel.isLoadingScheduleType.value;
+
+      if (scheduleTypeName.isEmpty && !isLoading) {
+        return SizedBox.shrink();
+      }
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '운행 유형: $scheduleTypeName',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.redAccent
+                  : shuttleColor,
+            ),
+          ),
+          SizedBox(width: 8),
+          SizedBox(
+            width: 14,
+            height: 14,
+            child: Opacity(
+              opacity: isLoading ? 1 : 0,
+              child: _buildPlatformLoadingIndicator(
+                size: 14,
+                color: Theme.of(context).hintColor,
+                strokeWidth: 2,
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildDateSelectorWithArrows(
