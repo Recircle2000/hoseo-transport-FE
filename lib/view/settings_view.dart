@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../viewmodel/settings_viewmodel.dart';
-import 'auth/login_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'subway/subway_view.dart';
 import 'guide/guide_selection_view.dart';
