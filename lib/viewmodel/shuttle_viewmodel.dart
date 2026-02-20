@@ -12,7 +12,7 @@ class ShuttleViewModel extends GetxController {
   final RxList<Schedule> schedules = <Schedule>[].obs;
   final RxList<ScheduleStop> scheduleStops = <ScheduleStop>[].obs;
   final RxList<ShuttleStation> stations = <ShuttleStation>[].obs;
-d
+
   // 선택된 아이템 관리
   final RxInt selectedRouteId = (-1).obs;
   final RxString selectedDate = ''.obs;
