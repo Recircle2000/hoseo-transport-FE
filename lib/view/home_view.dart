@@ -16,10 +16,10 @@ import 'city_bus/grouped_bus_view.dart';
 import 'subway/subway_view.dart';
 import 'package:hsro/view/components/scale_button.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:app_version_update/app_version_update.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/preferences_service.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -30,6 +30,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final noticeViewModel = Get.put(NoticeViewModel());
+  final PreferencesService _preferencesService = PreferencesService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey guideKey = GlobalKey();
   final ScrollController _homeScrollController = ScrollController();
@@ -54,17 +55,17 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _handleStartupFlow() async {
-    final prefs = await SharedPreferences.getInstance();
-
     // 1. 면책 문구 확인 (최초 실행 시)
-    final bool isFirstRun = prefs.getBool('first_run') ?? true;
+    final bool isFirstRun =
+        await _preferencesService.getBoolOrDefault('first_run', true);
     if (isFirstRun) {
       await PlatformUtils.showPlatformDisclaimerDialog(context);
-      await prefs.setBool('first_run', false);
+      await _preferencesService.setBool('first_run', false);
     }
 
     // 2. 가이드 확인
-    final hasSeenGuide = prefs.getBool('has_seen_guide') ?? false;
+    final hasSeenGuide =
+        await _preferencesService.getBoolOrDefault('has_seen_guide', false);
     if (!hasSeenGuide) {
       // 드로어 열기
       _scaffoldKey.currentState?.openDrawer();
@@ -149,8 +150,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _completeTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_seen_guide', true);
+    await _preferencesService.setBool('has_seen_guide', true);
 
     // 튜토리얼 종료 시 드로어 닫기
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
