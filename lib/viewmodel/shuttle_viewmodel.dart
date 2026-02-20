@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/shuttle_models.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
 import '../utils/env_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +24,7 @@ class ShuttleViewModel extends GetxController {
   final RxBool isLoadingStops = false.obs;
   final RxBool isLoadingStations = false.obs;
   final RxBool isLoadingScheduleType = false.obs;
+  final RxnString errorMessage = RxnString();
 
   // API 기본 URL
   final String baseUrl = '${EnvConfig.baseUrl}/shuttle'; // 환경 변수에서 가져옴
@@ -98,6 +98,15 @@ class ShuttleViewModel extends GetxController {
     }
   }
 
+  void clearErrorMessage() {
+    errorMessage.value = null;
+  }
+
+  void _emitError(String message) {
+    errorMessage.value = null;
+    errorMessage.value = message;
+  }
+
   // 노선 목록 조회
   Future<void> fetchRoutes() async {
     isLoadingRoutes.value = true;
@@ -127,14 +136,7 @@ class ShuttleViewModel extends GetxController {
       }
     } catch (e) {
       print('노선 목록을 불러오는데 실패했습니다: $e');
-      Get.snackbar(
-        '오류',
-        '노선 정보를 불러오는데 실패했습니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
-        duration: Duration(seconds: 3),
-      );
+      _emitError('노선 정보를 불러오는데 실패했습니다.');
     } finally {
       isLoadingRoutes.value = false;
     }
@@ -227,15 +229,7 @@ class ShuttleViewModel extends GetxController {
       }
     } catch (e) {
       print('시간표를 불러오는데 실패했습니다: $e');
-
-      Get.snackbar(
-        '오류',
-        '시간표를 불러오는데 실패했습니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
-        duration: Duration(seconds: 3),
-      );
+      _emitError('시간표를 불러오는데 실패했습니다.');
       return false;
     } finally {
       isLoadingSchedules.value = false;
@@ -314,14 +308,7 @@ class ShuttleViewModel extends GetxController {
       }
     } catch (e) {
       print('정류장 목록을 불러오는데 실패했습니다: $e');
-      Get.snackbar(
-        '오류',
-        '정류장 목록을 불러오는데 실패했습니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
-        duration: Duration(seconds: 3),
-      );
+      _emitError('정류장 목록을 불러오는데 실패했습니다.');
     } finally {
       isLoadingStations.value = false;
     }
@@ -418,14 +405,7 @@ class ShuttleViewModel extends GetxController {
       }
     } catch (e) {
       print('정류장 정보를 불러오는데 실패했습니다: $e');
-      Get.snackbar(
-        '오류',
-        '정류장 정보를 불러오는데 실패했습니다',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withOpacity(0.1),
-        colorText: Colors.red,
-        duration: Duration(seconds: 3),
-      );
+      _emitError('정류장 정보를 불러오는데 실패했습니다.');
       return null;
     }
   }

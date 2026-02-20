@@ -9,6 +9,16 @@ import '../utils/env_config.dart';
 import '../utils/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class NearbyStopsUiMessage {
+  final String title;
+  final String message;
+
+  const NearbyStopsUiMessage({
+    required this.title,
+    required this.message,
+  });
+}
+
 class NearbyStopsViewModel extends GetxController {
   final RxList<ShuttleStation> stations = <ShuttleStation>[].obs;
   final RxList<ShuttleStation> sortedStations = <ShuttleStation>[].obs;
@@ -20,6 +30,7 @@ class NearbyStopsViewModel extends GetxController {
   final RxBool isLoadingSchedules = false.obs;
   final RxBool isLoadingLocation = false.obs;
   final RxBool isLoadingRoutes = false.obs;
+  final Rxn<NearbyStopsUiMessage> uiMessage = Rxn<NearbyStopsUiMessage>();
   
   final Rx<Position?> currentPosition = Rx<Position?>(null);
   final RxInt selectedStationId = (-1).obs;
@@ -39,6 +50,22 @@ class NearbyStopsViewModel extends GetxController {
   
   // API 기본 URL
   final String baseUrl = EnvConfig.baseUrl;
+
+  void _emitUiMessage(
+    String title,
+    String message, {
+    dynamic snackPosition,
+    dynamic backgroundColor,
+    dynamic colorText,
+    Duration? duration,
+  }) {
+    uiMessage.value = null;
+    uiMessage.value = NearbyStopsUiMessage(title: title, message: message);
+  }
+
+  void clearUiMessage() {
+    uiMessage.value = null;
+  }
   
   @override
   void onInit() {
@@ -54,7 +81,7 @@ class NearbyStopsViewModel extends GetxController {
       // 위치 서비스가 활성화되어 있는지 확인
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        Get.snackbar(
+        _emitUiMessage(
           '위치 서비스 비활성화',
           '위치 서비스를 활성화해주세요',
           snackPosition: SnackPosition.BOTTOM,
@@ -71,7 +98,7 @@ class NearbyStopsViewModel extends GetxController {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           // 권한이 거부된 경우
-          Get.snackbar(
+          _emitUiMessage(
             '권한 거부',
             '위치 권한이 거부되었습니다. 가까운 정류장 찾기 기능을 사용할 수 없습니다.',
             snackPosition: SnackPosition.BOTTOM,
@@ -85,7 +112,7 @@ class NearbyStopsViewModel extends GetxController {
 
       if (permission == LocationPermission.deniedForever) {
         // 권한이 영구적으로 거부된 경우
-        Get.snackbar(
+        _emitUiMessage(
           '권한 설정 필요',
           '위치 권한이 영구적으로 거부되었습니다. 설정에서 권한을 허용해주세요.',
           snackPosition: SnackPosition.BOTTOM,
@@ -124,7 +151,7 @@ class NearbyStopsViewModel extends GetxController {
       }
     } catch (e) {
       print('정류장 목록을 불러오는데 실패했습니다: $e');
-      Get.snackbar(
+      _emitUiMessage(
         '오류',
         '정류장 정보를 불러오는데 실패했습니다',
         snackPosition: SnackPosition.BOTTOM,
@@ -146,7 +173,7 @@ class NearbyStopsViewModel extends GetxController {
       // 위치 서비스 사용 가능 여부 확인
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        Get.snackbar(
+        _emitUiMessage(
           '위치 서비스 비활성화',
           '위치 서비스를 활성화해주세요',
           snackPosition: SnackPosition.BOTTOM,
@@ -162,7 +189,7 @@ class NearbyStopsViewModel extends GetxController {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          Get.snackbar(
+          _emitUiMessage(
             '권한 거부',
             '위치 권한이 거부되었습니다',
             snackPosition: SnackPosition.BOTTOM,
@@ -175,7 +202,7 @@ class NearbyStopsViewModel extends GetxController {
       }
       
       if (permission == LocationPermission.deniedForever) {
-        Get.snackbar(
+        _emitUiMessage(
           '권한 설정 필요',
           '설정에서 위치 권한을 허용해주세요',
           snackPosition: SnackPosition.BOTTOM,
@@ -203,7 +230,7 @@ class NearbyStopsViewModel extends GetxController {
       
     } catch (e) {
       print('위치 정보를 가져오는데 실패했습니다: $e');
-      Get.snackbar(
+      _emitUiMessage(
         '오류',
         '위치 정보를 가져오는데 실패했습니다',
         snackPosition: SnackPosition.BOTTOM,

@@ -30,6 +30,7 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
   // 셔틀버스 색상 - 홈 화면과 동일하게 맞춤
   final Color shuttleColor = const Color(0xFFB83227);
   final ScrollController _scrollController = ScrollController();
+  Worker? _errorWorker;
 
   final GlobalKey _nearbyButtonKey = GlobalKey();
 
@@ -38,6 +39,16 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
   @override
   void initState() {
     super.initState();
+    _errorWorker = ever<String?>(viewModel.errorMessage, (message) {
+      if (!mounted || message == null || message.isEmpty) return;
+      Get.snackbar(
+        '오류',
+        message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      viewModel.clearErrorMessage();
+    });
+
     if (widget.startExperienceTour) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startExperienceTour();
@@ -47,6 +58,7 @@ class _ShuttleRouteSelectionViewState extends State<ShuttleRouteSelectionView> {
 
   @override
   void dispose() {
+    _errorWorker?.dispose();
     _scrollController.dispose();
     super.dispose();
   }
