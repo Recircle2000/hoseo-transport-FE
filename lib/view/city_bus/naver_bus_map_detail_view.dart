@@ -278,7 +278,7 @@ class _NaverBusMapDetailViewState extends State<NaverBusMapDetailView> {
 
     final overlays = <NMarker>{};
     for (int i = 0; i < stationMarkers.length; i++) {
-      final point = stationMarkers[i].point;
+      final point = stationMarkers[i].position;
       final metadata = i < _stationMetadata.length ? _stationMetadata[i] : null;
       final hasCustomIcon = _stationMarkerIcon != null;
 
@@ -306,7 +306,7 @@ class _NaverBusMapDetailViewState extends State<NaverBusMapDetailView> {
     if (buses.isEmpty) {
       final markerPoints = controller.markers.toList();
       return markerPoints.asMap().entries.map((entry) {
-        final point = entry.value.point;
+        final point = entry.value.position;
         return _createBusMarker(
           id: 'city_bus_${entry.key}',
           position: NLatLng(point.latitude, point.longitude),
