@@ -1,12 +1,19 @@
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../models/shuttle_models.dart';
 import 'package:intl/intl.dart';
-import '../utils/env_config.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../repository/shuttle_repository.dart';
+import '../services/preferences_service.dart';
 
 class ShuttleViewModel extends GetxController {
+  ShuttleViewModel({
+    ShuttleRepository? shuttleRepository,
+    PreferencesService? preferencesService,
+  })  : _shuttleRepository = shuttleRepository ?? ShuttleRepository(),
+        _preferencesService = preferencesService ?? PreferencesService();
+
+  final ShuttleRepository _shuttleRepository;
+  final PreferencesService _preferencesService;
+
   final RxList<ShuttleRoute> routes = <ShuttleRoute>[].obs;
   final RxList<Schedule> schedules = <Schedule>[].obs;
   final RxList<ScheduleStop> scheduleStops = <ScheduleStop>[].obs;
@@ -25,9 +32,6 @@ class ShuttleViewModel extends GetxController {
   final RxBool isLoadingStations = false.obs;
   final RxBool isLoadingScheduleType = false.obs;
   final RxnString errorMessage = RxnString();
-
-  // API 기본 URL
-  final String baseUrl = '${EnvConfig.baseUrl}/shuttle'; // 환경 변수에서 가져옴
 
   // 운행 일자 타입 정보 - 응답에서만 사용
   final Map<String, String> scheduleTypeNames = {
@@ -111,29 +115,15 @@ class ShuttleViewModel extends GetxController {
   Future<void> fetchRoutes() async {
     isLoadingRoutes.value = true;
     try {
-      final response = await http.get(Uri.parse('$baseUrl/routes'));
+      var routeList = await _shuttleRepository.fetchRoutes();
 
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
-        final List<dynamic> data = json.decode(decodedBody);
-        print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
-
-        List<ShuttleRoute> routeList =
-            data.map((item) => ShuttleRoute.fromJson(item)).toList();
-
-        // SharedPreferences에서 캠퍼스 설정 값 불러오기
-        final prefs = await SharedPreferences.getInstance();
-        final campusSetting = prefs.getString('campus') ?? '아산'; // 기본값은 아산
-
-        // 천안 설정인 경우 아산↔천안 노선 순서 변경
-        if (campusSetting == '천안') {
-          routeList = _reorderRoutesForCheonan(routeList);
-        }
-
-        routes.value = routeList;
-      } else {
-        throw Exception('노선 목록을 불러오는데 실패했습니다 (${response.statusCode})');
+      final campusSetting =
+          await _preferencesService.getStringOrDefault('campus', '아산');
+      if (campusSetting == '천안') {
+        routeList = _reorderRoutesForCheonan(routeList);
       }
+
+      routes.value = routeList;
     } catch (e) {
       print('노선 목록을 불러오는데 실패했습니다: $e');
       _emitError('노선 정보를 불러오는데 실패했습니다.');
@@ -181,52 +171,41 @@ class ShuttleViewModel extends GetxController {
     String scheduleTypeName = '';
 
     try {
-      final response = await http.get(
-          Uri.parse('$baseUrl/schedules-by-date?route_id=$routeId&date=$date'));
+      final data = await _shuttleRepository.fetchSchedulesByDate(
+        routeId: routeId,
+        date: date,
+      );
 
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
-        final data = json.decode(decodedBody);
-        print('API 응답 데이터: ${utf8.decode(response.bodyBytes)}');
-
-        // schedule_type_name 정보 저장 (있는 경우)
-        if (data.containsKey('schedule_type_name')) {
-          scheduleTypeName = data['schedule_type_name'];
-          this.scheduleTypeName.value = scheduleTypeName;
-        } else {
-          this.scheduleTypeName.value = '';
-        }
-
-        final List<dynamic> scheduleData = data['schedules'];
-
-        // 데이터 시간순으로 정렬
-        scheduleData.sort((a, b) {
-          final aTime = a['start_time'];
-          final bTime = b['start_time'];
-          return aTime.compareTo(bTime);
-        });
-
-        // 정렬된 데이터에 회차 정보 추가 (1회차부터 시작)
-        for (int i = 0; i < scheduleData.length; i++) {
-          scheduleData[i]['round'] = i + 1;
-        }
-
-        schedules.value =
-            scheduleData.map((item) => Schedule.fromJson(item)).toList();
-
-        // 현재 시간에 가장 가까운 스케줄 자동 선택 (옵션)
-        if (useDefaultValues.value && schedules.isNotEmpty) {
-          //selectNearestSchedule();
-        }
-        return true;
-      } else if (response.statusCode == 404) {
-        // 404 오류: 해당 노선/일자에 운행 정보가 없음
+      if (data == null) {
         print('해당 날짜에 운행하는 셔틀노선이 없습니다 (404)');
         return false;
-      } else {
-        // 기타 서버 오류
-        throw Exception('시간표를 불러오는데 실패했습니다 (${response.statusCode})');
       }
+
+      if (data.containsKey('schedule_type_name')) {
+        scheduleTypeName = data['schedule_type_name'];
+        this.scheduleTypeName.value = scheduleTypeName;
+      } else {
+        this.scheduleTypeName.value = '';
+      }
+
+      final List<dynamic> scheduleData = data['schedules'];
+      scheduleData.sort((a, b) {
+        final aTime = a['start_time'];
+        final bTime = b['start_time'];
+        return aTime.compareTo(bTime);
+      });
+
+      for (int i = 0; i < scheduleData.length; i++) {
+        scheduleData[i]['round'] = i + 1;
+      }
+
+      schedules.value =
+          scheduleData.map((item) => Schedule.fromJson(item)).toList();
+
+      if (useDefaultValues.value && schedules.isNotEmpty) {
+        //selectNearestSchedule();
+      }
+      return true;
     } catch (e) {
       print('시간표를 불러오는데 실패했습니다: $e');
       _emitError('시간표를 불러오는데 실패했습니다.');
@@ -265,24 +244,14 @@ class ShuttleViewModel extends GetxController {
     scheduleStops.clear();
 
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/schedules/$scheduleId/stops'));
-
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes); // UTF-8 디코딩 적용
-        final List<dynamic> data = json.decode(decodedBody);
-        print('API 응답 데이터(정류장 정보): ${utf8.decode(response.bodyBytes)}');
-        scheduleStops.value =
-            data.map((item) => ScheduleStop.fromJson(item)).toList();
-        return true;
-      } else if (response.statusCode == 404) {
-        // 404 오류: 해당 스케줄의 정류장 정보가 없음
+      final data = await _shuttleRepository.fetchScheduleStops(scheduleId);
+      if (data == null) {
         print('해당 스케줄의 정류장 정보가 없습니다 (404)');
         return false;
-      } else {
-        // 기타 서버 오류
-        throw Exception('정류장 정보를 불러오는데 실패했습니다 (${response.statusCode})');
       }
+
+      scheduleStops.value = data;
+      return true;
     } catch (e) {
       print('정류장 정보를 불러오는데 실패했습니다: $e');
 
@@ -296,16 +265,7 @@ class ShuttleViewModel extends GetxController {
   Future<void> fetchStations() async {
     isLoadingStations.value = true;
     try {
-      final response = await http.get(Uri.parse('$baseUrl/stations'));
-      print('정류장 목록 조회 응답: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        stations.value =
-            data.map((item) => ShuttleStation.fromJson(item)).toList();
-      } else {
-        throw Exception('정류장 목록을 불러오는데 실패했습니다 (${response.statusCode})');
-      }
+      stations.value = await _shuttleRepository.fetchStations();
     } catch (e) {
       print('정류장 목록을 불러오는데 실패했습니다: $e');
       _emitError('정류장 목록을 불러오는데 실패했습니다.');
@@ -351,22 +311,14 @@ class ShuttleViewModel extends GetxController {
     isLoadingScheduleType.value = true;
 
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/schedule-type-by-date?date=$date'),
-      );
+      final data = await _shuttleRepository.fetchScheduleTypeByDate(date);
 
       // 빠르게 날짜를 바꾼 경우 이전 요청 결과는 무시
       if (_latestScheduleTypeRequestDate != date) {
         return;
       }
 
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final Map<String, dynamic> data = json.decode(decodedBody);
-        scheduleTypeName.value = data['schedule_type_name'] ?? '';
-      } else {
-        scheduleTypeName.value = '';
-      }
+      scheduleTypeName.value = data?['schedule_type_name'] ?? '';
     } catch (e) {
       print('날짜별 운행 유형을 불러오는데 실패했습니다: $e');
       if (_latestScheduleTypeRequestDate == date) {
@@ -388,21 +340,13 @@ class ShuttleViewModel extends GetxController {
   // 특정 정류장의 상세 정보 조회
   Future<ShuttleStation?> fetchStationDetail(int stationId) async {
     try {
-      final response =
-          await http.get(Uri.parse('$baseUrl/stations?station_id=$stationId'));
-
-      if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final List<dynamic> data = json.decode(decodedBody);
-
-        if (data.isNotEmpty) {
-          return ShuttleStation.fromJson(data[0]);
-        } else {
-          throw Exception('정류장 정보가 없습니다.');
-        }
-      } else {
-        throw Exception('정류장 정보를 불러오는데 실패했습니다 (${response.statusCode})');
+      final stationList = await _shuttleRepository.fetchStations(
+        stationId: stationId,
+      );
+      if (stationList.isNotEmpty) {
+        return stationList.first;
       }
+      throw Exception('정류장 정보가 없습니다.');
     } catch (e) {
       print('정류장 정보를 불러오는데 실패했습니다: $e');
       _emitError('정류장 정보를 불러오는데 실패했습니다.');
